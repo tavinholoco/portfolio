@@ -241,6 +241,21 @@ Navegação fixa no topo (desktop) + menu mobile (shadcn Sheet). Âncoras suaves
 - [x] Cards de clientes redesenhados: **prévia do site** (screenshot do topo da página em `public/projects/`) com badge "No ar" sobreposto + informações abaixo da imagem; removida a menção a repositórios privados
 - [x] Re-validado: build, lint, links (LinkedIn/Dandarkness OK) e responsividade em 6 larguras (375→1440px, zero overflow)
 
+### Ajustes de navegação, tema e idioma ✅
+- [x] Nome do hero reduzido para **"Pedro Levi"** (removido "Dias Rosa Paula")
+- [x] Navbar: removido o botão **Contatar**; links (Início, Sobre, Projetos, Clientes, Trajetória, Habilidades, Contato) movidos para a **direita** da página; hamburger agora só abaixo de `lg`
+- [x] **Tema claro/escuro**: variáveis de tema reestruturadas (`:root` = claro, `.dark` = escuro), script anti-flash no `layout.tsx`, botão no header (localStorage `theme`), cores e badges adaptados (contraste validado nos dois temas)
+- [x] **Tradução pt-BR/EN**: dicionários em `src/i18n/` (pt.ts + en.ts), cookie `lang` com renderização SSR por idioma, metadados/OG por idioma, datas dos projetos no idioma correto, botão no header (alterna e recarrega)
+- [x] Re-validado: build, lint, console limpo, responsividade em **2 temas × 5 larguras** (zero overflow), layout do header confirmado no desktop (nav à direita) e menu mobile OK
+
+### SEO bilíngue (hreflang + sitemap) ✅
+- [x] Rotas separadas por idioma: `/` (pt-BR) e `/en/` (inglês), ambas **estáticas com ISR 1h** (`trailingSlash` para URLs estáveis)
+- [x] **hreflang** em cada rota via `alternates.languages` (pt-BR, en, x-default) + canonical próprio por idioma
+- [x] **Sitemap** `/sitemap.xml` com as duas variantes e links alternates xhtml
+- [x] **OG image em inglês** para `/en/` (texto "fullstack developer")
+- [x] Botão de idioma agora navega entre as rotas (sem cookie); `metadata.ts` centraliza os metadados por idioma
+- [x] Validado em produção (`pnpm build` + `pnpm start`): hreflang/canonical/sitemap/OG presentes, `/en/` 200 e `/en` redireciona para `/en/`
+
 ### Fase 5 — Deploy (½ dia)
 - [ ] Repositório no GitHub, push, importar na Vercel
 - [ ] Domínio próprio (opcional): DNS + HTTPS
