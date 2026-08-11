@@ -26,8 +26,9 @@ export function ThemeToggle({ label }: { label: string }) {
       title={label}
       className="focus-ring inline-flex size-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
     >
-      <Sun className="size-4 dark:hidden" aria-hidden />
-      <Moon className="hidden size-4 dark:block" aria-hidden />
+      {/* Sol visível no modo escuro, lua no modo claro (mostra o tema de destino) */}
+      <Sun className="hidden size-4 dark:block" aria-hidden />
+      <Moon className="size-4 dark:hidden" aria-hidden />
     </button>
   );
 }

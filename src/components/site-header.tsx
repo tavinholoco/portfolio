@@ -72,8 +72,8 @@ export function SiteHeader({ lang }: { lang: Locale }) {
           >
             <span className="text-primary">&gt;_</span> pedrolevi
           </a>
-          <ThemeToggle label={d.controls.theme} />
           <LangToggle lang={lang} labels={d.controls} />
+          <ThemeToggle label={d.controls.theme} />
         </div>
 
         {/* Navegação principal (desktop, à direita) */}
