@@ -201,10 +201,7 @@ pnpm exec vercel link
 pnpm exec vercel env add NEXT_PUBLIC_SITE_URL production
 #    ex.: https://pedrolevi.dev  (ou a URL *.vercel.app gerada)
 
-# 4. (opcional) Google Analytics 4 — ID de medição G-XXXXXXXXXX
-pnpm exec vercel env add NEXT_PUBLIC_GA_ID production
-
-# 5. deploy de produção
+# 4. deploy de produção
 pnpm deploy
 ```
 
@@ -213,7 +210,6 @@ pnpm deploy
 > **Sem `NEXT_PUBLIC_SITE_URL`**, o site usa automaticamente a URL do deploy (`VERCEL_URL`/`VERCEL_PROJECT_PRODUCTION_URL`) para canonical, hreflang e sitemap. Quando tiver domínio próprio, defina a variável para fixar a URL canônica.
 
 - (Opcional) Adicione `GITHUB_TOKEN` para folga no rate limit da GitHub API.
-- (Opcional) Adicione `NEXT_PUBLIC_GA_ID` com seu ID de medição do Google Analytics 4. Sem ele, o script do GA não é carregado.
 - Veja `.env.example` para todas as variáveis disponíveis.
 - As duas rotas (`/` e `/en/`) são estáticas com os dados do GitHub cacheados por ISR de 1h.
 
