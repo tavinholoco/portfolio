@@ -4,12 +4,61 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Tema dark premium, portfólio single-page (inspirado em kc1t.com)
- * Paleta: fundo quase preto, superfícies elevadas, accent verde-água.
+ * Tema premium, portfólio single-page (inspirado em kc1t.com).
+ * Paleta: accent verde-água; claro (padrão) e escuro via classe .dark no <html>.
  */
 :root {
   --radius: 0.625rem;
 
+  --background: #fafafa;
+  --foreground: #131316;
+
+  --card: #ffffff;
+  --card-foreground: #131316;
+
+  --popover: #ffffff;
+  --popover-foreground: #131316;
+
+  --primary: #0d9488;
+  --primary-foreground: #f0fdfa;
+
+  --secondary: #ececef;
+  --secondary-foreground: #131316;
+
+  --muted: #f2f2f5;
+  --muted-foreground: #56565f;
+
+  --accent: #ececef;
+  --accent-foreground: #131316;
+
+  --destructive: #dc2626;
+  --destructive-foreground: #fef2f2;
+
+  --border: #e4e4e7;
+  --input: #d4d4d8;
+  --ring: #0d9488;
+
+  --chart-1: #0d9488;
+  --chart-2: #0284c7;
+  --chart-3: #d97706;
+  --chart-4: #7c3aed;
+  --chart-5: #e11d48;
+
+  --sidebar: #ffffff;
+  --sidebar-foreground: #131316;
+  --sidebar-primary: #0d9488;
+  --sidebar-primary-foreground: #f0fdfa;
+  --sidebar-accent: #ececef;
+  --sidebar-accent-foreground: #131316;
+  --sidebar-border: #e4e4e7;
+  --sidebar-ring: #0d9488;
+
+  --grid-line: rgb(0 0 0 / 0.07);
+  --scrollbar-thumb: #c8c8cf;
+  --scrollbar-thumb-hover: #b0b0b8;
+}
+
+.dark {
   --background: #0a0a0b;
   --foreground: #fafafa;
 
@@ -52,6 +101,10 @@
   --sidebar-accent-foreground: #fafafa;
   --sidebar-border: #232326;
   --sidebar-ring: #2dd4bf;
+
+  --grid-line: rgb(255 255 255 / 0.06);
+  --scrollbar-thumb: #2a2a2f;
+  --scrollbar-thumb-hover: #3f3f46;
 }
 
 @theme inline {
@@ -127,20 +180,20 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #2a2a2f;
+  background: var(--scrollbar-thumb);
   border-radius: 9999px;
   border: 2px solid var(--background);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #3f3f46;
+  background: var(--scrollbar-thumb-hover);
 }
 
-/* Grade sutil de fundo (usada no hero) */
+/* Grade sutil de fundo (usada no hero), adaptada ao tema */
 @utility bg-grid-pattern {
   background-image:
-    linear-gradient(to right, rgb(255 255 255 / 0.06) 1px, transparent 1px),
-    linear-gradient(to bottom, rgb(255 255 255 / 0.06) 1px, transparent 1px);
+    linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
   background-size: 72px 72px;
 }
 
