@@ -41,7 +41,7 @@ export function ClientProjectsSection({ lang }: { lang: Locale }) {
               <h3 className="text-lg font-semibold text-foreground">
                 {project.name}
               </h3>
-              <p className="mt-2 flex-1 text-sm leading-relaxed text-muted-foreground text-pretty">
+              <p className="font-body mt-2 flex-1 text-sm leading-relaxed text-muted-foreground text-pretty">
                 {project.description}
               </p>
               <a

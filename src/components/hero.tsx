@@ -52,7 +52,7 @@ export function Hero({ lang }: { lang: Locale }) {
         </h1>
 
         <p
-          className={`animate-fade-up motion-reduce:animate-none mx-auto mt-6 max-w-xl text-base leading-relaxed text-muted-foreground text-pretty sm:text-lg ${delays[1]}`}
+          className={`animate-fade-up motion-reduce:animate-none font-body mx-auto mt-6 max-w-xl text-base leading-relaxed text-muted-foreground text-pretty sm:text-lg ${delays[1]}`}
         >
           {d.hero.bio}
         </p>

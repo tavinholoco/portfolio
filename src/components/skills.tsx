@@ -58,7 +58,7 @@ export function Skills({ lang }: { lang: Locale }) {
                 <h3 className="mt-5 text-base font-semibold text-foreground">
                   {block.title}
                 </h3>
-                <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground text-pretty">
+                <p className="font-body mt-1.5 text-sm leading-relaxed text-muted-foreground text-pretty">
                   {block.description}
                 </p>
                 <div className="mt-5 flex flex-wrap gap-1.5">

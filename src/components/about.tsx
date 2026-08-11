@@ -89,8 +89,8 @@ export function About({ lang }: { lang: Locale }) {
                 key={index}
                 className={
                   index === 0
-                    ? "mt-8 text-xl font-medium leading-relaxed text-foreground text-pretty sm:text-2xl"
-                    : "mt-5 text-base leading-relaxed text-muted-foreground text-pretty"
+                    ? "font-body mt-8 text-xl font-medium leading-relaxed text-foreground text-pretty sm:text-2xl"
+                    : "font-body mt-5 text-base leading-relaxed text-muted-foreground text-pretty"
                 }
               >
                 {paragraph}
@@ -134,7 +134,7 @@ export function About({ lang }: { lang: Locale }) {
                     <h4 className="mt-4 text-sm font-semibold text-foreground">
                       {interest.title}
                     </h4>
-                    <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
+                    <p className="font-body mt-1.5 text-sm leading-relaxed text-muted-foreground">
                       {interest.description}
                     </p>
                   </div>

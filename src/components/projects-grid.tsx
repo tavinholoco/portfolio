@@ -99,7 +99,7 @@ export function ProjectsGrid({
                 <h3 className="mt-4 text-lg font-semibold text-foreground">
                   {project.title}
                 </h3>
-                <p className="mt-2 flex-1 text-sm leading-relaxed text-muted-foreground text-pretty">
+                <p className="font-body mt-2 flex-1 text-sm leading-relaxed text-muted-foreground text-pretty">
                   {project.description}
                 </p>
 

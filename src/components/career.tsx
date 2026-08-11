@@ -26,7 +26,7 @@ function TimelineColumn({
   defaultOpen?: string;
 }) {
   return (
-    <FadeIn>
+    <FadeIn className="min-w-0">
       <div className="flex items-center gap-3">
         <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
           <Icon className="size-5" aria-hidden />
@@ -75,7 +75,7 @@ function TimelineItem({
         className="absolute left-3.5 top-5 size-2.5 -translate-x-1/2 rounded-full border-2 border-primary bg-background"
       />
 
-      <AccordionTrigger className="gap-2 rounded-xl px-4 py-3 transition-colors hover:bg-muted/40 hover:no-underline">
+      <AccordionTrigger className="min-w-0 gap-2 rounded-xl px-4 py-3 transition-colors hover:bg-muted/40 hover:no-underline">
         <span className="flex min-w-0 flex-1 flex-wrap items-center justify-between gap-x-3 gap-y-1.5">
           <span className="flex min-w-0 flex-1 basis-56 flex-col">
             <span className="truncate text-sm font-semibold text-foreground">
@@ -103,7 +103,7 @@ function TimelineItem({
           {item.details.map((detail) => (
             <li
               key={detail}
-              className="flex gap-2.5 text-sm leading-relaxed text-muted-foreground"
+              className="font-body flex gap-2.5 text-sm leading-relaxed text-muted-foreground"
             >
               <span
                 className="mt-[0.55rem] size-1 shrink-0 rounded-full bg-primary/60"

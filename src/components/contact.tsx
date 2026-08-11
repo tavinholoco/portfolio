@@ -40,7 +40,7 @@ export function Contact({ lang }: { lang: Locale }) {
           <h2 className="mx-auto mt-3 max-w-2xl text-3xl font-semibold tracking-tight text-balance sm:text-5xl">
             {d.title}
           </h2>
-          <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-muted-foreground text-pretty">
+          <p className="font-body mx-auto mt-4 max-w-xl text-base leading-relaxed text-muted-foreground text-pretty">
             {d.description}
           </p>
 
