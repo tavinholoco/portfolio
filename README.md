@@ -188,10 +188,27 @@ Cada card mostra a **prévia do site** (screenshot do topo da página) e leva di
 
 ## 🚀 Deploy na Vercel
 
-1. Suba o repositório para o GitHub e importe-o na [Vercel](https://vercel.com/new).
-2. Configure a variável de ambiente **`NEXT_PUBLIC_SITE_URL`** com o domínio real (ex.: `https://pedrolevi.dev`) — usada no canonical e no Open Graph.
-3. (Opcional) Adicione `GITHUB_TOKEN` para folga no rate limit da GitHub API.
-4. Deploy. As duas rotas (`/` e `/en/`) são estáticas com os dados do GitHub cacheados por ISR de 1h. Ajuste `NEXT_PUBLIC_SITE_URL` para o domínio real — ele alimenta o canonical, o hreflang e o sitemap.
+O CLI do Vercel já está no projeto (`pnpm deploy`). Primeira vez:
+
+```bash
+# 1. login (abre o navegador) — apenas na primeira vez
+pnpm exec vercel login
+
+# 2. conectar o projeto à sua conta Vercel
+pnpm exec vercel link
+
+# 3. definir a URL do site (alimenta canonical, hreflang e sitemap)
+pnpm exec vercel env add NEXT_PUBLIC_SITE_URL production
+#    ex.: https://pedrolevi.dev  (ou a URL *.vercel.app gerada)
+
+# 4. deploy de produção
+pnpm deploy
+```
+
+> Alternativa sem CLI: importe `tavinholoco/portfolio` em [vercel.com/new](https://vercel.com/new) e configure `NEXT_PUBLIC_SITE_URL` no dashboard.
+
+- (Opcional) Adicione `GITHUB_TOKEN` para folga no rate limit da GitHub API.
+- As duas rotas (`/` e `/en/`) são estáticas com os dados do GitHub cacheados por ISR de 1h.
 
 ## 📄 Scripts
 
@@ -201,3 +218,5 @@ Cada card mostra a **prévia do site** (screenshot do topo da página) e leva di
 | `pnpm build` | Build de produção |
 | `pnpm start` | Serve o build de produção |
 | `pnpm lint` | ESLint |
+| `pnpm deploy` | Deploy de produção na Vercel |
+| `pnpm deploy:preview` | Deploy de preview (ambiente de teste) na Vercel |
