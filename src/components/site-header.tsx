@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Mail, Menu } from "lucide-react";
+import { motion, useReducedMotion } from "framer-motion";
 
 import { GitHubIcon } from "@/components/icons";
 import { LangToggle } from "@/components/lang-toggle";
@@ -25,8 +26,9 @@ export function SiteHeader({ lang }: { lang: Locale }) {
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState("#inicio");
   const [scrolled, setScrolled] = useState(false);
+  const reduceMotion = useReducedMotion();
 
-  // Sombra sutil quando a página é rolada
+  // Sombra e compactação sutis quando a página é rolada
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
     onScroll();
@@ -56,15 +58,22 @@ export function SiteHeader({ lang }: { lang: Locale }) {
   }, [d.nav.links]);
 
   return (
-    <header
-      className={cn(
-        "fixed inset-x-0 top-0 z-50 border-b border-border/60 bg-background/70 backdrop-blur-xl transition-shadow supports-[backdrop-filter]:bg-background/70",
-        scrolled &&
-          "shadow-[0_12px_40px_-20px_rgba(0,0,0,0.25)] dark:shadow-[0_12px_40px_-20px_rgba(0,0,0,0.8)]"
-      )}
+    <motion.header
+      initial={reduceMotion ? false : { y: -24, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+      className="fixed inset-x-0 top-0 z-50 px-4 pt-3 sm:px-6 sm:pt-4"
     >
-      <div className="mx-auto flex h-16 w-full max-w-5xl items-center justify-between gap-4 px-4 sm:px-6">
-        {/* Logo + controles (tema e idioma) */}
+      {/* Pill flutuante */}
+      <div
+        className={cn(
+          "mx-auto flex h-14 max-w-5xl items-center justify-between gap-4 rounded-2xl border px-4 transition-all duration-300 sm:h-16 sm:px-5",
+          scrolled
+            ? "border-border/80 bg-background/85 shadow-[0_16px_50px_-12px_rgba(0,0,0,0.35)] backdrop-blur-xl supports-[backdrop-filter]:bg-background/85 dark:shadow-[0_16px_50px_-12px_rgba(0,0,0,0.75)]"
+            : "border-border/50 bg-background/60 backdrop-blur-md supports-[backdrop-filter]:bg-background/60"
+        )}
+      >
+        {/* Logo + controles (idioma e tema) */}
         <div className="flex shrink-0 items-center gap-1.5">
           <a
             href="#inicio"
@@ -76,26 +85,36 @@ export function SiteHeader({ lang }: { lang: Locale }) {
           <ThemeToggle label={d.controls.theme} />
         </div>
 
-        {/* Navegação principal (desktop, à direita) */}
+        {/* Navegação principal (desktop, à direita) com indicador deslizante */}
         <nav
-          className="hidden items-center gap-0.5 lg:flex"
+          className="hidden items-center gap-1 lg:flex"
           aria-label={d.nav.mainAria}
         >
-          {d.nav.links.map((link) => (
-            <a
-              key={link.href}
-              href={link.href}
-              aria-current={active === link.href ? "true" : undefined}
-              className={cn(
-                "focus-ring whitespace-nowrap rounded-md px-3 py-2 text-sm transition-colors",
-                active === link.href
-                  ? "bg-muted font-medium text-foreground"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
-              )}
-            >
-              {link.label}
-            </a>
-          ))}
+          {d.nav.links.map((link) => {
+            const isActive = active === link.href;
+            return (
+              <a
+                key={link.href}
+                href={link.href}
+                aria-current={isActive ? "true" : undefined}
+                className={cn(
+                  "focus-ring relative rounded-md px-3 py-2 text-sm transition-colors",
+                  isActive
+                    ? "text-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                {isActive && (
+                  <motion.span
+                    layoutId="nav-active-pill"
+                    transition={{ type: "spring", bounce: 0.25, duration: 0.5 }}
+                    className="absolute inset-0 rounded-md bg-muted"
+                  />
+                )}
+                <span className="relative z-10">{link.label}</span>
+              </a>
+            );
+          })}
         </nav>
 
         {/* Menu mobile */}
@@ -160,6 +179,6 @@ export function SiteHeader({ lang }: { lang: Locale }) {
           </SheetContent>
         </Sheet>
       </div>
-    </header>
+    </motion.header>
   );
 }

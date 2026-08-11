@@ -23,7 +23,7 @@ type SectionProps = {
 /** Wrapper padrão de seção: padding vertical, container e compensação da nav sticky. */
 export function Section({ id, className, children }: SectionProps) {
   return (
-    <section id={id} className={cn("scroll-mt-16 py-24 sm:py-28", className)}>
+    <section id={id} className={cn("scroll-mt-24 py-24 sm:py-28", className)}>
       <div className="mx-auto w-full max-w-5xl px-4 sm:px-6">{children}</div>
     </section>
   );
