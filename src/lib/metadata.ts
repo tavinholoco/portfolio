@@ -2,8 +2,21 @@ import type { Metadata } from "next";
 
 import { dictionaries, type Locale } from "@/i18n";
 
-/** Defina NEXT_PUBLIC_SITE_URL no deploy (ex.: https://pedrolevi.dev). */
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://pedrolevi.dev";
+/**
+ * URL canônica do site. Prioridade:
+ * 1. NEXT_PUBLIC_SITE_URL (domínio próprio, ex.: https://pedrolevi.dev)
+ * 2. VERCEL_PROJECT_PRODUCTION_URL / VERCEL_URL (URL real do deploy na Vercel)
+ * 3. Fallback local
+ */
+export function getSiteUrl(): string {
+  if (process.env.NEXT_PUBLIC_SITE_URL) return process.env.NEXT_PUBLIC_SITE_URL;
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL)
+    return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
+  return "https://localhost:3000";
+}
+
+const siteUrl = getSiteUrl();
 
 /** URLs por idioma usadas no canonical e no hreflang. */
 export const languageUrls: Record<string, string> = {

@@ -1,9 +1,8 @@
 import type { MetadataRoute } from "next";
 
-import { languageUrls } from "@/lib/metadata";
+import { getSiteUrl, languageUrls } from "@/lib/metadata";
 
-/** Defina NEXT_PUBLIC_SITE_URL no deploy (ex.: https://pedrolevi.dev). */
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://pedrolevi.dev";
+const siteUrl = getSiteUrl();
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const lastModified = new Date();
