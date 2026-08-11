@@ -1,19 +1,21 @@
 import { ProjectsGrid } from "@/components/projects-grid";
 import { Section, SectionHeading } from "@/components/section";
+import { dictionaries, type Locale } from "@/i18n";
 import { getFeaturedProjects } from "@/lib/github";
 
 /** Server Component: busca os projetos no GitHub (ISR) e renderiza o grid client. */
-export async function ProjectsSection() {
-  const projects = await getFeaturedProjects();
+export async function ProjectsSection({ lang }: { lang: Locale }) {
+  const d = dictionaries[lang].projects;
+  const projects = await getFeaturedProjects(d.featured, lang);
 
   return (
     <Section id="projetos">
       <SectionHeading
-        label="projetos"
-        title="Projetos em destaque"
-        description="Seleção dos meus trabalhos no GitHub, do app mobile ao portal com IA. Metadados sincronizados automaticamente com os repositórios."
+        label={d.label}
+        title={d.title}
+        description={d.description}
       />
-      <ProjectsGrid projects={projects} />
+      <ProjectsGrid projects={projects} lang={lang} />
     </Section>
   );
 }

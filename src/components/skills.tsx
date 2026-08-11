@@ -4,7 +4,7 @@ import type { LucideIcon } from "lucide-react";
 import { Database, MonitorSmartphone, Server, Sparkles } from "lucide-react";
 
 import { FadeIn, Section, SectionHeading } from "@/components/section";
-import { skillBlocks } from "@/data/skills";
+import { dictionaries, type Locale } from "@/i18n";
 import { cn } from "@/lib/utils";
 
 const blockIcons: Record<string, LucideIcon> = {
@@ -33,16 +33,18 @@ function LevelDots({ value, label }: { value: number; label: string }) {
   );
 }
 
-export function Skills() {
+export function Skills({ lang }: { lang: Locale }) {
+  const d = dictionaries[lang].skills;
+
   return (
     <Section id="habilidades">
       <SectionHeading
-        label="habilidades"
-        title="Habilidades"
-        description="Tecnologias e competências que uso no dia a dia para transformar problemas em soluções."
+        label={d.label}
+        title={d.title}
+        description={d.description}
       />
       <div className="mt-12 grid gap-5 sm:grid-cols-2">
-        {skillBlocks.map((block, index) => {
+        {d.blocks.map((block, index) => {
           const Icon = blockIcons[block.id];
           return (
             <FadeIn key={block.id} delay={index * 0.05}>

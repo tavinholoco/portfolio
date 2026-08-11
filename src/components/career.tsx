@@ -10,7 +10,8 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { FadeIn, Section, SectionHeading } from "@/components/section";
-import { education, experience, type CareerItem } from "@/data/career";
+import type { CareerItem } from "@/data/career";
+import { dictionaries, type Locale } from "@/i18n";
 import { cn } from "@/lib/utils";
 
 function TimelineColumn({
@@ -127,24 +128,26 @@ function TimelineItem({
   );
 }
 
-export function Career() {
+export function Career({ lang }: { lang: Locale }) {
+  const d = dictionaries[lang].career;
+
   return (
     <Section id="trajetoria">
       <SectionHeading
-        label="trajetória"
-        title="Trajetória profissional"
-        description="Formação acadêmica e experiências que construíram meu caminho até aqui."
+        label={d.label}
+        title={d.title}
+        description={d.description}
       />
       <div className="mt-12 grid gap-10 md:grid-cols-2 md:gap-8">
         <TimelineColumn
-          title="Formação Acadêmica"
+          title={d.educationTitle}
           icon={GraduationCap}
-          items={education}
+          items={d.education}
         />
         <TimelineColumn
-          title="Experiência Profissional"
+          title={d.experienceTitle}
           icon={Briefcase}
-          items={experience}
+          items={d.experience}
           defaultOpen="palmali"
         />
       </div>

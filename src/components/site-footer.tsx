@@ -2,8 +2,11 @@ import { Mail, Phone } from "lucide-react";
 
 import { GitHubIcon, LinkedInIcon } from "@/components/icons";
 import { profile } from "@/data/profile";
+import { dictionaries, type Locale } from "@/i18n";
 
-export function SiteFooter() {
+export function SiteFooter({ lang }: { lang: Locale }) {
+  const d = dictionaries[lang];
+
   return (
     <footer className="border-t border-border/60 py-8">
       <div className="mx-auto flex w-full max-w-5xl flex-col items-center justify-between gap-5 px-4 sm:flex-row sm:px-6">
@@ -23,7 +26,7 @@ export function SiteFooter() {
             href={profile.github}
             target="_blank"
             rel="noopener noreferrer"
-            aria-label="GitHub"
+            aria-label={d.footer.socials.github}
             className="focus-ring rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
             <GitHubIcon className="size-4" />
@@ -32,21 +35,21 @@ export function SiteFooter() {
             href={profile.linkedin}
             target="_blank"
             rel="noopener noreferrer"
-            aria-label="LinkedIn"
+            aria-label={d.footer.socials.linkedin}
             className="focus-ring rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
             <LinkedInIcon className="size-4" />
           </a>
           <a
             href={`mailto:${profile.email}`}
-            aria-label="Email"
+            aria-label={d.footer.socials.email}
             className="focus-ring rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
             <Mail className="size-4" aria-hidden />
           </a>
           <a
             href={`tel:${profile.phoneRaw}`}
-            aria-label="Telefone"
+            aria-label={d.footer.socials.phone}
             className="focus-ring rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
             <Phone className="size-4" aria-hidden />

@@ -2,19 +2,21 @@ import Image from "next/image";
 import { ExternalLink } from "lucide-react";
 
 import { Section, SectionHeading } from "@/components/section";
-import { clientProjects } from "@/data/projects";
+import { dictionaries, type Locale } from "@/i18n";
 
 /** Projetos entregues para clientes. Cada card mostra a prévia do site e leva direto a ele. */
-export function ClientProjectsSection() {
+export function ClientProjectsSection({ lang }: { lang: Locale }) {
+  const d = dictionaries[lang].clients;
+
   return (
     <Section id="clientes">
       <SectionHeading
-        label="clientes"
-        title="Projetos para clientes"
-        description="Trabalhos entregues e publicados para clientes. Cada card leva direto ao site do projeto."
+        label={d.label}
+        title={d.title}
+        description={d.description}
       />
       <div className="mt-10 grid gap-5 sm:grid-cols-2">
-        {clientProjects.map((project) => (
+        {d.projects.map((project) => (
           <article
             key={project.name}
             className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card/60 transition-all duration-300 hover:-translate-y-1 hover:border-primary/40 hover:shadow-[0_16px_48px_-16px_rgba(45,212,191,0.3)]"
@@ -23,14 +25,14 @@ export function ClientProjectsSection() {
             <div className="relative aspect-[16/10] overflow-hidden border-b border-border bg-secondary/40">
               <Image
                 src={project.image}
-                alt={`Prévia do site ${project.name}`}
+                alt={`${d.previewAlt} ${project.name}`}
                 fill
                 sizes="(max-width: 640px) 100vw, 50vw"
                 className="object-cover object-top transition-transform duration-500 group-hover:scale-[1.02]"
               />
-              <span className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full border border-emerald-400/25 bg-background/80 px-2.5 py-0.5 text-[11px] font-medium text-emerald-300 backdrop-blur">
+              <span className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-background/80 px-2.5 py-0.5 text-[11px] font-medium text-emerald-700 backdrop-blur dark:border-emerald-400/25 dark:text-emerald-300">
                 <span className="size-1.5 rounded-full bg-emerald-400" aria-hidden />
-                No ar
+                {d.live}
               </span>
             </div>
 
@@ -48,7 +50,7 @@ export function ClientProjectsSection() {
                 rel="noopener noreferrer"
                 className="focus-ring mt-5 inline-flex items-center gap-1.5 border-t border-border pt-4 text-sm font-medium text-primary transition-opacity hover:opacity-80"
               >
-                Visitar site
+                {d.visit}
                 <ExternalLink
                   className="size-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
                   aria-hidden
