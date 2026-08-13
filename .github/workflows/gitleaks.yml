@@ -1,0 +1,32 @@
+name: Gitleaks (segredos)
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  gitleaks:
+    name: Varredura de segredos
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Gitleaks scan
+        uses: gitleaks/gitleaks-action@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Versão fixada: a 8.30.x tem regressão no carregamento de
+          # [extend] (rules não são aplicadas). 8.24.2 é estável e validada.
+          GITLEAKS_VERSION: "8.24.2"
+          GITLEAKS_CONFIG: ".gitleaks.toml"
+          GITLEAKS_ENABLE_UPLOAD_ARTIFACT: "false"
+          GITLEAKS_NOTIFY_USER_LIST: "@tavinholoco"
