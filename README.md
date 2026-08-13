@@ -17,6 +17,21 @@ Site de portfólio em **página única** com projetos do GitHub, trajetória de 
 | i18n | Rotas por idioma: `/` (pt-BR) e `/en/` — dicionários em `src/i18n/` + hreflang e sitemap bilíngue |
 | Deploy | Vercel |
 
+## 🤖 CI (GitHub Actions)
+
+[![CI](https://github.com/tavinholoco/portfolio/actions/workflows/ci.yml/badge.svg)](https://github.com/tavinholoco/portfolio/actions/workflows/ci.yml)
+[![Gitleaks](https://github.com/tavinholoco/portfolio/actions/workflows/gitleaks.yml/badge.svg)](https://github.com/tavinholoco/portfolio/actions/workflows/gitleaks.yml)
+
+Dois workflows rodam em **push e pull request**:
+
+| Workflow | O que faz |
+|---|---|
+| `.github/workflows/ci.yml` | Lint (ESLint), typecheck (`tsc --noEmit`), testes (Vitest) e build de produção (Next.js) |
+| `.github/workflows/gitleaks.yml` | Varredura de segredos com **Gitleaks** (versão 8.24.2 fixada) usando `.gitleaks.toml` |
+
+- **Testes:** `src/**/*.test.ts` rodam com Vitest (`pnpm test`) — cobrem `cn()`, fetch do GitHub (com fallback), metadados/URL canônica e paridade dos dicionários pt/en.
+- **Gitleaks:** a config em `.gitleaks.toml` estende as regras padrão e tem um allowlist para os dados públicos do próprio site (e-mail, telefone, links) — contato de portfólio não é segredo. Para rodar localmente: `gitleaks git . --config .gitleaks.toml`.
+
 ## 🚦 Começando
 
 **Pré-requisitos:** Node.js 20+ e [pnpm](https://pnpm.io).
@@ -85,6 +100,11 @@ pnpm lint
 │       ├── github.ts            # fetch da GitHub API (ISR) + fallback
 │       ├── metadata.ts          # metadados por idioma (title, OG, canonical, hreflang)
 │       └── utils.ts             # helper cn() (clsx + tailwind-merge)
+├── .github/workflows/
+│   ├── ci.yml                   # CI: lint, typecheck, testes e build
+│   └── gitleaks.yml             # varredura de segredos (Gitleaks)
+├── .gitleaks.toml               # config do Gitleaks (allowlist dos dados públicos)
+├── vitest.config.ts             # config dos testes (alias @ + include src/**/*.test.ts)
 └── PLANO-PORTFOLIO.md           # planejamento e plano de ação do projeto
 ```
 
@@ -182,7 +202,7 @@ Cada card mostra a **prévia do site** (screenshot do topo da página) e leva di
 ## 🎨 Personalização visual
 
 - **Cores do tema:** `src/app/globals.css` → variáveis `--background`, `--primary` (accent), `--border`, etc. (claro em `:root`, escuro em `.dark`).
-- **Fontes:** `src/app/layout.tsx` (Geist Sans/Mono via `next/font`).
+- **Fontes:** `src/app/layout.tsx` (Fira Code como principal + Open Sans como secundária, via `next/font`).
 - **Favicon:** `src/app/icon.svg` (iniciais PL).
 - **OG image:** `src/app/opengraph-image.tsx` (gera a imagem 1200×630 usada no compartilhamento).
 
@@ -221,5 +241,7 @@ pnpm deploy
 | `pnpm build` | Build de produção |
 | `pnpm start` | Serve o build de produção |
 | `pnpm lint` | ESLint |
+| `pnpm typecheck` | Checagem de tipos (`tsc --noEmit`) |
+| `pnpm test` | Testes unitários (Vitest) |
 | `pnpm deploy` | Deploy de produção na Vercel |
 | `pnpm deploy:preview` | Deploy de preview (ambiente de teste) na Vercel |

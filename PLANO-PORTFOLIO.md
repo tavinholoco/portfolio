@@ -256,12 +256,17 @@ Navegação fixa no topo (desktop) + menu mobile (shadcn Sheet). Âncoras suaves
 - [x] Botão de idioma agora navega entre as rotas (sem cookie); `metadata.ts` centraliza os metadados por idioma
 - [x] Validado em produção (`pnpm build` + `pnpm start`): hreflang/canonical/sitemap/OG presentes, `/en/` 200 e `/en` redireciona para `/en/`
 
-### Fase 5 — Deploy (½ dia)
-- [ ] Repositório no GitHub, push, importar na Vercel
+### Fase 5 — Deploy (½ dia) ✅
+- [x] Repositório no GitHub, push, importar na Vercel (site no ar)
+- [x] Validação pós-deploy: rotas `/` e `/en/`, hreflang, sitemap, canonical e OG no site ao vivo
+- [x] URL canônica automática: fallback para `VERCEL_URL` quando `NEXT_PUBLIC_SITE_URL` não está definida
 - [ ] Domínio próprio (opcional): DNS + HTTPS
-- [ ] Variável `GITHUB_TOKEN` (opcional) e `revalidate` configurados
-- [ ] Checklist pós-deploy (testar links, ISR, OG image)
-- **Entregável:** site no ar 🚀
+
+### CI — Testes automatizados, Gitleaks e GitHub Actions ✅
+- [x] **Testes unitários com Vitest** (`pnpm test`, 21 testes): `cn()` (utils), `getFeaturedProjects` com fetch mockado (sucesso, fallback e formatação de data por idioma), `getSiteUrl`/`buildMetadata` (prioridade de env e hreflang) e paridade estrutural dos dicionários pt/en
+- [x] **Gitleaks** (`.gitleaks.toml`): regras padrão estendidas + allowlist dos dados públicos do site (contato, links, placeholders). Versão fixada em **8.24.2** no CI — a 8.30.x tem regressão no carregamento de `[extend]` (nenhuma regra é aplicada), descoberta e validada durante esta fase
+- [x] **GitHub Actions**: `ci.yml` (lint, typecheck, testes, build em push/PR) + `gitleaks.yml` (varredura de segredos em push/PR, com `workflow_dispatch`)
+- [x] Verificado localmente espelhando o CI: `pnpm install --frozen-lockfile`, lint, typecheck, 21/21 testes, build e scan do gitleaks limpo (0 leaks)
 
 ---
 
