@@ -1,0 +1,38 @@
+# Configuração do Gitleaks para o portfólio.
+# Estende as regras padrão e adiciona um allowlist para os dados públicos
+# do próprio site (e-mail, telefone, links) — são informações de contato
+# intencionalmente expostas no portfólio, não segredos.
+
+title = "Gitleaks config do portfólio"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Dados públicos do site e fixtures de teste (não são segredos)"
+paths = [
+    # Lockfiles são gerados e contêm hashes/URLs de pacotes
+    '''pnpm-lock\.yaml''',
+    # A própria config contém regexes de segredos (não são segredos reais)
+    '''\.gitleaks\.toml''',
+]
+regexes = [
+    # Contato público do portfólio (src/data/profile.ts e dicionários)
+    '''pedrolevidiass?@gmail\.com''',
+    '''\(18\)\s*99626-0781''',
+    '''5518996260781''',
+    '''wa\.me/5518996260781''',
+    '''linkedin\.com/in/pedro-levi-dias-96720126a''',
+    # Perfis e URLs públicas
+    '''github\.com/tavinholoco''',
+    '''api\.github\.com/users/tavinholoco''',
+    '''pedrolevi\.dev''',
+    '''localhost:3000''',
+    # Placeholders de ambiente e variáveis de configuração
+    '''NEXT_PUBLIC_SITE_URL''',
+    '''VERCEL_(URL|PROJECT_PRODUCTION_URL)''',
+    '''vercel\.app''',
+    '''vercel\.com''',
+    # Projetos de clientes e demos referenciados no site
+    '''dandarkness\.vercel\.app''',
+]
