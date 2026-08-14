@@ -1,6 +1,6 @@
 # 🚀 Portfólio — Pedro Levi
 
-Site de portfólio em **página única** com projetos do GitHub, trajetória de carreira, habilidades e contato — inspirado no [kc1t.com](https://kc1t.com/pt-br), com identidade própria.
+Site de portfólio com seções por área e páginas individuais de projeto, projetos do GitHub, trajetória de carreira, habilidades e contato — inspirado no [kc1t.com](https://kc1t.com/pt-br), com identidade própria.
 
 **Live:** [pedrolevi.dev](https://pedrolevi.dev) _(definido via `NEXT_PUBLIC_SITE_URL` no deploy)_
 
@@ -68,8 +68,10 @@ pnpm lint
 │   │   ├── opengraph-image.tsx  # OG image gerada (1200×630 PNG, pt)
 │   │   ├── page.tsx             # rota `/` — portfólio em português
 │   │   ├── sitemap.ts           # sitemap com as duas variantes de idioma
-│   │   ├── portfolio-page.tsx   # página única compartilhada (recebe o idioma)
-│   │   └── en/                  # rota `/en/` — portfólio em inglês
+│   │   ├── robots.ts            # robots.txt com sitemap
+│   │   ├── portfolio-page.tsx   # home compartilhada (recebe o idioma)
+│   │   ├── projetos/[slug]/     # páginas individuais de projeto (pt)
+│   │   └── en/                  # rota `/en/` — portfólio em inglês (+ en/projects/[slug])
 │   │       ├── page.tsx         # metadados en + hreflang
 │   │       └── opengraph-image.tsx # OG image em inglês
 │   ├── components/
@@ -78,11 +80,16 @@ pnpm lint
 │   │   ├── hero.tsx             # hero (server component, animação CSS)
 │   │   ├── about.tsx            # sobre: avatar, fatos, resumo, interesses
 │   │   ├── projects.tsx         # seção projetos (server wrapper: busca no GitHub)
+│   │   ├── featured-project.tsx # destaque do projeto principal (Newra News)
 │   │   ├── projects-grid.tsx    # grid de cards + filtro por categoria (client)
-│   │   ├── client-projects.tsx  # projetos para clientes (prévia do site)
-│   │   ├── career.tsx           # trajetória: timeline + accordion
-│   │   ├── skills.tsx           # habilidades: 4 blocos com níveis
-│   │   ├── contact.tsx          # CTA de contato + cards
+│   │   ├── project-detail.tsx   # página individual de projeto
+│   │   ├── client-projects.tsx  # projetos profissionais (cases de cliente)
+│   │   ├── process.tsx          # seção "Como trabalho" (5 passos)
+│   │   ├── career.tsx           # trajetória: timeline de storytelling
+│   │   ├── skills.tsx           # habilidades: 4 categorias sem nível
+│   │   ├── contact.tsx          # contato com 2 CTAs + cards
+│   │   ├── scroll-progress.tsx  # barra de progresso de leitura
+│   │   ├── json-ld.tsx          # dados estruturados (Schema.org)
 │   │   ├── site-header.tsx      # nav sticky + scrollspy + botões de tema/idioma + menu mobile
 │   │   ├── site-footer.tsx      # footer
 │   │   ├── theme-toggle.tsx     # botão claro/escuro (localStorage "theme")
@@ -90,8 +97,8 @@ pnpm lint
 │   │   └── icons.tsx            # ícones de marca (GitHub, LinkedIn)
 │   ├── data/                    # dados neutros (não dependem do idioma) + tipos
 │   │   ├── profile.ts           # contato, links, stack
-│   │   ├── projects.ts          # tipo das categorias de projeto
-│   │   └── career.ts            # tipo dos itens da trajetória
+│   │   ├── projects.ts          # curadoria neutra (slug + repo + demoUrl) + tipo
+│   │   └── career.ts            # tipo dos capítulos da timeline
 │   ├── i18n/                    # ⭐ TODOS os textos do site ficam aqui (editáveis)
 │   │   ├── index.ts             # tipos e helpers de locale (pt | en)
 │   │   ├── pt.ts                # textos em português (Brasil)
@@ -126,7 +133,7 @@ export const profile = {
   whatsapp: "https://wa.me/5518996260781",
   avatarUrl: "/avatar.jpg",            // foto do perfil (avatar do GitHub)
   cvUrl: "/cv/pedro-levi-curriculo.pdf",
-  stack: ["React.js", "React Native", …], // chips do hero
+  stack: ["React", "Next.js", "Node.js", "TypeScript"], // chips do hero
 };
 ```
 
@@ -138,16 +145,16 @@ Os dois arquivos têm a mesma estrutura (`Dict`). Exemplo do hero em `pt.ts`:
 
 ```ts
 hero: {
-  role: "desenvolvedor fullstack",
+  role: "Desenvolvedor Full Stack",
   name: "Pedro Levi",
-  bio: "…",
+  bio: "Construo aplicações web e mobile com foco em arquitetura, qualidade e experiências funcionais.",
   viewProjects: "Ver projetos",
   downloadCv: "Baixar CV",
   // …
 },
 ```
 
-Os principais blocos: `nav` (links + labels do menu), `hero`, `about` (fatos, resumo, stats, interesses), `projects` (curadoria + labels do filtro), `clients`, `career` (formação + experiência), `skills`, `contact` e `meta` (SEO/OG).
+Os principais blocos: `nav`, `hero`, `about` (fatos, resumo, métricas e interesses), `projects` (curadoria + labels), `clients`, `process` (Como trabalho), `career` (timeline em capítulos), `skills`, `contact` e `meta` (SEO/OG).
 
 ### 3. Projetos em destaque — `src/i18n/pt.ts` → `projects.featured`
 
@@ -155,16 +162,19 @@ A **curadoria** lista os projetos que aparecem no site. Os metadados (linguagem,
 
 ```ts
 {
-  repo: "newra-news",                   // nome EXATO do repositório no GitHub
+  slug: "newra-news",                   // liga ao metadado em src/data/projects.ts (slug/repo/demoUrl)
   title: "Newra News",
-  description: "…",
+  tagline: "…",
+  problem: "…",
+  solution: "…",
+  highlight: "…",
+  stack: ["Next.js", "Fastify", "Gemini", "Turborepo", "TypeScript"],
   category: "fullstack",                // "fullstack" | "mobile" | "landing"
-  inDevelopment: true,                  // opcional: badge "Em desenvolvimento"
-  tags: ["Next.js", "Fastify", "Gemini API"],
 },
 ```
 
-- A **demo** aparece sozinha quando o repo tem `homepage` configurada no GitHub (ex.: Vercel).
+- Os **metadados neutros** (slug, nome do repo e demoUrl) ficam em `src/data/projects.ts` — os dicionários só guardam texto traduzível.
+- A **demo** usa a `homepage` do repo no GitHub e, na ausência dela, o `demoUrl` curado como fallback.
 - Para trocar a ordem, reordene os itens do array.
 
 ### 4. Projetos de clientes — `src/i18n/pt.ts` → `clients.projects`
@@ -174,7 +184,10 @@ Cada card mostra a **prévia do site** (screenshot do topo da página) e leva di
 ```ts
 {
   name: "Dandarkness",
-  description: "…",
+  client: "Dandarkness",                 // "Cliente:" do card
+  type: "Portfólio artístico",           // "Tipo:" do card
+  tech: ["Next.js", "TypeScript", "Tailwind CSS"], // "Tecnologias:"
+  outcome: "…",                          // resultado/descrição do case
   url: "https://dandarkness.vercel.app/",  // link do site do projeto
   image: "/projects/dandarkness.jpg",      // screenshot do topo do site
 },
@@ -184,8 +197,8 @@ Cada card mostra a **prévia do site** (screenshot do topo da página) e leva di
 
 ### 5. Trajetória e Habilidades — `src/i18n/` → `career` e `skills`
 
-- `career.education` / `career.experience`: itens com `id` único (chave do accordion), `title`, `org`, `period`, `status` (opcional), `details` (bullets) e `tags`.
-- `skills.blocks`: blocos com `id` (mapeia o ícone no componente), `title`, `description`, `level` (label + valor 1–5) e `skills`.
+- `career.chapters`: capítulos da timeline por ano com `year`, `title`, `org`, `period`, `learnings` (o que aprendi) e `tags`.
+- `skills.blocks`: 4 categorias sem nível — `id` (mapeia o ícone no componente), `title`, `description` e `skills`.
 
 ## 🌗 Tema claro/escuro e 🌐 Idioma
 

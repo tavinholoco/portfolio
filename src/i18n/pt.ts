@@ -118,7 +118,7 @@ export const pt: Dict = {
     demoLabel: "Demo",
     allOnGithub: "Ver todos os projetos no GitHub",
     categories: {
-      fullstack: "Fullstack",
+      fullstack: "Full Stack",
       mobile: "Mobile",
       landing: "Landing",
     },
