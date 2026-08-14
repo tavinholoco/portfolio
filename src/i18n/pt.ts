@@ -109,6 +109,11 @@ export const pt: Dict = {
     solutionLabel: "Solução",
     highlightLabel: "Destaque técnico",
     stackLabel: "Stack",
+    backToProjects: "Voltar aos projetos",
+    learningsTitle: "O que aprendi",
+    previous: "Anterior",
+    next: "Próximo",
+    demoLabel: "Demo",
     allOnGithub: "Ver todos os projetos no GitHub",
     categories: {
       fullstack: "Fullstack",
@@ -127,6 +132,11 @@ export const pt: Dict = {
         highlight: "Monorepo Turborepo e integração com IA generativa.",
         stack: ["Next.js", "Fastify", "Gemini", "Turborepo", "TypeScript"],
         category: "fullstack",
+        learnings: [
+          "Orquestrar um monorepo Turborepo com frontend e API no mesmo repositório.",
+          "Integrar IA generativa (Gemini) num fluxo real de produção de conteúdo.",
+          "Estruturar um portal completo: da modelagem de dados à publicação diária.",
+        ],
       },
       {
         slug: "netsheet-engine",
@@ -139,6 +149,11 @@ export const pt: Dict = {
         highlight: "React 19 + Supabase com dados modelados como produto.",
         stack: ["React 19", "Express", "Supabase", "TypeScript"],
         category: "fullstack",
+        learnings: [
+          "Modelar dados como produto: schema relacional pensado para o domínio.",
+          "Documentar o produto (PRD) junto com o código, não depois.",
+          "Compor React 19 + Express + Supabase de ponta a ponta.",
+        ],
       },
       {
         slug: "repertorio-progressivo",
@@ -151,6 +166,11 @@ export const pt: Dict = {
         highlight: "144 testes automatizados com Jest.",
         stack: ["React Native", "Expo", "TypeScript", "Jest"],
         category: "mobile",
+        learnings: [
+          "Escrever 144 testes automatizados que protegem o comportamento real do app.",
+          "Planejar notificações push e rotinas no React Native/Expo.",
+          "Pensar em produto mobile: o ciclo de estudo como feature central.",
+        ],
       },
       {
         slug: "trak-assessoria",
@@ -162,6 +182,11 @@ export const pt: Dict = {
         highlight: "Testes E2E com Vitest e Playwright.",
         stack: ["Next.js 16", "Tailwind v4", "Vitest", "Playwright"],
         category: "landing",
+        learnings: [
+          "Entregar uma landing institucional com testes E2E (Vitest + Playwright).",
+          "Traduzir os requisitos de um cliente real em design, conteúdo e código.",
+          "Publicar com Next.js 16 e Tailwind v4 mantendo performance e acessibilidade.",
+        ],
       },
     ],
   },
@@ -289,6 +314,7 @@ export const pt: Dict = {
       "Aberto a projetos, freelas e colaborações. Se você tem uma ideia ou precisa de velocidade sem abrir mão de qualidade, vamos conversar.",
     emailButton: "Enviar email",
     whatsappButton: "WhatsApp",
+    goToSection: "Ir para o contato",
     cards: [
       { id: "email", label: "Email", value: "pedrolevidiass@gmail.com" },
       { id: "whatsapp", label: "WhatsApp", value: "(18) 99626-0781" },

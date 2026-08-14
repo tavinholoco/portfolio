@@ -63,3 +63,51 @@ export function buildMetadata(lang: Locale): Metadata {
     },
   };
 }
+
+/** URLs por idioma de uma página individual de projeto (hreflang do sitemap e da página). */
+export function languageUrlsFor(slug: string): Record<string, string> {
+  return {
+    "pt-BR": `${siteUrl}/projetos/${slug}/`,
+    en: `${siteUrl}/en/projects/${slug}/`,
+    "x-default": `${siteUrl}/projetos/${slug}/`,
+  };
+}
+
+/**
+ * Metadados de uma página individual de projeto (canonical, hreflang, OG e Twitter).
+ * Slug desconhecido → cai nos metadados da raiz do idioma.
+ */
+export function buildProjectMetadata(slug: string, lang: Locale): Metadata {
+  const d = dictionaries[lang];
+  const project = d.projects.featured.find((p) => p.slug === slug);
+  if (!project) return buildMetadata(lang);
+
+  const path = lang === "pt" ? `/projetos/${slug}/` : `/en/projects/${slug}/`;
+
+  return {
+    metadataBase: new URL(siteUrl),
+    title: `${project.title} | ${d.meta.name}`,
+    description: project.tagline,
+    alternates: {
+      canonical: path,
+      languages: languageUrlsFor(slug),
+    },
+    openGraph: {
+      type: "website",
+      locale: lang === "pt" ? "pt_BR" : "en_US",
+      url: `${siteUrl}${path}`,
+      siteName: d.meta.ogSiteName,
+      title: project.title,
+      description: project.tagline,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: project.title,
+      description: project.tagline,
+    },
+    robots: {
+      index: true,
+      follow: true,
+    },
+  };
+}

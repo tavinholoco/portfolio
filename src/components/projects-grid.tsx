@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import {
   AnimatePresence,
@@ -28,6 +29,10 @@ export function ProjectsGrid({
   const d = dictionaries[lang].projects;
   const [filter, setFilter] = useState<Filter>("todos");
   const reduceMotion = useReducedMotion();
+
+  // [Ver projeto] leva à página individual do projeto (Fase 3).
+  const projectPage = (slug: string) =>
+    lang === "pt" ? `/projetos/${slug}/` : `/en/projects/${slug}/`;
 
   const visible =
     filter === "todos"
@@ -146,15 +151,13 @@ export function ProjectsGrid({
                     <span />
                   )}
                   <div className="flex items-center gap-4">
-                    <a
-                      href={project.demoUrl ?? project.repoUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <Link
+                      href={projectPage(project.slug)}
                       className="focus-ring inline-flex items-center gap-1 rounded-md text-sm font-medium text-primary transition-opacity hover:opacity-80"
                     >
                       {d.viewProject}
                       <ArrowUpRight className="size-3.5" aria-hidden />
-                    </a>
+                    </Link>
                     <a
                       href={project.repoUrl}
                       target="_blank"

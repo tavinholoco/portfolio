@@ -84,3 +84,42 @@ describe("buildMetadata", () => {
     expect(JSON.stringify(pt)).not.toBe(JSON.stringify(en));
   });
 });
+
+describe("buildProjectMetadata", () => {
+  async function freshMetadata() {
+    vi.resetModules();
+    return import("./metadata");
+  }
+
+  it("gera canonical com barra final e hreflang por idioma do projeto", async () => {
+    setEnv({ NEXT_PUBLIC_SITE_URL: "https://pedrolevi.dev" });
+    const { buildProjectMetadata: build, languageUrlsFor } =
+      await freshMetadata();
+
+    const pt = build("newra-news", "pt");
+    expect(pt.title).toBe("Newra News | Pedro Levi");
+    expect(pt.alternates?.canonical).toBe("/projetos/newra-news/");
+    expect(pt.alternates?.languages).toEqual(languageUrlsFor("newra-news"));
+    expect(pt.openGraph?.locale).toBe("pt_BR");
+
+    const en = build("newra-news", "en");
+    expect(en.alternates?.canonical).toBe("/en/projects/newra-news/");
+    expect(en.description).toMatch(/news portal/i);
+  });
+
+  it("cai nos metadados da raiz quando o slug não existe", async () => {
+    const { buildProjectMetadata: build } = await freshMetadata();
+    const fallback = build("slug-inexistente", "pt");
+    expect(fallback.alternates?.canonical).toBe("/");
+  });
+
+  it("languageUrlsFor aponta as duas rotas do projeto", async () => {
+    setEnv({ NEXT_PUBLIC_SITE_URL: "https://pedrolevi.dev" });
+    const { languageUrlsFor } = await freshMetadata();
+    expect(languageUrlsFor("netsheet-engine")).toEqual({
+      "pt-BR": "https://pedrolevi.dev/projetos/netsheet-engine/",
+      en: "https://pedrolevi.dev/en/projects/netsheet-engine/",
+      "x-default": "https://pedrolevi.dev/projetos/netsheet-engine/",
+    });
+  });
+});

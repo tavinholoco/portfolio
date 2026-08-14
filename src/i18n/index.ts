@@ -36,6 +36,8 @@ export type FeaturedProject = {
   highlight: string;
   stack: string[];
   category: ProjectCategory;
+  /** O que aprendi no projeto — usado na página individual. */
+  learnings: string[];
 };
 
 export type ClientProject = {
@@ -112,6 +114,11 @@ export type Dict = {
     solutionLabel: string;
     highlightLabel: string;
     stackLabel: string;
+    backToProjects: string;
+    learningsTitle: string;
+    previous: string;
+    next: string;
+    demoLabel: string;
     allOnGithub: string;
     categories: Record<ProjectCategory, string>;
     featured: FeaturedProject[];
@@ -146,6 +153,7 @@ export type Dict = {
     description: string;
     emailButton: string;
     whatsappButton: string;
+    goToSection: string;
     cards: ContactCard[];
   };
   footer: {

@@ -14,6 +14,7 @@ const featured: FeaturedProject[] = [
     highlight: "Destaque.",
     stack: ["Next.js"],
     category: "fullstack",
+    learnings: ["Aprendizado."],
   },
 ];
 

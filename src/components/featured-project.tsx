@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 
 import { GitHubIcon } from "@/components/icons";
@@ -21,6 +22,9 @@ export function FeaturedProject({
   const host = project.demoUrl
     ? new URL(project.demoUrl).host
     : `${project.repo}.vercel.app`;
+  // [Ver projeto] leva à página individual do projeto (Fase 3).
+  const projectPage =
+    lang === "pt" ? `/projetos/${project.slug}/` : `/en/projects/${project.slug}/`;
 
   return (
     <article className="relative mt-10 overflow-hidden rounded-3xl border border-border bg-card/60 p-6 sm:p-8 lg:p-10">
@@ -65,13 +69,7 @@ export function FeaturedProject({
           <div className="mt-6 flex flex-wrap items-center gap-3">
             <Button
               size="lg"
-              render={
-                <a
-                  href={project.demoUrl ?? project.repoUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                />
-              }
+              render={<Link href={projectPage} />}
               nativeButton={false}
             >
               {d.viewProject}

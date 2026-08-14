@@ -1,13 +1,14 @@
 import type { MetadataRoute } from "next";
 
-import { getSiteUrl, languageUrls } from "@/lib/metadata";
+import { projectMetas } from "@/data/projects";
+import { getSiteUrl, languageUrls, languageUrlsFor } from "@/lib/metadata";
 
 const siteUrl = getSiteUrl();
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const lastModified = new Date();
 
-  return [
+  const entries: MetadataRoute.Sitemap = [
     {
       url: `${siteUrl}/`,
       lastModified,
@@ -23,4 +24,25 @@ export default function sitemap(): MetadataRoute.Sitemap {
       alternates: { languages: languageUrls },
     },
   ];
+
+  for (const meta of projectMetas) {
+    entries.push(
+      {
+        url: `${siteUrl}/projetos/${meta.slug}/`,
+        lastModified,
+        changeFrequency: "monthly",
+        priority: 0.8,
+        alternates: { languages: languageUrlsFor(meta.slug) },
+      },
+      {
+        url: `${siteUrl}/en/projects/${meta.slug}/`,
+        lastModified,
+        changeFrequency: "monthly",
+        priority: 0.8,
+        alternates: { languages: languageUrlsFor(meta.slug) },
+      }
+    );
+  }
+
+  return entries;
 }

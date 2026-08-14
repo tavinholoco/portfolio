@@ -109,6 +109,11 @@ export const en: Dict = {
     solutionLabel: "Solution",
     highlightLabel: "Technical highlight",
     stackLabel: "Stack",
+    backToProjects: "Back to projects",
+    learningsTitle: "What I learned",
+    previous: "Previous",
+    next: "Next",
+    demoLabel: "Demo",
     allOnGithub: "View all projects on GitHub",
     categories: {
       fullstack: "Fullstack",
@@ -127,6 +132,11 @@ export const en: Dict = {
         highlight: "Turborepo monorepo and generative AI integration.",
         stack: ["Next.js", "Fastify", "Gemini", "Turborepo", "TypeScript"],
         category: "fullstack",
+        learnings: [
+          "Orchestrating a Turborepo monorepo with frontend and API in the same repository.",
+          "Integrating generative AI (Gemini) into a real content production flow.",
+          "Structuring a complete portal: from data modeling to daily publishing.",
+        ],
       },
       {
         slug: "netsheet-engine",
@@ -139,6 +149,11 @@ export const en: Dict = {
         highlight: "React 19 + Supabase with data modeled as a product.",
         stack: ["React 19", "Express", "Supabase", "TypeScript"],
         category: "fullstack",
+        learnings: [
+          "Modeling data as a product: a relational schema designed for the domain.",
+          "Documenting the product (PRD) alongside the code, not afterwards.",
+          "Composing React 19 + Express + Supabase end to end.",
+        ],
       },
       {
         slug: "repertorio-progressivo",
@@ -151,6 +166,11 @@ export const en: Dict = {
         highlight: "144 automated tests with Jest.",
         stack: ["React Native", "Expo", "TypeScript", "Jest"],
         category: "mobile",
+        learnings: [
+          "Writing 144 automated tests that protect the app's real behavior.",
+          "Planning push notifications and routines in React Native/Expo.",
+          "Thinking as a mobile product: the study cycle as the core feature.",
+        ],
       },
       {
         slug: "trak-assessoria",
@@ -162,6 +182,11 @@ export const en: Dict = {
         highlight: "E2E tests with Vitest and Playwright.",
         stack: ["Next.js 16", "Tailwind v4", "Vitest", "Playwright"],
         category: "landing",
+        learnings: [
+          "Delivering an institutional landing page with E2E tests (Vitest + Playwright).",
+          "Translating a real client's requirements into design, content and code.",
+          "Shipping with Next.js 16 and Tailwind v4 while keeping performance and accessibility.",
+        ],
       },
     ],
   },
@@ -289,6 +314,7 @@ export const en: Dict = {
       "Open to projects, freelancing and collaborations. If you have an idea or need speed without giving up quality, let's talk.",
     emailButton: "Send email",
     whatsappButton: "WhatsApp",
+    goToSection: "Go to contact",
     cards: [
       { id: "email", label: "Email", value: "pedrolevidiass@gmail.com" },
       { id: "whatsapp", label: "WhatsApp", value: "(18) 99626-0781" },
