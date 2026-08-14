@@ -401,11 +401,11 @@ Novo bloco `metrics` na seção Sobre, reusando os números que já existem (`ab
 - [x] Aviso de `metadataBase` no build eliminado
 - [x] `theme-color` reflete o tema salvo (script anti-flash atualiza o meta antes do primeiro paint)
 
-### Deploy ⏳
+### Deploy ⏳ (push concluído em 14/08/2026)
 
-- [ ] `git push` da branch `main` (atualmente 12 commits à frente de `origin/main`)
-- [ ] Importar/confirmar o projeto na Vercel (ou `pnpm deploy`)
-- [ ] Definir `NEXT_PUBLIC_SITE_URL` no ambiente de produção (ex.: `https://pedrolevi.dev`)
+- [x] `git push` da branch `main` (18 commits: `e70ff0e..19dc612`) — CI e Gitleaks verdes no GitHub Actions
+- [ ] **Deploy na Vercel pendente:** o CLI local não está logado (`vercel whoami` → sem credenciais) e o projeto não está linkado (sem `.vercel`). Opção A: `pnpm exec vercel login` + `pnpm exec vercel link` + `pnpm deploy`. Opção B: conferir no dashboard se `tavinholoco/portfolio` tem integração Git — nesse caso o push já dispara o deploy automático
+- [ ] Definir `NEXT_PUBLIC_SITE_URL` no ambiente de produção (ex.: `https://pedrolevi.dev` — domínio ainda não responde; confirmar registro DNS)
 - [ ] Validar pós-deploy: `/` e `/en/` com `lang` correto, hreflang, canonical, sitemap (10 URLs), robots, OG image pt/en, rotas de projeto 200 e slugs inválidos 404
 - [ ] Lighthouse pós-deploy (Perf ≥ 95 · A11y 100 · BP 100 · SEO 100)
 - [ ] (Opcional) Domínio próprio: DNS + HTTPS
