@@ -3,7 +3,7 @@
 > **Objetivo da v2:** reposicionar o site de "catálogo de tecnologias" para **"aqui está como eu penso, o que eu construí e por que consigo resolver problemas de software."**
 >
 > **Base:** v1 já publicada (Next.js 16 App Router, Tailwind v4, Framer Motion, shadcn/ui, pt-BR + en, ISR 1h, CI com 21 testes).
-> **Status:** ✅ **v2 completa** — Fases 1–10 implementadas e commitadas (12 commits locais sobre a v1). ✅ **Revisão pós-v2 (13/08/2026)** — auditoria executada, correções aplicadas e documentadas na seção 7.4. ✅ **Deploy em produção (14/08/2026)** — Vercel + Lighthouse (seção 8). ✅ **Ajustes de conteúdo (14/08/2026)** — solicitados pelo Pedro, implementados e documentados na seção 7.5.
+> **Status:** ✅ **v2 completa** — Fases 1–10 implementadas e commitadas (12 commits locais sobre a v1). ✅ **Revisão pós-v2 (13/08/2026)** — auditoria executada, correções aplicadas e documentadas na seção 7.4. ✅ **Deploy em produção (14/08/2026)** — Vercel + Lighthouse (seção 8). ✅ **Ajustes de conteúdo (14/08/2026)** — duas rodadas solicitadas pelo Pedro, implementadas e documentadas nas seções 7.5 e 7.6.
 
 ---
 
@@ -395,6 +395,15 @@ Novo bloco `metrics` na seção Sobre, reusando os números que já existem (`ab
 3. **Sem travessões (—) em lugar nenhum.** Substituídos por vírgulas, dois-pontos e ponto e vírgula em `clients.description` e `process.description` (pt/en), que voltaram a entrar na v2, em todos os comentários de código (`src/` e `e2e/`) e no README; completa a regra da v1.
 4. **"Projetos profissionais" → "Clientes".** Renomeado em todo o código (pt: label `clientes`, título `Clientes`, nav `Clientes`; en: `clients`/`Clients`/`Clients`), revertendo o rótulo da Fase 4. O id da âncora `#clientes` foi mantido, então os links da nav continuam funcionando.
 
+### 7.6 Revisão de conteúdo (14/08/2026) — IA e cases de cliente
+
+> Segunda rodada de ajustes de conteúdo, implementada e validada (typecheck, lint, 36 testes unitários e build limpos; revisão visual no preview em larguras de mobile, tablet e desktop).
+
+1. **Métrica de IA: "áreas de estudo".** `about.metrics` muda de "áreas de exploração em IA" para **"áreas de estudo em IA"** (pt) e de "AI exploration areas" para **"AI study areas"** (en).
+2. **Interesse em IA com nova copy.** `about.interests[ai].description` vira **"Explorando modelos generativos, automação e aplicações de IA na prática."** (pt) e "Exploring generative models, automation and AI applications in practice." (en), substituindo "Automação de fluxos, geração de conteúdo e code assist.".
+3. **Cards de Clientes viram case comercial.** Novo padrão no card: nome → tipo ("Projeto profissional" / "Professional project") → descrição do resultado → **Responsabilidades** (ex.: Frontend · UI · Responsividade · Deploy) → **Status** (Publicado / Published) → CTA [Visitar projeto]. O modelo `ClientProject` ganha `description`, `responsibilities` e `status`; saem `client`/`type`/`tech`/`outcome` e os rótulos Cliente/Tipo/Tecnologias, além do badge "No ar" na imagem (substituído pelo Status). Narrativa: de "tenho um cliente" para "já entreguei software para cliente".
+4. **Código morto da v1 removido.** `profile.phone` em `src/data/profile.ts` não era usado (o telefone vive nos cards de contato do dicionário) e foi removido, junto com a linha correspondente do README.
+
 ---
 
 ## 8. Checklist de aceite e estado atual (13/08/2026)
@@ -426,3 +435,11 @@ Novo bloco `metrics` na seção Sobre, reusando os números que já existem (`ab
 - [x] Travessões (—) removidos dos textos visíveis (`clients.description` e `process.description`, pt/en), dos comentários de código e do README
 - [x] Seção "Projetos profissionais" renomeada para **"Clientes"** em todo o código (pt/en, nav, comentários e README; âncora `#clientes` mantida)
 - [x] Validado: typecheck, lint, 36 testes unitários e build de produção limpos
+
+### Ajustes de conteúdo v2 ✅ (14/08/2026)
+
+- [x] Métrica de IA: "áreas de exploração em IA" → "áreas de estudo em IA" (pt/en)
+- [x] Interesse em IA: "Explorando modelos generativos, automação e aplicações de IA na prática." (pt/en)
+- [x] Cards de Clientes redesenhados: nome → tipo → descrição → responsabilidades → status → CTA; removidos Cliente/Tipo/Tecnologias e badge "No ar"
+- [x] Código morto da v1 removido (`profile.phone`)
+- [x] Validado: typecheck, lint, 36 testes unitários, build e revisão visual (mobile/tablet/desktop)
