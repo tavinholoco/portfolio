@@ -10,7 +10,7 @@ Site de portfólio com seções por área e páginas individuais de projeto, pro
 |---|---|
 | Framework | **Next.js 16** (App Router, Turbopack) + TypeScript |
 | Estilo | **Tailwind CSS v4** (tema claro/escuro via classe `.dark`) |
-| Componentes | **shadcn/ui** (Base UI) — Button, Card, Badge, Sheet, Accordion, Separator, Tooltip |
+| Componentes | **shadcn/ui** (Base UI) — Button, Sheet, Tooltip |
 | Animação | **Framer Motion** (scroll reveals) + animações CSS puras no hero (LCP-friendly) |
 | Ícones | **Lucide React** + ícones de marca próprios (`GitHubIcon`, `LinkedInIcon`) |
 | Dados | **GitHub API** via Server Component com ISR de 1h + fallback estático |

@@ -49,7 +49,6 @@ export const pt: Dict = {
       github: "GitHub",
       linkedin: "LinkedIn",
       email: "Email",
-      phone: "Telefone",
     },
   },
   about: {

@@ -90,7 +90,7 @@ export type Dict = {
     viewProjects: string;
     downloadCv: string;
     scrollLabel: string;
-    socials: { github: string; linkedin: string; email: string; phone: string };
+    socials: { github: string; linkedin: string; email: string };
   };
   about: {
     label: string;

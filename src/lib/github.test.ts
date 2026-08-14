@@ -37,7 +37,7 @@ describe("getFeaturedProjects", () => {
           name: "newra-news",
           description: "no github",
           html_url: "https://github.com/tavinholoco/newra-news",
-          homepage: "https://newra.vercel.app",
+          homepage: "https://newra-news-web.vercel.app",
           language: "TypeScript",
           stargazers_count: 5,
           pushed_at: "2026-04-10T12:00:00Z",
@@ -57,7 +57,7 @@ describe("getFeaturedProjects", () => {
     expect(project.repo).toBe("newra-news");
     expect(project.language).toBe("TypeScript");
     expect(project.repoUrl).toBe("https://github.com/tavinholoco/newra-news");
-    expect(project.demoUrl).toBe("https://newra.vercel.app");
+    expect(project.demoUrl).toBe("https://newra-news-web.vercel.app");
     expect(project.updatedAt).not.toBeNull();
     // O resto da curadoria é preservado
     expect(project.title).toBe("Newra News");
@@ -83,7 +83,7 @@ describe("getFeaturedProjects", () => {
     expect(project.updatedAt).toBeNull();
     expect(project.repoUrl).toBe("https://github.com/tavinholoco/newra-news");
     // A demo curada (src/data/projects.ts) sobrevive à falha da API
-    expect(project.demoUrl).toBe("https://newra.vercel.app");
+    expect(project.demoUrl).toBe("https://newra-news-web.vercel.app");
   });
 
   it("cai no fallback estático quando a resposta não é ok", async () => {
@@ -97,6 +97,6 @@ describe("getFeaturedProjects", () => {
     expect(project.language).toBeNull();
     expect(project.updatedAt).toBeNull();
     // A demo curada (src/data/projects.ts) sobrevive à falha da API
-    expect(project.demoUrl).toBe("https://newra.vercel.app");
+    expect(project.demoUrl).toBe("https://newra-news-web.vercel.app");
   });
 });

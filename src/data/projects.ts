@@ -23,7 +23,7 @@ export const projectMetas: ProjectMeta[] = [
   {
     slug: "newra-news",
     repo: "newra-news",
-    demoUrl: "https://newra.vercel.app",
+    demoUrl: "https://newra-news-web.vercel.app",
   },
   { slug: "netsheet-engine", repo: "NetsheetEngine" },
   { slug: "repertorio-progressivo", repo: "repertorio-progressivo" },
