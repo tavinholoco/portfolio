@@ -19,8 +19,9 @@ export function Career({ lang }: { lang: Locale }) {
       />
       <ol className="relative mt-12 space-y-8 border-l border-border pl-8">
         {d.chapters.map((chapter, index) => (
-          <FadeIn key={`${chapter.year}-${chapter.title}`} delay={index * 0.05}>
-            <li className="relative">
+          /* <li> filho direto do <ol> (semântica de lista); o FadeIn anima o conteúdo interno */
+          <li key={`${chapter.year}-${chapter.title}`} className="relative">
+            <FadeIn delay={index * 0.05}>
               {/* Dot do capítulo na rail */}
               <span
                 aria-hidden
@@ -71,8 +72,8 @@ export function Career({ lang }: { lang: Locale }) {
                   ))}
                 </div>
               </div>
-            </li>
-          </FadeIn>
+            </FadeIn>
+          </li>
         ))}
       </ol>
     </Section>

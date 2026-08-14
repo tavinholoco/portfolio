@@ -26,12 +26,13 @@ export function LangToggle({
   return (
     <a
       href={href}
-      aria-label={label}
       title={label}
       className="focus-ring inline-flex h-9 items-center gap-1.5 rounded-md px-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
     >
       <Languages className="size-4" aria-hidden />
       {next.toUpperCase()}
+      {/* Nome acessível com o texto visível ("EN") + a descrição (regra label-content-name-mismatch). */}
+      <span className="sr-only">{label}</span>
     </a>
   );
 }
