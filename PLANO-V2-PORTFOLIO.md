@@ -3,7 +3,7 @@
 > **Objetivo da v2:** reposicionar o site de "catálogo de tecnologias" para **"aqui está como eu penso, o que eu construí e por que consigo resolver problemas de software."**
 >
 > **Base:** v1 já publicada (Next.js 16 App Router, Tailwind v4, Framer Motion, shadcn/ui, pt-BR + en, ISR 1h, CI com 21 testes).
-> **Status:** ✅ **v2 completa** — Fases 1–10 implementadas e commitadas (12 commits locais sobre a v1). ✅ **Revisão pós-v2 (13/08/2026)** — auditoria executada, correções aplicadas e documentadas na seção 7.4. ⏳ **Pendente:** push para o GitHub e deploy na Vercel (checklist na seção 8).
+> **Status:** ✅ **v2 completa** — Fases 1–10 implementadas e commitadas (12 commits locais sobre a v1). ✅ **Revisão pós-v2 (13/08/2026)** — auditoria executada, correções aplicadas e documentadas na seção 7.4. ✅ **Deploy em produção (14/08/2026)** — Vercel + Lighthouse (seção 8). ✅ **Ajustes de conteúdo (14/08/2026)** — solicitados pelo Pedro, implementados e documentados na seção 7.5.
 
 ---
 
@@ -386,6 +386,15 @@ Novo bloco `metrics` na seção Sobre, reusando os números que já existem (`ab
 
 - **Demo do Newra News:** `src/lib/github.ts` dá prioridade à `homepage` do repo na API; o `demoUrl` curado (`newra-news-web.vercel.app`) só vale se a homepage do repo estiver vazia. Conferir/cadastrar a homepage correta no repositório para o domínio canônico prevalecer.
 
+### 7.5 Revisão de conteúdo (14/08/2026) — ajustes solicitados pelo Pedro
+
+> Ajustes de conteúdo pós-deploy, implementados e validados (typecheck, lint, 36 testes unitários e build de produção limpos).
+
+1. **Seção Sobre enxuta.** Removidos `about.description` ("Quem sou por trás do código e o que me move a cada projeto.") e o segundo parágrafo do `about.summary` (trajetória no suporte e na infraestrutura de TI) dos dicionários pt/en e do tipo `Dict`; o `SectionHeading` do Sobre deixa de receber descrição.
+2. **Barra de progresso removida.** O `ScrollProgress` (Fase 9) saiu dos dois root layouts (`/` e `/en/`) e o componente `src/components/scroll-progress.tsx` foi excluído.
+3. **Sem travessões (—) nos textos visíveis.** Substituídos por vírgulas em `clients.description` e `process.description` (pt/en), que voltaram a entrar na v2; mantém a regra da v1. Restam apenas em comentários de código (não são renderizados).
+4. **"Projetos profissionais" → "Clientes".** Renomeado em todo o código (pt: label `clientes`, título `Clientes`, nav `Clientes`; en: `clients`/`Clients`/`Clients`), revertendo o rótulo da Fase 4. O id da âncora `#clientes` foi mantido, então os links da nav continuam funcionando.
+
 ---
 
 ## 8. Checklist de aceite e estado atual (13/08/2026)
@@ -409,3 +418,11 @@ Novo bloco `metrics` na seção Sobre, reusando os números que já existem (`ab
 - [ ] Definir `NEXT_PUBLIC_SITE_URL` no ambiente de produção (ex.: `https://pedrolevi.dev` — domínio ainda não responde; confirmar registro DNS). Enquanto isso, canonical/hreflang/OG usam a URL do deploy (fallback `VERCEL_PROJECT_PRODUCTION_URL`)
 - [x] Lighthouse pós-deploy (14/08/2026, cache quente): **Perf 95 · A11y 100 · BP 100 · SEO 100** em `/` e `/en/` — inclui fix de a11y (nome acessível do toggle de idioma + `<ol>` da trajetória com `<li>` direto). 1ª medição com cache frio da edge: Perf 88/A11y 93
 - [ ] (Opcional) Domínio próprio: DNS + HTTPS
+
+### Ajustes de conteúdo ✅ (14/08/2026)
+
+- [x] Seção Sobre: removidos `about.description` e o 2º parágrafo do resumo (pt/en + tipo `Dict`)
+- [x] Barra de progresso de scroll removida (componente `scroll-progress.tsx` excluído e layouts limpos)
+- [x] Travessões (—) removidos dos textos visíveis (`clients.description` e `process.description`, pt/en)
+- [x] Seção "Projetos profissionais" renomeada para **"Clientes"** em todo o código (pt/en, nav, comentários e README; âncora `#clientes` mantida)
+- [x] Validado: typecheck, lint, 36 testes unitários e build de produção limpos
