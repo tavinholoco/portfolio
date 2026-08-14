@@ -162,8 +162,12 @@ export type Dict = {
     label: string;
     title: string;
     description: string;
-    emailButton: string;
-    whatsappButton: string;
+    hiringTitle: string;
+    hiringDescription: string;
+    hiringCta: string;
+    projectTitle: string;
+    projectDescription: string;
+    projectCta: string;
     goToSection: string;
     cards: ContactCard[];
   };

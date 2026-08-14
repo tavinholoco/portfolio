@@ -339,11 +339,17 @@ export const pt: Dict = {
   },
   contact: {
     label: "contato",
-    title: "Vamos construir algo juntos?",
+    title: "Vamos conversar?",
     description:
-      "Aberto a projetos, freelas e colaborações. Se você tem uma ideia ou precisa de velocidade sem abrir mão de qualidade, vamos conversar.",
-    emailButton: "Enviar email",
-    whatsappButton: "WhatsApp",
+      "Está contratando ou tem um projeto? Há um caminho direto para cada caso.",
+    hiringTitle: "Está contratando?",
+    hiringDescription:
+      "Veja meu currículo, meus projetos e minha trajetória de uma vez.",
+    hiringCta: "Ver currículo",
+    projectTitle: "Tem um projeto?",
+    projectDescription:
+      "Vamos conversar sobre a sua ideia e o caminho até o deploy.",
+    projectCta: "Falar comigo",
     goToSection: "Ir para o contato",
     cards: [
       { id: "email", label: "Email", value: "pedrolevidiass@gmail.com" },

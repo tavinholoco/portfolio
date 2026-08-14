@@ -1,7 +1,7 @@
 "use client";
 
 import type { ComponentType, SVGProps } from "react";
-import { ArrowUpRight, Mail, MessageCircle } from "lucide-react";
+import { ArrowUpRight, Download, Mail, MessageCircle } from "lucide-react";
 
 import { GitHubIcon, LinkedInIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
@@ -23,13 +23,17 @@ const cardHrefs: Record<string, { href: string; external: boolean }> = {
   github: { href: profile.github, external: true },
 };
 
+/**
+ * Contato com dois caminhos diretos para públicos diferentes:
+ * recrutador (Ver currículo) e cliente/freela (Falar comigo).
+ */
 export function Contact({ lang }: { lang: Locale }) {
   const d = dictionaries[lang].contact;
 
   return (
     <Section id="contato">
       <FadeIn>
-        <div className="relative overflow-hidden rounded-3xl border border-primary/20 bg-gradient-to-b from-card to-background px-6 py-14 text-center sm:px-14 sm:py-20">
+        <div className="relative overflow-hidden rounded-3xl border border-primary/20 bg-gradient-to-b from-card to-background px-6 py-14 sm:px-14 sm:py-16">
           {/* Glow decorativo */}
           <div
             aria-hidden
@@ -37,48 +41,75 @@ export function Contact({ lang }: { lang: Locale }) {
           />
 
           <p className="font-mono text-sm text-primary">&gt;_ {d.label}</p>
-          <h2 className="mx-auto mt-3 max-w-2xl text-3xl font-semibold tracking-tight text-balance sm:text-5xl">
+          <h2 className="mx-auto mt-3 max-w-2xl text-center text-3xl font-semibold tracking-tight text-balance sm:text-5xl">
             {d.title}
           </h2>
-          <p className="font-body mx-auto mt-4 max-w-xl text-base leading-relaxed text-muted-foreground text-pretty">
+          <p className="font-body mx-auto mt-4 max-w-xl text-center text-base leading-relaxed text-muted-foreground text-pretty">
             {d.description}
           </p>
 
-          <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
-            <Button
-              size="lg"
-              render={<a href={`mailto:${profile.email}`} />}
-              nativeButton={false}
-            >
-              <Mail data-icon="inline-start" className="size-4" aria-hidden />
-              {d.emailButton}
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              render={
-                <a
-                  href={profile.whatsapp}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                />
-              }
-              nativeButton={false}
-            >
-              <MessageCircle
-                data-icon="inline-start"
-                className="size-4"
-                aria-hidden
-              />
-              {d.whatsappButton}
-              <ArrowUpRight
-                data-icon="inline-end"
-                className="size-4"
-                aria-hidden
-              />
-            </Button>
+          {/* Duas CTAs lado a lado — um caminho para cada público */}
+          <div className="mx-auto mt-10 grid max-w-3xl gap-4 sm:grid-cols-2">
+            <div className="flex flex-col rounded-2xl border border-border bg-card/60 p-6 sm:p-7">
+              <h3 className="text-lg font-semibold text-foreground">
+                {d.hiringTitle}
+              </h3>
+              <p className="font-body mt-1.5 flex-1 text-sm leading-relaxed text-muted-foreground text-pretty">
+                {d.hiringDescription}
+              </p>
+              <div className="mt-5">
+                <Button
+                  size="lg"
+                  render={<a href={profile.cvUrl} download />}
+                  nativeButton={false}
+                >
+                  <Download
+                    data-icon="inline-start"
+                    className="size-4"
+                    aria-hidden
+                  />
+                  {d.hiringCta}
+                </Button>
+              </div>
+            </div>
+
+            <div className="flex flex-col rounded-2xl border border-border bg-card/60 p-6 sm:p-7">
+              <h3 className="text-lg font-semibold text-foreground">
+                {d.projectTitle}
+              </h3>
+              <p className="font-body mt-1.5 flex-1 text-sm leading-relaxed text-muted-foreground text-pretty">
+                {d.projectDescription}
+              </p>
+              <div className="mt-5">
+                <Button
+                  size="lg"
+                  variant="outline"
+                  render={
+                    <a
+                      href={profile.whatsapp}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    />
+                  }
+                  nativeButton={false}
+                >
+                  <MessageCircle
+                    data-icon="inline-start"
+                    className="size-4"
+                    aria-hidden
+                  />
+                  {d.projectCta}
+                  <ArrowUpRight
+                    data-icon="inline-end"
+                    className="size-4"
+                    aria-hidden
+                  />
+                </Button>
+              </div>
+            </div>
           </div>
 
+          {/* Cards de contato direto */}
           <div className="mt-12 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {d.cards.map((card) => {
               const Icon = cardIcons[card.id];
