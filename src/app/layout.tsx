@@ -1,5 +1,7 @@
 import type { Viewport } from "next";
 import { Fira_Code, Open_Sans } from "next/font/google";
+
+import { ScrollProgress } from "@/components/scroll-progress";
 import "./globals.css";
 
 /* Fira Code: fonte principal (títulos, labels, brand, código). */
@@ -34,6 +36,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         />
       </head>
       <body className="min-h-full bg-background font-sans text-foreground">
+        <ScrollProgress />
         {children}
       </body>
     </html>

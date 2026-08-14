@@ -19,7 +19,7 @@ export function ClientProjectsSection({ lang }: { lang: Locale }) {
         {d.projects.map((project) => (
           <article
             key={project.name}
-            className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card/60 transition-all duration-300 hover:-translate-y-1 hover:border-primary/40 hover:shadow-[0_16px_48px_-16px_rgba(45,212,191,0.3)]"
+            className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card/60 transition-all duration-300 hover:-translate-y-1 hover:border-primary/50 hover:shadow-[0_0_0_1px_rgba(45,212,191,0.18),0_16px_48px_-16px_rgba(45,212,191,0.35)]"
           >
             {/* Prévia do site */}
             <div className="relative aspect-[16/10] overflow-hidden border-b border-border bg-secondary/40">

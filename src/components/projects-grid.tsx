@@ -81,7 +81,7 @@ export function ProjectsGrid({
               viewport={{ once: true, margin: "-40px" }}
               transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
             >
-              <div className="group relative flex h-full flex-col rounded-2xl border border-border bg-card/60 p-6 transition-all duration-300 hover:-translate-y-1 hover:border-primary/40 hover:shadow-[0_16px_48px_-16px_rgba(45,212,191,0.3)]">
+              <div className="group relative flex h-full flex-col rounded-2xl border border-border bg-card/60 p-6 transition-all duration-300 hover:-translate-y-1 hover:border-primary/50 hover:shadow-[0_0_0_1px_rgba(45,212,191,0.18),0_16px_48px_-16px_rgba(45,212,191,0.35)]">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <span className="font-mono text-xs text-primary">
                     {d.categories[project.category]}
@@ -156,7 +156,10 @@ export function ProjectsGrid({
                       className="focus-ring inline-flex items-center gap-1 rounded-md text-sm font-medium text-primary transition-opacity hover:opacity-80"
                     >
                       {d.viewProject}
-                      <ArrowUpRight className="size-3.5" aria-hidden />
+                      <ArrowUpRight
+                        className="size-3.5 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+                        aria-hidden
+                      />
                     </Link>
                     <a
                       href={project.repoUrl}
@@ -184,7 +187,10 @@ export function ProjectsGrid({
         >
           <GitHubIcon className="size-4" aria-hidden />
           {d.allOnGithub}
-          <ArrowUpRight className="size-3.5" aria-hidden />
+          <ArrowUpRight
+            className="size-3.5 transition-transform duration-300 hover:-translate-y-0.5 hover:translate-x-0.5"
+            aria-hidden
+          />
         </a>
       </div>
     </div>

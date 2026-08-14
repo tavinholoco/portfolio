@@ -27,7 +27,7 @@ export function FeaturedProject({
     lang === "pt" ? `/projetos/${project.slug}/` : `/en/projects/${project.slug}/`;
 
   return (
-    <article className="relative mt-10 overflow-hidden rounded-3xl border border-border bg-card/60 p-6 sm:p-8 lg:p-10">
+    <article className="group relative mt-10 overflow-hidden rounded-3xl border border-border bg-card/60 p-6 sm:p-8 lg:p-10">
       {/* Brilho decorativo */}
       <div
         aria-hidden
@@ -75,7 +75,7 @@ export function FeaturedProject({
               {d.viewProject}
               <ArrowUpRight
                 data-icon="inline-end"
-                className="size-4"
+                className="size-4 transition-transform duration-300 group-hover/button:-translate-y-0.5 group-hover/button:translate-x-0.5"
                 aria-hidden
               />
             </Button>
@@ -102,7 +102,10 @@ export function FeaturedProject({
         </div>
 
         {/* Mockup do portal em CSS puro (sem screenshot real — decisão 7) */}
-        <div aria-hidden className="relative">
+        <div
+          aria-hidden
+          className="relative transition-transform duration-500 group-hover:scale-[1.02]"
+        >
           <div className="overflow-hidden rounded-xl border border-border/80 bg-card/80 shadow-2xl shadow-primary/10">
             <div className="flex items-center gap-1.5 border-b border-border/70 bg-secondary/40 px-3.5 py-2.5">
               <span className="size-2.5 rounded-full bg-red-400/70" />

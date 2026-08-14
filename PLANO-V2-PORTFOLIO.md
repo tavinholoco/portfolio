@@ -3,7 +3,7 @@
 > **Objetivo da v2:** reposicionar o site de "catálogo de tecnologias" para **"aqui está como eu penso, o que eu construí e por que consigo resolver problemas de software."**
 >
 > **Base:** v1 já publicada (Next.js 16 App Router, Tailwind v4, Framer Motion, shadcn/ui, pt-BR + en, ISR 1h, CI com 21 testes).
-> **Status:** ✅ Fases 1–7 commitadas · ✅ Fase 8 (Contato com 2 CTAs) implementada (aguardando commit) · próximas: Fase 9 (refinamento visual) e Fase 10 (testes/validação/deploy).
+> **Status:** ✅ Fases 1–8 commitadas · ✅ Fase 9 (refinamento visual) implementada (aguardando commit) · próxima: Fase 10 (testes, validação e deploy).
 
 ---
 
