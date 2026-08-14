@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { PortfolioPage } from "../portfolio-page";
+import { PortfolioPage } from "../(home)/portfolio-page";
 import { buildMetadata } from "@/lib/metadata";
 
 export const metadata: Metadata = buildMetadata("en");
