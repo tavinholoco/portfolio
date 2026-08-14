@@ -392,7 +392,7 @@ Novo bloco `metrics` na seção Sobre, reusando os números que já existem (`ab
 
 1. **Seção Sobre enxuta.** Removidos `about.description` ("Quem sou por trás do código e o que me move a cada projeto.") e o segundo parágrafo do `about.summary` (trajetória no suporte e na infraestrutura de TI) dos dicionários pt/en e do tipo `Dict`; o `SectionHeading` do Sobre deixa de receber descrição.
 2. **Barra de progresso removida.** O `ScrollProgress` (Fase 9) saiu dos dois root layouts (`/` e `/en/`) e o componente `src/components/scroll-progress.tsx` foi excluído.
-3. **Sem travessões (—) nos textos visíveis.** Substituídos por vírgulas em `clients.description` e `process.description` (pt/en), que voltaram a entrar na v2; mantém a regra da v1. Restam apenas em comentários de código (não são renderizados).
+3. **Sem travessões (—) em lugar nenhum.** Substituídos por vírgulas, dois-pontos e ponto e vírgula em `clients.description` e `process.description` (pt/en), que voltaram a entrar na v2, em todos os comentários de código (`src/` e `e2e/`) e no README; completa a regra da v1.
 4. **"Projetos profissionais" → "Clientes".** Renomeado em todo o código (pt: label `clientes`, título `Clientes`, nav `Clientes`; en: `clients`/`Clients`/`Clients`), revertendo o rótulo da Fase 4. O id da âncora `#clientes` foi mantido, então os links da nav continuam funcionando.
 
 ---
@@ -423,6 +423,6 @@ Novo bloco `metrics` na seção Sobre, reusando os números que já existem (`ab
 
 - [x] Seção Sobre: removidos `about.description` e o 2º parágrafo do resumo (pt/en + tipo `Dict`)
 - [x] Barra de progresso de scroll removida (componente `scroll-progress.tsx` excluído e layouts limpos)
-- [x] Travessões (—) removidos dos textos visíveis (`clients.description` e `process.description`, pt/en)
+- [x] Travessões (—) removidos dos textos visíveis (`clients.description` e `process.description`, pt/en), dos comentários de código e do README
 - [x] Seção "Projetos profissionais" renomeada para **"Clientes"** em todo o código (pt/en, nav, comentários e README; âncora `#clientes` mantida)
 - [x] Validado: typecheck, lint, 36 testes unitários e build de produção limpos
