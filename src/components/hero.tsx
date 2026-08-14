@@ -1,4 +1,4 @@
-import { ArrowDown, Download, Mail, MapPin, Phone } from "lucide-react";
+import { ArrowDown, Download, MapPin } from "lucide-react";
 
 import { GitHubIcon, LinkedInIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
@@ -130,34 +130,6 @@ export function Hero({ lang }: { lang: Locale }) {
                 <LinkedInIcon className="size-4" />
               </TooltipTrigger>
               <TooltipContent>{d.hero.socials.linkedin}</TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger
-                render={
-                  <a
-                    href={`mailto:${profile.email}`}
-                    aria-label={d.hero.socials.email}
-                    className="focus-ring inline-flex size-10 items-center justify-center rounded-full border border-border bg-secondary/30 text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary"
-                  />
-                }
-              >
-                <Mail className="size-4" aria-hidden />
-              </TooltipTrigger>
-              <TooltipContent>{d.hero.socials.email}</TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger
-                render={
-                  <a
-                    href={`tel:${profile.phoneRaw}`}
-                    aria-label={d.hero.socials.phone}
-                    className="focus-ring inline-flex size-10 items-center justify-center rounded-full border border-border bg-secondary/30 text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary"
-                  />
-                }
-              >
-                <Phone className="size-4" aria-hidden />
-              </TooltipTrigger>
-              <TooltipContent>{profile.phone}</TooltipContent>
             </Tooltip>
           </TooltipProvider>
         </div>

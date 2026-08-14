@@ -14,14 +14,5 @@ export const profile = {
   avatarUrl: "/avatar.jpg",
   cvUrl: "/cv/pedro-levi-curriculo.pdf",
   location: "Rancharia, São Paulo",
-  stack: [
-    "React.js",
-    "React Native",
-    "Next.js",
-    "TypeScript",
-    "Node.js",
-    "Fastify",
-    "Expo",
-    "Tailwind CSS",
-  ],
+  stack: ["React", "Next.js", "Node.js", "TypeScript"],
 } as const;

@@ -38,9 +38,9 @@ export const pt: Dict = {
     mobileAria: "Navegação mobile",
   },
   hero: {
-    role: "desenvolvedor fullstack",
+    role: "Desenvolvedor Full Stack",
     name: "Pedro Levi",
-    bio: "Profissional de tecnologia formado em Análise e Desenvolvimento de Sistemas pela UNOESTE, com experiência prática em soluções web e mobile, de portais de notícias fullstack a aplicativos com testes automatizados. Interesse ativo em análise de sistemas, qualidade de dados e IA.",
+    bio: "Construo aplicações web e mobile com foco em arquitetura, qualidade e experiências funcionais.",
     stackLabel: "Tecnologias",
     viewProjects: "Ver projetos",
     downloadCv: "Baixar CV",

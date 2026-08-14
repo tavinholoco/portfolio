@@ -38,9 +38,9 @@ export const en: Dict = {
     mobileAria: "Mobile navigation",
   },
   hero: {
-    role: "fullstack developer",
+    role: "Full Stack Developer",
     name: "Pedro Levi",
-    bio: "Technology professional with a degree in Systems Analysis and Development from UNOESTE, with hands-on experience building web and mobile solutions, from fullstack news portals to apps with automated tests. Actively interested in systems analysis, data quality and AI.",
+    bio: "I build web and mobile applications with a focus on architecture, quality and functional experiences.",
     stackLabel: "Technologies",
     viewProjects: "View projects",
     downloadCv: "Download CV",
