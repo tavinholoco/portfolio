@@ -1,10 +1,9 @@
-/** Item de formação ou experiência da seção Trajetória. */
-export type CareerItem = {
-  id: string;
+/** Capítulo da trajetória em storytelling — agrupado por ano, com o que foi aprendido. */
+export type TimelineChapter = {
+  year: string;
   title: string;
   org: string;
   period: string;
-  status?: string;
-  details: string[];
+  learnings: string[];
   tags: string[];
 };

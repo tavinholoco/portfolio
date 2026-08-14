@@ -1,5 +1,5 @@
 import type { ProjectCategory } from "@/data/projects";
-import type { CareerItem } from "@/data/career";
+import type { TimelineChapter } from "@/data/career";
 
 export const locales = ["pt", "en"] as const;
 export type Locale = (typeof locales)[number];
@@ -55,7 +55,6 @@ export type SkillBlock = {
   id: string;
   title: string;
   description: string;
-  level: { label: string; value: number };
   skills: string[];
 };
 
@@ -150,10 +149,8 @@ export type Dict = {
     label: string;
     title: string;
     description: string;
-    educationTitle: string;
-    experienceTitle: string;
-    education: CareerItem[];
-    experience: CareerItem[];
+    learningsTitle: string;
+    chapters: TimelineChapter[];
   };
   skills: {
     label: string;
