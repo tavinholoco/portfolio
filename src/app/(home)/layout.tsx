@@ -31,8 +31,12 @@ export const metadata: Metadata = {
   metadataBase: new URL(getSiteUrl()),
 };
 
-/** Aplica o tema salvo antes do primeiro paint (sem flash) — o lang agora vem do layout de cada idioma. */
-const themeScript = `(function(){try{var t=localStorage.getItem("theme");var dark=t?t==="dark":true;document.documentElement.classList.toggle("dark",dark);}catch(e){document.documentElement.classList.add("dark");}})();`;
+/**
+ * Aplica o tema salvo antes do primeiro paint (sem flash) — classe .dark e
+ * theme-color do meta (o viewport exporta o padrão escuro; aqui o meta é
+ * atualizado para o tema real salvo, que já existe no DOM nesta ordem).
+ */
+const themeScript = `(function(){try{var t=localStorage.getItem("theme");var dark=t?t==="dark":true;document.documentElement.classList.toggle("dark",dark);var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute("content",dark?"#0a0a0b":"#fafafa");}catch(e){document.documentElement.classList.add("dark");}})();`;
 
 /** Root layout do português (rota /) — cada idioma tem o próprio <html lang>. */
 export default function HomeLayout({ children }: { children: ReactNode }) {

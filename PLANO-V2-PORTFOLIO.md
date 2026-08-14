@@ -380,11 +380,11 @@ Novo bloco `metrics` na seção Sobre, reusando os números que já existem (`ab
 4. **Aviso de `metadataBase` no build.** O `opengraph-image.tsx` é resolvido no segmento do **layout**, e os layouts não definiam `metadataBase` (só o `page.tsx`), então o merge intermediário caía em `http://localhost:0` e emitia o aviso. ✅ Corrigido exportando `metadataBase` nos dois root layouts — o aviso sumiu e toda rota (inclusive 404) herda a base. O problema já existia antes do refactor (o layout raiz antigo também não exportava `metadataBase`).
 5. **Testes E2E do idioma.** ✅ Adicionado Playwright (`e2e/html-lang.spec.ts`, 6 testes) validando o `<html lang>` no HTML bruto servido (SSR) e no DOM, por rota — job `e2e` no CI (`.github/workflows/ci.yml`).
 6. **README.** ✅ Atualizado: comentário do `lang-toggle` (descrevia "cookie + reload" da v1), estrutura com `(home)/` e `en/`, seção de idioma/tema e E2E/scripts.
+7. **`theme-color` refletia só o padrão escuro.** O `viewport` exportava `#0a0a0b` mesmo com tema claro salvo. ✅ Corrigido: o script anti-flash agora também atualiza o `<meta name="theme-color">` antes do primeiro paint (`#0a0a0b` escuro / `#fafafa` claro).
 
 **Pendências identificadas (não bloqueiam o deploy):**
 
 - **Demo do Newra News:** `src/lib/github.ts` dá prioridade à `homepage` do repo na API; o `demoUrl` curado (`newra-news-web.vercel.app`) só vale se a homepage do repo estiver vazia. Conferir/cadastrar a homepage correta no repositório para o domínio canônico prevalecer.
-- **`theme-color` estático:** o `viewport` dos layouts assume `#0a0a0b` (escuro) mesmo no tema claro (o `theme-toggle` corrige no cliente). Refinamento cosmético futuro.
 
 ---
 
@@ -399,6 +399,7 @@ Novo bloco `metrics` na seção Sobre, reusando os números que já existem (`ab
 - [x] `<html lang>` correto no SSR por rota (root layouts por idioma) + E2E no CI
 - [x] Troca de idioma preserva o contexto (home e páginas de projeto); nav funcional nas páginas individuais
 - [x] Aviso de `metadataBase` no build eliminado
+- [x] `theme-color` reflete o tema salvo (script anti-flash atualiza o meta antes do primeiro paint)
 
 ### Deploy ⏳
 
