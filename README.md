@@ -26,10 +26,11 @@ Dois workflows rodam em **push e pull request**:
 
 | Workflow | O que faz |
 |---|---|
-| `.github/workflows/ci.yml` | Lint (ESLint), typecheck (`tsc --noEmit`), testes (Vitest) e build de produção (Next.js) |
+| `.github/workflows/ci.yml` | Lint (ESLint), typecheck (`tsc --noEmit`), testes (Vitest), build de produção (Next.js) e **E2E com Playwright** (job `e2e`) |
 | `.github/workflows/gitleaks.yml` | Varredura de segredos com **Gitleaks** (versão 8.24.2 fixada) usando `.gitleaks.toml` |
 
-- **Testes:** `src/**/*.test.ts` rodam com Vitest (`pnpm test`) — cobrem `cn()`, fetch do GitHub (com fallback), metadados/URL canônica e paridade dos dicionários pt/en.
+- **Testes unitários:** `src/**/*.test.ts` rodam com Vitest (`pnpm test`) — cobrem `cn()`, fetch do GitHub (com fallback), metadados/URL canônica e paridade dos dicionários pt/en.
+- **Testes E2E:** `e2e/*.spec.ts` rodam com Playwright (`pnpm test:e2e`) contra o **servidor de produção** e validam que o `<html lang>` nasce correto no SSR em cada rota (`/` = pt, `/en/` = en, páginas de projeto) — sem depender de script no cliente. Localmente: `pnpm build` (uma vez) e depois `pnpm test:e2e`; o Playwright sobe o `pnpm start` sozinho ou reusa um servidor já rodando na porta 3000.
 - **Gitleaks:** a config em `.gitleaks.toml` estende as regras padrão e tem um allowlist para os dados públicos do próprio site (e-mail, telefone, links) — contato de portfólio não é segredo. Para rodar localmente: `gitleaks git . --config .gitleaks.toml`.
 
 ## 🚦 Começando
@@ -63,15 +64,17 @@ pnpm lint
 ├── src/
 │   ├── app/
 │   │   ├── globals.css          # tokens de tema (claro + escuro), utilitários e animações CSS
-│   │   ├── icon.svg             # favicon com as iniciais PL
-│   │   ├── layout.tsx           # layout raiz + metadados SEO por idioma + script anti-flash de tema
-│   │   ├── opengraph-image.tsx  # OG image gerada (1200×630 PNG, pt)
-│   │   ├── page.tsx             # rota `/` — portfólio em português
-│   │   ├── sitemap.ts           # sitemap com as duas variantes de idioma
 │   │   ├── robots.ts            # robots.txt com sitemap
-│   │   ├── portfolio-page.tsx   # home compartilhada (recebe o idioma)
-│   │   ├── projetos/[slug]/     # páginas individuais de projeto (pt)
+│   │   ├── (home)/              # árvore do português (rota `/`) com root layout próprio
+│   │   │   ├── layout.tsx       # root layout pt: <html lang="pt"> + script anti-flash de tema
+│   │   │   ├── page.tsx         # rota `/` — portfólio em português
+│   │   │   ├── portfolio-page.tsx # home compartilhada (recebe o idioma)
+│   │   │   ├── opengraph-image.tsx # OG image gerada (1200×630 PNG, pt)
+│   │   │   ├── sitemap.ts       # sitemap com as duas variantes de idioma
+│   │   │   ├── icon.svg         # favicon com as iniciais PL
+│   │   │   └── projetos/[slug]/ # páginas individuais de projeto (pt)
 │   │   └── en/                  # rota `/en/` — portfólio em inglês (+ en/projects/[slug])
+│   │       ├── layout.tsx       # root layout en: <html lang="en"> + script anti-flash de tema
 │   │       ├── page.tsx         # metadados en + hreflang
 │   │       └── opengraph-image.tsx # OG image em inglês
 │   ├── components/
@@ -93,7 +96,7 @@ pnpm lint
 │   │   ├── site-header.tsx      # nav sticky + scrollspy + botões de tema/idioma + menu mobile
 │   │   ├── site-footer.tsx      # footer
 │   │   ├── theme-toggle.tsx     # botão claro/escuro (localStorage "theme")
-│   │   ├── lang-toggle.tsx      # botão pt/en (cookie "lang" + reload)
+│   │   ├── lang-toggle.tsx      # botão pt/en (navega entre / ↔ /en/, preservando a página de projeto)
 │   │   └── icons.tsx            # ícones de marca (GitHub, LinkedIn)
 │   ├── data/                    # dados neutros (não dependem do idioma) + tipos
 │   │   ├── profile.ts           # contato, links, stack
@@ -111,7 +114,9 @@ pnpm lint
 │   ├── ci.yml                   # CI: lint, typecheck, testes e build
 │   └── gitleaks.yml             # varredura de segredos (Gitleaks)
 ├── .gitleaks.toml               # config do Gitleaks (allowlist dos dados públicos)
-├── vitest.config.ts             # config dos testes (alias @ + include src/**/*.test.ts)
+├── vitest.config.ts             # config dos testes unitários (alias @ + include src/**/*.test.ts)
+├── playwright.config.ts         # config dos testes E2E (servidor de produção na porta 3000)
+├── e2e/                         # specs E2E (Playwright) — html lang por rota
 └── PLANO-PORTFOLIO.md           # planejamento e plano de ação do projeto
 ```
 
@@ -202,8 +207,8 @@ Cada card mostra a **prévia do site** (screenshot do topo da página) e leva di
 
 ## 🌗 Tema claro/escuro e 🌐 Idioma
 
-- **Tema:** o botão no header alterna a classe `.dark` do `<html>` e persiste em `localStorage["theme"]`. O script em `layout.tsx` aplica o tema salvo antes do primeiro paint (sem flash). As cores vivem em `src/app/globals.css` (`:root` = claro, `.dark` = escuro).
-- **Idioma:** rotas separadas por idioma — `/` (pt-BR) e `/en/` (inglês), ambas renderizadas no servidor (SSG + ISR) usando `src/i18n/`. O botão no header navega entre as rotas. Cada rota tem `hreflang` (pt-BR, en, x-default), canonical próprio e sitemap com as duas variantes (`/sitemap.xml`).
+- **Tema:** o botão no header alterna a classe `.dark` do `<html>` e persiste em `localStorage["theme"]`. O script nos layouts aplica o tema salvo antes do primeiro paint (sem flash). As cores vivem em `src/app/globals.css` (`:root` = claro, `.dark` = escuro).
+- **Idioma:** rotas separadas por idioma — `/` (pt-BR) e `/en/` (inglês), cada uma com **root layout próprio** (`(home)/layout.tsx` e `en/layout.tsx`), então o `<html lang>` já nasce correto no SSR, sem depender de JS. Ambas são estáticas (SSG + ISR) usando `src/i18n/`. O botão no header navega entre as rotas preservando a página (home ou projeto). Cada rota tem `hreflang` (pt-BR, en, x-default), canonical próprio e sitemap com as duas variantes (`/sitemap.xml`).
 
 ## 🔗 Integração com o GitHub
 
@@ -215,7 +220,7 @@ Cada card mostra a **prévia do site** (screenshot do topo da página) e leva di
 ## 🎨 Personalização visual
 
 - **Cores do tema:** `src/app/globals.css` → variáveis `--background`, `--primary` (accent), `--border`, etc. (claro em `:root`, escuro em `.dark`).
-- **Fontes:** `src/app/layout.tsx` (Fira Code como principal + Open Sans como secundária, via `next/font`).
+- **Fontes:** `src/app/(home)/layout.tsx` e `src/app/en/layout.tsx` (Fira Code como principal + Open Sans como secundária, via `next/font`).
 - **Favicon:** `src/app/icon.svg` (iniciais PL).
 - **OG image:** `src/app/opengraph-image.tsx` (gera a imagem 1200×630 usada no compartilhamento).
 
@@ -256,5 +261,6 @@ pnpm deploy
 | `pnpm lint` | ESLint |
 | `pnpm typecheck` | Checagem de tipos (`tsc --noEmit`) |
 | `pnpm test` | Testes unitários (Vitest) |
+| `pnpm test:e2e` | Testes E2E (Playwright) — requer `pnpm build` antes |
 | `pnpm deploy` | Deploy de produção na Vercel |
 | `pnpm deploy:preview` | Deploy de preview (ambiente de teste) na Vercel |
