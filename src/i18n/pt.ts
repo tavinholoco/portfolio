@@ -26,7 +26,7 @@ export const pt: Dict = {
       { label: "Início", href: "#inicio" },
       { label: "Sobre", href: "#sobre" },
       { label: "Projetos", href: "#projetos" },
-      { label: "Clientes", href: "#clientes" },
+      { label: "Projetos profissionais", href: "#clientes" },
       { label: "Trajetória", href: "#trajetoria" },
       { label: "Habilidades", href: "#habilidades" },
       { label: "Contato", href: "#contato" },
@@ -191,18 +191,24 @@ export const pt: Dict = {
     ],
   },
   clients: {
-    label: "clientes",
-    title: "Projetos para clientes",
+    label: "projetos profissionais",
+    title: "Projetos profissionais",
     description:
-      "Trabalhos entregues e publicados para clientes. Cada card leva direto ao site do projeto.",
+      "Trabalhos entregues e publicados para clientes — da ideia ao site no ar.",
     live: "No ar",
-    visit: "Visitar site",
+    visit: "Visitar projeto",
     previewAlt: "Prévia do site",
+    clientLabel: "Cliente",
+    typeLabel: "Tipo",
+    techLabel: "Tecnologias",
     projects: [
       {
         name: "Dandarkness",
-        description:
-          "Portfólio do projeto Dandarkness, publicado e no ar. Acesso direto ao site do projeto.",
+        client: "Dandarkness",
+        type: "Portfólio artístico",
+        tech: ["Next.js", "TypeScript", "Tailwind CSS"],
+        outcome:
+          "Portfólio artístico publicado, com identidade visual própria e navegação fluida em qualquer dispositivo.",
         url: "https://dandarkness.vercel.app/",
         image: "/projects/dandarkness.jpg",
       },

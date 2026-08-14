@@ -4,7 +4,7 @@ import { ExternalLink } from "lucide-react";
 import { Section, SectionHeading } from "@/components/section";
 import { dictionaries, type Locale } from "@/i18n";
 
-/** Projetos entregues para clientes. Cada card mostra a prévia do site e leva direto a ele. */
+/** Projetos profissionais (cases de cliente): demonstram capacidade comercial, não só técnica. */
 export function ClientProjectsSection({ lang }: { lang: Locale }) {
   const d = dictionaries[lang].clients;
 
@@ -36,14 +36,43 @@ export function ClientProjectsSection({ lang }: { lang: Locale }) {
               </span>
             </div>
 
-            {/* Informações do projeto */}
+            {/* Caso do cliente */}
             <div className="flex flex-1 flex-col p-6">
               <h3 className="text-lg font-semibold text-foreground">
                 {project.name}
               </h3>
-              <p className="font-body mt-2 flex-1 text-sm leading-relaxed text-muted-foreground text-pretty">
-                {project.description}
+
+              <dl className="mt-4 space-y-2.5">
+                <div>
+                  <dt className="font-mono text-[11px] text-primary">
+                    {d.clientLabel}
+                  </dt>
+                  <dd className="mt-0.5 text-sm text-muted-foreground">
+                    {project.client}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="font-mono text-[11px] text-primary">
+                    {d.typeLabel}
+                  </dt>
+                  <dd className="mt-0.5 text-sm text-muted-foreground">
+                    {project.type}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="font-mono text-[11px] text-primary">
+                    {d.techLabel}
+                  </dt>
+                  <dd className="mt-0.5 text-sm text-muted-foreground">
+                    {project.tech.join(" · ")}
+                  </dd>
+                </div>
+              </dl>
+
+              <p className="font-body mt-4 flex-1 text-sm leading-relaxed text-muted-foreground text-pretty">
+                {project.outcome}
               </p>
+
               <a
                 href={project.url}
                 target="_blank"

@@ -40,9 +40,13 @@ export type FeaturedProject = {
   learnings: string[];
 };
 
+/** Case de cliente — demonstra capacidade comercial, não só técnica. */
 export type ClientProject = {
   name: string;
-  description: string;
+  client: string;
+  type: string;
+  tech: string[];
+  outcome: string;
   url: string;
   image: string;
 };
@@ -130,6 +134,9 @@ export type Dict = {
     live: string;
     visit: string;
     previewAlt: string;
+    clientLabel: string;
+    typeLabel: string;
+    techLabel: string;
     projects: ClientProject[];
   };
   career: {
