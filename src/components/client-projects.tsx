@@ -30,10 +30,6 @@ export function ClientProjectsSection({ lang }: { lang: Locale }) {
                 sizes="(max-width: 640px) 100vw, 50vw"
                 className="object-cover object-top transition-transform duration-500 group-hover:scale-[1.02]"
               />
-              <span className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-background/80 px-2.5 py-0.5 text-[11px] font-medium text-emerald-700 backdrop-blur dark:border-emerald-400/25 dark:text-emerald-300">
-                <span className="size-1.5 rounded-full bg-emerald-400" aria-hidden />
-                {d.live}
-              </span>
             </div>
 
             {/* Caso do cliente */}
@@ -41,37 +37,32 @@ export function ClientProjectsSection({ lang }: { lang: Locale }) {
               <h3 className="text-lg font-semibold text-foreground">
                 {project.name}
               </h3>
+              <span className="mt-2 inline-flex w-fit items-center rounded-full border border-primary/40 bg-primary/10 px-2.5 py-0.5 font-mono text-[11px] text-primary">
+                {d.projectKind}
+              </span>
 
-              <dl className="mt-4 space-y-2.5">
+              <p className="font-body mt-4 flex-1 text-sm leading-relaxed text-muted-foreground text-pretty">
+                {project.description}
+              </p>
+
+              <dl className="mt-5 space-y-2.5">
                 <div>
                   <dt className="font-mono text-[11px] text-primary">
-                    {d.clientLabel}
+                    {d.responsibilitiesLabel}
                   </dt>
                   <dd className="mt-0.5 text-sm text-muted-foreground">
-                    {project.client}
+                    {project.responsibilities.join(" · ")}
                   </dd>
                 </div>
                 <div>
                   <dt className="font-mono text-[11px] text-primary">
-                    {d.typeLabel}
+                    {d.statusLabel}
                   </dt>
                   <dd className="mt-0.5 text-sm text-muted-foreground">
-                    {project.type}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="font-mono text-[11px] text-primary">
-                    {d.techLabel}
-                  </dt>
-                  <dd className="mt-0.5 text-sm text-muted-foreground">
-                    {project.tech.join(" · ")}
+                    {project.status}
                   </dd>
                 </div>
               </dl>
-
-              <p className="font-body mt-4 flex-1 text-sm leading-relaxed text-muted-foreground text-pretty">
-                {project.outcome}
-              </p>
 
               <a
                 href={project.url}

@@ -130,7 +130,6 @@ Todo o conteúdo do site é editável sem tocar em componentes. Os **textos trad
 ```ts
 export const profile = {
   email: "pedrolevidiass@gmail.com",
-  phone: "(18) 99626-0781",
   phoneRaw: "+5518996260781",          // formato internacional (tel:)
   github: "https://github.com/tavinholoco",
   linkedin: "https://www.linkedin.com/in/pedro-levi-dias-96720126a/",

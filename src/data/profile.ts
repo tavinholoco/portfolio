@@ -5,7 +5,6 @@
 export const profile = {
   name: "Pedro Levi Dias Rosa Paula",
   email: "pedrolevidiass@gmail.com",
-  phone: "(18) 99626-0781",
   phoneRaw: "+5518996260781",
   github: "https://github.com/tavinholoco",
   linkedin: "https://www.linkedin.com/in/pedro-levi-dias-96720126a/",

@@ -67,7 +67,7 @@ export const pt: Dict = {
     metrics: [
       { value: "144+", label: "testes automatizados" },
       { value: "4+", label: "projetos full stack" },
-      { value: "3", label: "áreas de exploração em IA" },
+      { value: "3", label: "áreas de estudo em IA" },
       { value: "3+", label: "anos de formação e experiência técnica" },
     ],
     interestsHeading: "Interesses ativos",
@@ -88,7 +88,7 @@ export const pt: Dict = {
         id: "ai",
         title: "IA aplicada ao desenvolvimento e automação",
         description:
-          "Automação de fluxos, geração de conteúdo e code assist.",
+          "Explorando modelos generativos, automação e aplicações de IA na prática.",
       },
     ],
   },
@@ -194,20 +194,18 @@ export const pt: Dict = {
     title: "Clientes",
     description:
       "Trabalhos entregues e publicados para clientes, da ideia ao site no ar.",
-    live: "No ar",
+    projectKind: "Projeto profissional",
+    responsibilitiesLabel: "Responsabilidades",
+    statusLabel: "Status",
     visit: "Visitar projeto",
     previewAlt: "Prévia do site",
-    clientLabel: "Cliente",
-    typeLabel: "Tipo",
-    techLabel: "Tecnologias",
     projects: [
       {
         name: "Dandarkness",
-        client: "Dandarkness",
-        type: "Portfólio artístico",
-        tech: ["Next.js", "TypeScript", "Tailwind CSS"],
-        outcome:
-          "Portfólio artístico publicado, com identidade visual própria e navegação fluida em qualquer dispositivo.",
+        description:
+          "Portfólio artístico desenvolvido para apresentar o trabalho do cliente através de uma experiência digital alinhada à sua identidade visual.",
+        responsibilities: ["Frontend", "UI", "Responsividade", "Deploy"],
+        status: "Publicado",
         url: "https://dandarkness.vercel.app/",
         image: "/projects/dandarkness.jpg",
       },

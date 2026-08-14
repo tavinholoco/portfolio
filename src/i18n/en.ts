@@ -67,7 +67,7 @@ export const en: Dict = {
     metrics: [
       { value: "144+", label: "automated tests" },
       { value: "4+", label: "full stack projects" },
-      { value: "3", label: "AI exploration areas" },
+      { value: "3", label: "AI study areas" },
       { value: "3+", label: "years of education and technical experience" },
     ],
     interestsHeading: "Active interests",
@@ -88,7 +88,7 @@ export const en: Dict = {
         id: "ai",
         title: "AI applied to development and automation",
         description:
-          "Workflow automation, content generation and code assistance.",
+          "Exploring generative models, automation and AI applications in practice.",
       },
     ],
   },
@@ -194,20 +194,18 @@ export const en: Dict = {
     title: "Clients",
     description:
       "Delivered and published work for clients, from idea to live website.",
-    live: "Live",
+    projectKind: "Professional project",
+    responsibilitiesLabel: "Responsibilities",
+    statusLabel: "Status",
     visit: "Visit project",
     previewAlt: "Site preview",
-    clientLabel: "Client",
-    typeLabel: "Type",
-    techLabel: "Technologies",
     projects: [
       {
         name: "Dandarkness",
-        client: "Dandarkness",
-        type: "Artistic portfolio",
-        tech: ["Next.js", "TypeScript", "Tailwind CSS"],
-        outcome:
-          "Published artistic portfolio with its own visual identity and fluid navigation on any device.",
+        description:
+          "Artistic portfolio developed to present the client's work through a digital experience aligned with their visual identity.",
+        responsibilities: ["Frontend", "UI", "Responsiveness", "Deploy"],
+        status: "Published",
         url: "https://dandarkness.vercel.app/",
         image: "/projects/dandarkness.jpg",
       },
