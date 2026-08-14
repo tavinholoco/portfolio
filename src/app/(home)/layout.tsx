@@ -2,7 +2,6 @@ import type { ReactNode } from "react";
 import type { Metadata, Viewport } from "next";
 import { Fira_Code, Open_Sans } from "next/font/google";
 
-import { ScrollProgress } from "@/components/scroll-progress";
 import { getSiteUrl } from "@/lib/metadata";
 import "../globals.css";
 
@@ -50,7 +49,6 @@ export default function HomeLayout({ children }: { children: ReactNode }) {
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
       <body className="min-h-full bg-background font-sans text-foreground">
-        <ScrollProgress />
         {children}
       </body>
     </html>
