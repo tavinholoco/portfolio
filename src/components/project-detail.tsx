@@ -8,11 +8,13 @@ import {
 } from "lucide-react";
 
 import { GitHubIcon } from "@/components/icons";
+import { JsonLd } from "@/components/json-ld";
 import { Button } from "@/components/ui/button";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { dictionaries, type Locale } from "@/i18n";
 import { getFeaturedProjects } from "@/lib/github";
+import { projectJsonLd } from "@/lib/json-ld";
 
 /** Rota da página individual de um projeto, no idioma da rota atual. */
 function projectRoute(slug: string, lang: Locale): string {
@@ -38,9 +40,12 @@ export async function ProjectDetailPage({
 
   const backHref = lang === "pt" ? "/#projetos" : "/en/#projetos";
   const contactHref = lang === "pt" ? "/#contato" : "/en/#contato";
+  const jsonLd = projectJsonLd(slug, lang);
 
   return (
     <>
+      {/* Dado estruturado (Schema.org SoftwareApplication) */}
+      {jsonLd && <JsonLd data={jsonLd} />}
       <SiteHeader lang={lang} />
       <main>
         <article className="mx-auto w-full max-w-4xl px-4 py-16 sm:px-6 sm:py-24">

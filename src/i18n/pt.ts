@@ -3,23 +3,23 @@ import type { Dict } from "./index";
 /** Textos do site em português (Brasil). */
 export const pt: Dict = {
   meta: {
-    title: "Pedro Levi | Desenvolvedor Fullstack",
+    title: "Pedro Levi | Desenvolvedor Full Stack",
     name: "Pedro Levi",
     description:
-      "Portfólio de Pedro Levi Dias Rosa Paula. Desenvolvedor Fullstack com foco em React, Next.js, React Native e TypeScript. Projetos, trajetória e contato.",
+      "Desenvolvedor Full Stack especializado em React, Next.js, Node.js e TypeScript. Confira meus projetos web, mobile e soluções com IA.",
     keywords: [
       "Pedro Levi",
-      "Desenvolvedor Fullstack",
+      "Desenvolvedor Full Stack",
       "React",
-      "React Native",
       "Next.js",
-      "TypeScript",
       "Node.js",
+      "TypeScript",
+      "IA",
       "Portfólio",
     ],
     ogSiteName: "Pedro Levi | Portfólio",
     ogDescription:
-      "Projetos, trajetória e contato. Desenvolvedor Fullstack com foco em React, Next.js, React Native e TypeScript.",
+      "Desenvolvedor Full Stack especializado em React, Next.js, Node.js e TypeScript. Projetos web, mobile e soluções com IA.",
   },
   nav: {
     links: [

@@ -1,10 +1,15 @@
 import { ImageResponse } from "next/og";
 
-export const alt = "Pedro Levi | Desenvolvedor Fullstack";
+import { profile } from "@/data/profile";
+import { dictionaries } from "@/i18n";
+
+export const alt = "Pedro Levi | Desenvolvedor Full Stack";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
 export default function OpenGraphImage() {
+  const d = dictionaries.pt;
+
   return new ImageResponse(
     (
       <div
@@ -13,36 +18,81 @@ export default function OpenGraphImage() {
           height: "100%",
           display: "flex",
           flexDirection: "column",
-          alignItems: "center",
           justifyContent: "center",
-          gap: 8,
+          position: "relative",
           background: "#0a0a0b",
-          fontFamily: "sans-serif",
           color: "#fafafa",
-          textAlign: "center",
-          padding: 64,
+          fontFamily: "sans-serif",
+          padding: 72,
         }}
       >
-        <div style={{ display: "flex", fontSize: 96, fontWeight: 700, letterSpacing: -2 }}>
-          Pedro Levi
-        </div>
-        <div style={{ display: "flex", fontSize: 56, fontWeight: 600, color: "#71717a" }}>
-          Dias Rosa Paula
+        {/* Brilhos decorativos (identidade visual do site) */}
+        <div
+          style={{
+            position: "absolute",
+            top: -140,
+            right: -90,
+            width: 440,
+            height: 440,
+            borderRadius: 9999,
+            background: "#2dd4bf",
+            opacity: 0.12,
+          }}
+        />
+        <div
+          style={{
+            position: "absolute",
+            bottom: -170,
+            left: -70,
+            width: 380,
+            height: 380,
+            borderRadius: 9999,
+            background: "#0ea5e9",
+            opacity: 0.1,
+          }}
+        />
+
+        <div
+          style={{
+            display: "flex",
+            fontSize: 30,
+            fontFamily: "monospace",
+            color: "#2dd4bf",
+            marginBottom: 18,
+          }}
+        >
+          &gt;_ {d.hero.role}
         </div>
         <div
           style={{
             display: "flex",
-            marginTop: 24,
-            fontSize: 32,
-            color: "#2dd4bf",
-            fontFamily: "monospace",
+            fontSize: 92,
+            fontWeight: 700,
+            letterSpacing: -2,
           }}
         >
-          &gt;_ desenvolvedor fullstack
+          {d.meta.name}
         </div>
-        <div style={{ display: "flex", marginTop: 16, fontSize: 24, color: "#a1a1aa" }}>
-          React · React Native · Next.js · TypeScript · Node.js · Fastify
+        <div
+          style={{
+            display: "flex",
+            marginTop: 22,
+            fontSize: 27,
+            color: "#a1a1aa",
+          }}
+        >
+          {profile.stack.join(" · ")}
         </div>
+        <div
+          style={{
+            display: "flex",
+            marginTop: 44,
+            width: 72,
+            height: 5,
+            borderRadius: 3,
+            background: "#2dd4bf",
+          }}
+        />
       </div>
     ),
     size

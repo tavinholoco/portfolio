@@ -3,23 +3,23 @@ import type { Dict } from "./index";
 /** Website copy in English. */
 export const en: Dict = {
   meta: {
-    title: "Pedro Levi | Fullstack Developer",
+    title: "Pedro Levi | Full Stack Developer",
     name: "Pedro Levi",
     description:
-      "Pedro Levi Dias Rosa Paula's portfolio. Fullstack developer focused on React, Next.js, React Native and TypeScript. Projects, career and contact.",
+      "Full Stack Developer specialized in React, Next.js, Node.js and TypeScript. Check out my web, mobile and AI-powered projects.",
     keywords: [
       "Pedro Levi",
-      "Fullstack Developer",
+      "Full Stack Developer",
       "React",
-      "React Native",
       "Next.js",
-      "TypeScript",
       "Node.js",
+      "TypeScript",
+      "AI",
       "Portfolio",
     ],
     ogSiteName: "Pedro Levi | Portfolio",
     ogDescription:
-      "Projects, career and contact. Fullstack developer focused on React, Next.js, React Native and TypeScript.",
+      "Full Stack Developer specialized in React, Next.js, Node.js and TypeScript. Web, mobile and AI-powered projects.",
   },
   nav: {
     links: [
