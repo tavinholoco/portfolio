@@ -3,7 +3,7 @@
 > **Objetivo da v2:** reposicionar o site de "catálogo de tecnologias" para **"aqui está como eu penso, o que eu construí e por que consigo resolver problemas de software."**
 >
 > **Base:** v1 já publicada (Next.js 16 App Router, Tailwind v4, Framer Motion, shadcn/ui, pt-BR + en, ISR 1h, CI com 21 testes).
-> **Status:** ✅ **v2 completa** — Fases 1–10 implementadas e validadas (Fases 1–9 commitadas). Pendente: push e deploy na Vercel (checklist na seção 8).
+> **Status:** ✅ **v2 completa** — Fases 1–10 implementadas e commitadas (12 commits locais sobre a v1). ✅ **Revisão pós-v2 (13/08/2026)** — auditoria executada, correções aplicadas e documentadas na seção 7.4. ⏳ **Pendente:** push para o GitHub e deploy na Vercel (checklist na seção 8).
 
 ---
 
@@ -23,7 +23,7 @@
 - Seções são componentes em `src/components/`; dados tipados em `src/i18n/index.ts` e `src/data/`.
 - Projetos continuam vindo da curadoria + GitHub API (ISR) — `src/lib/github.ts`.
 - Não virar "parede de certificados": as categorias de skills ficam em **4 blocos enxutos**, sem logos.
-- Metas: build/lint/typecheck limpos, 21+ testes passando, Lighthouse A11y 100.
+- Metas: build/lint/typecheck limpos, **36 testes unitários (Vitest) + 6 testes E2E (Playwright)** passando, Lighthouse A11y 100.
 
 ---
 
@@ -152,6 +152,8 @@ Novo bloco `metrics` na seção Sobre, reusando os números que já existem (`ab
 ## 3. Fases de implementação (ordem = prioridade do usuário)
 
 > Estimativa total: **5–8 dias úteis**. Cada fase termina com build + typecheck + testes verdes (os 21 testes da v1 serão atualizados).
+>
+> **Estado:** todas as fases 0–10 foram implementadas e validadas — ver seção 7.4 (revisão pós-v2) e seção 8 (estado atual).
 
 ### 🔴 FASE 1 — Hero de posicionamento (Alta) · ~½ dia
 
@@ -292,6 +294,7 @@ Novo bloco `metrics` na seção Sobre, reusando os números que já existem (`ab
 
 | Área | Arquivos | Fase |
 |---|---|---|
+| Arquitetura de dados nova (tipos + curadoria neutra) | `src/i18n/index.ts` (tipos), `src/data/projects.ts`, `src/data/career.ts` | **0** |
 | Dicionários pt/en | `src/i18n/pt.ts`, `en.ts`, `index.ts` (tipos) | 1–8 |
 | Hero | `src/components/hero.tsx` | 1 |
 | Projetos | `projects.tsx`, `projects-grid.tsx`, **`featured-project.tsx`** (novo), `src/lib/github.ts` | 2 |
@@ -321,6 +324,7 @@ Novo bloco `metrics` na seção Sobre, reusando os números que já existem (`ab
 
 ## 6. Ordem de prioridade (resumo executivo)
 
+0. 🔴 **Fase 0** Arquitetura de dados nova (tipos + dicionários — fundação das demais)
 1. 🔴 **Fase 1** Hero (impacto imediato no primeiro scroll)
 2. 🔴 **Fase 2** Projetos com problema→solução + destaque Newra News
 3. 🔴 **Fase 3** Páginas individuais dos projetos
@@ -362,6 +366,45 @@ Novo bloco `metrics` na seção Sobre, reusando os números que já existem (`ab
 
 13. **Metadata por página de projeto.** `buildMetadata(lang)` só serve as raízes (`/` e `/en/`). Criar `buildProjectMetadata(project, lang)` (title, description, canonical, hreflang, OG) e `languageUrlsFor(path)` para sitemap/alternates. Com `trailingSlash: true`, o canonical deve ser `/projetos/newra-news/`.
 14. **robots.ts** deve apontar o sitemap absoluto: `Sitemap: ${getSiteUrl()}/sitemap.xml`.
-15. **Fase 0 fora do sumário.** Está descrita na seção 2 mas não aparece na lista 1–10 nem no mapa de impacto. Adicionar como fase numerada (feito na seção 6) e ao mapa de impacto.
+15. **Fase 0 fora do sumário.** Está descrita na seção 2 mas não aparecia na lista nem no mapa de impacto. ✅ Corrigido na revisão de 13/08/2026: adicionada como fase 0 na seção 6 e ao mapa de impacto (seção 4).
 16. **OG por projeto: adiar.** Usar a OG genérica (reformulada na Fase 5) nas páginas de projeto — evita 8 arquivos de imagem por projeto. Registrar como refinamento futuro.
 17. **Limpeza de assets legados.** `public/file.svg`, `globe.svg`, `next.svg`, `vercel.svg`, `window.svg` são sobras do create-next-app — remover.
+
+### 7.4 Revisão pós-v2 (13/08/2026) — auditoria e correções aplicadas
+
+> Auditoria dos 29 commits de `main` contra este plano, com validação ao vivo (SSR via `curl`, navegação no navegador e suites de teste). Todas as correções abaixo foram implementadas e validadas (typecheck, lint, 36 unit + 6 E2E, build).
+
+1. **Botão de idioma perdia o contexto em páginas de projeto.** De `/projetos/[slug]`, o toggle levava para a home `/en/` em vez do par traduzido `/en/projects/[slug]`. ✅ Corrigido: helper `src/lib/lang-path.ts` + `usePathname()` mapeiam a rota correspondente nos dois sentidos (4 testes unitários novos).
+2. **Nav e logo com âncoras mortas em páginas de projeto.** Os links `#inicio`, `#projetos` etc. não existem na página individual — o clique não fazia nada. ✅ Corrigido: em páginas de projeto, nav/logo apontam para a home do idioma (`/#projetos`, `/en/#projetos`).
+3. **`<html lang>` errado no SSR das rotas en.** `/en/` e `/en/projects/...` eram servidas com `lang="pt"` (um script no cliente corrigia depois — falha para crawlers e leitores de tela sem JS). ✅ Corrigido com **root layouts por idioma** (route groups `(home)` → `/` e `en` → `/en/`), cada um com `<html lang>` próprio. Detalhe: `robots.ts` precisa ficar no nível raiz de `src/app/` — dentro do route group ele não gera `/robots.txt` no Next 16.3.0 (o `sitemap.ts`, curiosamente, gera).
+4. **Aviso de `metadataBase` no build.** O `opengraph-image.tsx` é resolvido no segmento do **layout**, e os layouts não definiam `metadataBase` (só o `page.tsx`), então o merge intermediário caía em `http://localhost:0` e emitia o aviso. ✅ Corrigido exportando `metadataBase` nos dois root layouts — o aviso sumiu e toda rota (inclusive 404) herda a base. O problema já existia antes do refactor (o layout raiz antigo também não exportava `metadataBase`).
+5. **Testes E2E do idioma.** ✅ Adicionado Playwright (`e2e/html-lang.spec.ts`, 6 testes) validando o `<html lang>` no HTML bruto servido (SSR) e no DOM, por rota — job `e2e` no CI (`.github/workflows/ci.yml`).
+6. **README.** ✅ Atualizado: comentário do `lang-toggle` (descrevia "cookie + reload" da v1), estrutura com `(home)/` e `en/`, seção de idioma/tema e E2E/scripts.
+
+**Pendências identificadas (não bloqueiam o deploy):**
+
+- **Demo do Newra News:** `src/lib/github.ts` dá prioridade à `homepage` do repo na API; o `demoUrl` curado (`newra-news-web.vercel.app`) só vale se a homepage do repo estiver vazia. Conferir/cadastrar a homepage correta no repositório para o domínio canônico prevalecer.
+- **`theme-color` estático:** o `viewport` dos layouts assume `#0a0a0b` (escuro) mesmo no tema claro (o `theme-toggle` corrige no cliente). Refinamento cosmético futuro.
+
+---
+
+## 8. Checklist de aceite e estado atual (13/08/2026)
+
+> Referenciado no cabeçalho como "checklist na seção 8" — criado na revisão pós-v2.
+
+### v2 — implementação ✅
+
+- [x] Fases 0–10 implementadas e commitadas (12 commits locais sobre a v1: `87fe457` → `b279b07`)
+- [x] 36 testes unitários (Vitest) + 6 testes E2E (Playwright) verdes; lint/typecheck/build limpos
+- [x] `<html lang>` correto no SSR por rota (root layouts por idioma) + E2E no CI
+- [x] Troca de idioma preserva o contexto (home e páginas de projeto); nav funcional nas páginas individuais
+- [x] Aviso de `metadataBase` no build eliminado
+
+### Deploy ⏳
+
+- [ ] `git push` da branch `main` (atualmente 12 commits à frente de `origin/main`)
+- [ ] Importar/confirmar o projeto na Vercel (ou `pnpm deploy`)
+- [ ] Definir `NEXT_PUBLIC_SITE_URL` no ambiente de produção (ex.: `https://pedrolevi.dev`)
+- [ ] Validar pós-deploy: `/` e `/en/` com `lang` correto, hreflang, canonical, sitemap (10 URLs), robots, OG image pt/en, rotas de projeto 200 e slugs inválidos 404
+- [ ] Lighthouse pós-deploy (Perf ≥ 95 · A11y 100 · BP 100 · SEO 100)
+- [ ] (Opcional) Domínio próprio: DNS + HTTPS
