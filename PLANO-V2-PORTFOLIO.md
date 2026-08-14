@@ -407,5 +407,5 @@ Novo bloco `metrics` na seção Sobre, reusando os números que já existem (`ab
 - [x] **Deploy de produção na Vercel** — URL: `https://portfolio-tau-five-f86nc5khr8.vercel.app/`
 - [x] **Validar pós-deploy** (14/08/2026): `/` e `/en/` com `lang` correto (pt/en), canonical e hreflang por rota, sitemap com 10 URLs + alternates, robots com sitemap absoluto, OG image pt/en, rotas de projeto 200 e slug inválido 404
 - [ ] Definir `NEXT_PUBLIC_SITE_URL` no ambiente de produção (ex.: `https://pedrolevi.dev` — domínio ainda não responde; confirmar registro DNS). Enquanto isso, canonical/hreflang/OG usam a URL do deploy (fallback `VERCEL_PROJECT_PRODUCTION_URL`)
-- [ ] Lighthouse pós-deploy (Perf ≥ 95 · A11y 100 · BP 100 · SEO 100)
+- [x] Lighthouse pós-deploy (14/08/2026, cache quente): **Perf 95 · A11y 100 · BP 100 · SEO 100** em `/` e `/en/` — inclui fix de a11y (nome acessível do toggle de idioma + `<ol>` da trajetória com `<li>` direto). 1ª medição com cache frio da edge: Perf 88/A11y 93
 - [ ] (Opcional) Domínio próprio: DNS + HTTPS
