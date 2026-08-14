@@ -66,10 +66,12 @@ export const en: Dict = {
       "Graduated in Systems Analysis and Development from UNOESTE, I build web and mobile solutions, from the backend with Node.js and Fastify to the app in React Native.",
       "My journey started in IT support and infrastructure, which taught me to diagnose the root cause before acting. Today I build complete projects, like a news portal with AI-generated content and a study app with 144 automated tests, always pursuing quality, good practices and continuous learning.",
     ],
-    stats: [
+    metricsTitle: "Engineering beyond the interface",
+    metrics: [
       { value: "144+", label: "automated tests" },
-      { value: "4+", label: "GitHub projects" },
-      { value: "3", label: "AI interest areas" },
+      { value: "4+", label: "full stack projects" },
+      { value: "3", label: "AI exploration areas" },
+      { value: "3+", label: "years of education and technical experience" },
     ],
     interestsHeading: "Active interests",
     interests: [
@@ -87,9 +89,9 @@ export const en: Dict = {
       },
       {
         id: "ai",
-        title: "AI Training",
+        title: "AI applied to development and automation",
         description:
-          "Exploring generative models, fine-tuning and AI automation in practice.",
+          "Workflow automation, content generation and code assistance.",
       },
     ],
   },
@@ -211,6 +213,36 @@ export const en: Dict = {
           "Published artistic portfolio with its own visual identity and fluid navigation on any device.",
         url: "https://dandarkness.vercel.app/",
         image: "/projects/dandarkness.jpg",
+      },
+    ],
+  },
+  process: {
+    label: "how I work",
+    title: "How I work",
+    description:
+      "How I turn a problem into software — from first contact to deployment.",
+    steps: [
+      {
+        title: "Understand",
+        description:
+          "I understand the problem and the requirements before choosing the technology.",
+      },
+      {
+        title: "Plan",
+        description: "I structure architecture, data and application flow.",
+      },
+      {
+        title: "Develop",
+        description:
+          "I build with reusable components, good practices and tests.",
+      },
+      {
+        title: "Validate",
+        description: "I test features and behavior before delivery.",
+      },
+      {
+        title: "Deliver",
+        description: "Deployment, documentation and maintenance.",
       },
     ],
   },

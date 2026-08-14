@@ -99,7 +99,8 @@ export type Dict = {
     description: string;
     facts: Fact[];
     summary: string[];
-    stats: Stat[];
+    metricsTitle: string;
+    metrics: Stat[];
     interestsHeading: string;
     interests: Interest[];
   };
@@ -138,6 +139,12 @@ export type Dict = {
     typeLabel: string;
     techLabel: string;
     projects: ClientProject[];
+  };
+  process: {
+    label: string;
+    title: string;
+    description: string;
+    steps: { title: string; description: string }[];
   };
   career: {
     label: string;

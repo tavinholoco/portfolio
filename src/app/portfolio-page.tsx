@@ -4,6 +4,7 @@ import { ClientProjectsSection } from "@/components/client-projects";
 import { Contact } from "@/components/contact";
 import { Hero } from "@/components/hero";
 import { JsonLd } from "@/components/json-ld";
+import { ProcessSection } from "@/components/process";
 import { ProjectsSection } from "@/components/projects";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
@@ -25,6 +26,7 @@ export function PortfolioPage({ lang }: { lang: Locale }) {
         <About lang={lang} />
         <ProjectsSection lang={lang} />
         <ClientProjectsSection lang={lang} />
+        <ProcessSection lang={lang} />
         <Career lang={lang} />
         <Skills lang={lang} />
         <Contact lang={lang} />

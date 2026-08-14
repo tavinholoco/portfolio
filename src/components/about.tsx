@@ -99,21 +99,23 @@ export function About({ lang }: { lang: Locale }) {
           </FadeIn>
 
           <FadeIn delay={0.15}>
-            <dl className="mt-10 grid grid-cols-3 gap-4">
-              {d.stats.map((stat) => (
-                <div
-                  key={stat.label}
-                  className="rounded-xl border border-border bg-card/60 px-4 py-5 text-center"
-                >
-                  <dd className="font-mono text-2xl font-semibold text-primary sm:text-3xl">
-                    {stat.value}
-                  </dd>
-                  <dt className="mt-1 text-xs text-muted-foreground">
-                    {stat.label}
-                  </dt>
-                </div>
-              ))}
-            </dl>
+            <div className="mt-10 rounded-2xl border border-border bg-card/60 p-6 sm:p-8">
+              <p className="font-mono text-sm text-primary">
+                &gt;_ {d.metricsTitle}
+              </p>
+              <dl className="mt-6 grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-4">
+                {d.metrics.map((metric) => (
+                  <div key={metric.label}>
+                    <dd className="font-mono text-3xl font-semibold text-primary sm:text-4xl">
+                      {metric.value}
+                    </dd>
+                    <dt className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                      {metric.label}
+                    </dt>
+                  </div>
+                ))}
+              </dl>
+            </div>
           </FadeIn>
 
           <FadeIn delay={0.2}>

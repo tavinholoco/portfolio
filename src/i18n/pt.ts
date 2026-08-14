@@ -66,10 +66,12 @@ export const pt: Dict = {
       "Formado em Análise e Desenvolvimento de Sistemas pela UNOESTE, construo soluções web e mobile, do back-end com Node.js e Fastify ao app em React Native.",
       "Minha trajetória começou no suporte e na infraestrutura de TI, o que me ensinou a diagnosticar a causa raiz antes de agir. Hoje desenvolvo projetos completos, como um portal de notícias com geração de conteúdo por IA e um app de estudos com 144 testes automatizados, sempre buscando qualidade, boas práticas e aprendizado contínuo.",
     ],
-    stats: [
+    metricsTitle: "Engenharia além da interface",
+    metrics: [
       { value: "144+", label: "testes automatizados" },
-      { value: "4+", label: "projetos no GitHub" },
-      { value: "3", label: "áreas de interesse em IA" },
+      { value: "4+", label: "projetos full stack" },
+      { value: "3", label: "áreas de exploração em IA" },
+      { value: "3+", label: "anos de formação e experiência técnica" },
     ],
     interestsHeading: "Interesses ativos",
     interests: [
@@ -87,9 +89,9 @@ export const pt: Dict = {
       },
       {
         id: "ai",
-        title: "Treinamento de IA",
+        title: "IA aplicada ao desenvolvimento e automação",
         description:
-          "Explorando modelos generativos, fine-tuning e automação com IA na prática.",
+          "Automação de fluxos, geração de conteúdo e code assist.",
       },
     ],
   },
@@ -211,6 +213,37 @@ export const pt: Dict = {
           "Portfólio artístico publicado, com identidade visual própria e navegação fluida em qualquer dispositivo.",
         url: "https://dandarkness.vercel.app/",
         image: "/projects/dandarkness.jpg",
+      },
+    ],
+  },
+  process: {
+    label: "como trabalho",
+    title: "Como trabalho",
+    description:
+      "Como transformo um problema em software — do primeiro contato ao deploy.",
+    steps: [
+      {
+        title: "Entendo",
+        description:
+          "Entendo o problema e os requisitos antes de escolher a tecnologia.",
+      },
+      {
+        title: "Planejo",
+        description: "Estruturo arquitetura, dados e fluxo da aplicação.",
+      },
+      {
+        title: "Desenvolvo",
+        description:
+          "Construo com componentes reutilizáveis, boas práticas e testes.",
+      },
+      {
+        title: "Valido",
+        description:
+          "Testo funcionalidades e comportamento antes da entrega.",
+      },
+      {
+        title: "Entrego",
+        description: "Deploy, documentação e manutenção.",
       },
     ],
   },
