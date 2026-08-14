@@ -102,10 +102,14 @@ export const pt: Dict = {
     one: "projeto",
     many: "projetos",
     updatedAt: "atualizado",
-    repo: "Repo",
-    demo: "Demo",
+    github: "GitHub",
+    viewProject: "Ver projeto",
+    featuredBadge: "Projeto principal",
+    problemLabel: "Problema",
+    solutionLabel: "Solução",
+    highlightLabel: "Destaque técnico",
+    stackLabel: "Stack",
     allOnGithub: "Ver todos os projetos no GitHub",
-    inDevelopment: "Em desenvolvimento",
     categories: {
       fullstack: "Fullstack",
       mobile: "Mobile",
@@ -113,38 +117,51 @@ export const pt: Dict = {
     },
     featured: [
       {
-        repo: "newra-news",
+        slug: "newra-news",
         title: "Newra News",
-        description:
-          "Portal de notícias com geração diária de conteúdo por IA. Monorepo Turborepo com API Fastify e frontend Next.js integrados ao Google Gemini.",
+        tagline:
+          "Portal de notícias full stack com geração automatizada de conteúdo utilizando IA.",
+        problem:
+          "Portal precisava gerar e organizar conteúdo de notícias diariamente.",
+        solution: "Arquitetura full stack com Next.js + Fastify + Gemini.",
+        highlight: "Monorepo Turborepo e integração com IA generativa.",
+        stack: ["Next.js", "Fastify", "Gemini", "Turborepo", "TypeScript"],
         category: "fullstack",
-        inDevelopment: true,
-        tags: ["Next.js", "Fastify", "Gemini API", "Turborepo"],
       },
       {
-        repo: "NetsheetEngine",
+        slug: "netsheet-engine",
         title: "Netsheet Engine",
-        description:
-          "Suite de ficha de personagem e PRD para Cyberpunk 2020, com React 19, Express e Supabase, do CRUD à documentação de produto.",
+        tagline:
+          "Suite de fichas de personagem e documentação de produto para Cyberpunk 2020.",
+        problem:
+          "Fichas de personagem de Cyberpunk 2020 dispersas, sem padrão e difíceis de manter.",
+        solution: "Suite com CRUD completo, PRD e documentação de produto.",
+        highlight: "React 19 + Supabase com dados modelados como produto.",
+        stack: ["React 19", "Express", "Supabase", "TypeScript"],
         category: "fullstack",
-        inDevelopment: true,
-        tags: ["React 19", "Express", "Supabase"],
       },
       {
-        repo: "repertorio-progressivo",
+        slug: "repertorio-progressivo",
         title: "Repertório Progressivo",
-        description:
-          "App mobile de organização de estudos com notificações push e suíte de 144 testes automatizados (Jest), construído com React Native, Expo e TypeScript.",
+        tagline:
+          "App mobile de organização de estudos com notificações e rotinas.",
+        problem:
+          "Estudantes sem organização do repertório de estudos e sem constância.",
+        solution: "App mobile com notificações push e rotinas de estudo.",
+        highlight: "144 testes automatizados com Jest.",
+        stack: ["React Native", "Expo", "TypeScript", "Jest"],
         category: "mobile",
-        tags: ["React Native", "Expo", "Jest", "Push notifications"],
       },
       {
-        repo: "Trak-Acessoria",
+        slug: "trak-assessoria",
         title: "Trak Assessoria",
-        description:
-          "Landing page institucional para assessoria contábil, com Next.js 16, Tailwind v4, Vitest e Playwright, testes E2E e design responsivo.",
+        tagline:
+          "Landing institucional para assessoria contábil, com testes E2E.",
+        problem: "Assessoria contábil sem presença digital profissional.",
+        solution: "Landing institucional com Next.js 16 e Tailwind v4.",
+        highlight: "Testes E2E com Vitest e Playwright.",
+        stack: ["Next.js 16", "Tailwind v4", "Vitest", "Playwright"],
         category: "landing",
-        tags: ["Next.js 16", "Tailwind v4", "Vitest", "Playwright"],
       },
     ],
   },

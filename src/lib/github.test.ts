@@ -6,11 +6,14 @@ import { getFeaturedProjects } from "./github";
 
 const featured: FeaturedProject[] = [
   {
-    repo: "newra-news",
+    slug: "newra-news",
     title: "Newra News",
-    description: "Portal de notícias.",
+    tagline: "Portal de notícias.",
+    problem: "Problema.",
+    solution: "Solução.",
+    highlight: "Destaque.",
+    stack: ["Next.js"],
     category: "fullstack",
-    tags: ["Next.js"],
   },
 ];
 
@@ -78,7 +81,8 @@ describe("getFeaturedProjects", () => {
     expect(project.language).toBeNull();
     expect(project.updatedAt).toBeNull();
     expect(project.repoUrl).toBe("https://github.com/tavinholoco/newra-news");
-    expect(project.demoUrl).toBeNull();
+    // A demo curada (src/data/projects.ts) sobrevive à falha da API
+    expect(project.demoUrl).toBe("https://newra.vercel.app");
   });
 
   it("cai no fallback estático quando a resposta não é ok", async () => {
@@ -91,6 +95,7 @@ describe("getFeaturedProjects", () => {
 
     expect(project.language).toBeNull();
     expect(project.updatedAt).toBeNull();
-    expect(project.demoUrl).toBeNull();
+    // A demo curada (src/data/projects.ts) sobrevive à falha da API
+    expect(project.demoUrl).toBe("https://newra.vercel.app");
   });
 });

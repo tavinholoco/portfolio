@@ -26,13 +26,16 @@ export type Stat = {
   label: string;
 };
 
+/** Projeto em destaque — só texto traduzível. Metadados neutros (slug/repo/demo) ficam em `src/data/projects.ts` (decisão 5 do plano v2). */
 export type FeaturedProject = {
-  repo: string;
+  slug: string;
   title: string;
-  description: string;
+  tagline: string;
+  problem: string;
+  solution: string;
+  highlight: string;
+  stack: string[];
   category: ProjectCategory;
-  inDevelopment?: boolean;
-  tags: string[];
 };
 
 export type ClientProject = {
@@ -102,10 +105,14 @@ export type Dict = {
     one: string;
     many: string;
     updatedAt: string;
-    repo: string;
-    demo: string;
+    github: string;
+    viewProject: string;
+    featuredBadge: string;
+    problemLabel: string;
+    solutionLabel: string;
+    highlightLabel: string;
+    stackLabel: string;
     allOnGithub: string;
-    inDevelopment: string;
     categories: Record<ProjectCategory, string>;
     featured: FeaturedProject[];
   };

@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 
+import { projectMetas } from "@/data/projects";
+
 import { dictionaries, resolveLocale } from "./index";
 
 /** Coleta todos os caminhos de folhas de um objeto (ex.: ["nav", "links", "0", "label"]). */
@@ -47,11 +49,23 @@ describe("dicionários pt-BR / en", () => {
     }
   });
 
-  it("expõe os mesmos repositórios em destaque nos dois idiomas", () => {
-    const ptRepos = dictionaries.pt.projects.featured.map((p) => p.repo);
-    const enRepos = dictionaries.en.projects.featured.map((p) => p.repo);
+  it("expõe os mesmos slugs em destaque nos dois idiomas", () => {
+    const ptSlugs = dictionaries.pt.projects.featured.map((p) => p.slug);
+    const enSlugs = dictionaries.en.projects.featured.map((p) => p.slug);
 
-    expect(enRepos).toEqual(ptRepos);
+    expect(enSlugs).toEqual(ptSlugs);
+  });
+
+  it("cada slug em destaque tem metadado curado (repo/demo) em src/data/projects.ts", () => {
+    for (const locale of ["pt", "en"] as const) {
+      const slugs = dictionaries[locale].projects.featured.map((p) => p.slug);
+      for (const slug of slugs) {
+        expect(
+          projectMetas.some((meta) => meta.slug === slug),
+          `slug "${slug}" sem metadado em src/data/projects.ts`
+        ).toBe(true);
+      }
+    }
   });
 
   it("tem os mesmos projetos de clientes nos dois idiomas", () => {

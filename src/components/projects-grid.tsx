@@ -36,7 +36,7 @@ export function ProjectsGrid({
 
   return (
     <div>
-      {/* Filtro por categoria */}
+      {/* Filtro por categoria (vale só para o grid; o projeto principal fica acima) */}
       <div
         className="mt-10 flex flex-wrap items-center gap-2"
         role="group"
@@ -68,7 +68,7 @@ export function ProjectsGrid({
         <AnimatePresence mode="popLayout">
           {visible.map((project) => (
             <motion.article
-              key={project.repo}
+              key={project.slug}
               layout
               initial={reduceMotion ? false : { opacity: 0, y: 24 }}
               whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }}
@@ -81,40 +81,59 @@ export function ProjectsGrid({
                   <span className="font-mono text-xs text-primary">
                     {d.categories[project.category]}
                   </span>
-                  <span className="flex flex-wrap items-center gap-2">
-                    {project.inDevelopment && (
-                      <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-400/10 px-2.5 py-0.5 text-[11px] font-medium text-amber-700 dark:border-amber-400/25 dark:text-amber-300">
-                        <span className="size-1.5 rounded-full bg-amber-400" aria-hidden />
-                        {d.inDevelopment}
-                      </span>
-                    )}
-                    {project.updatedAt && (
-                      <span className="text-xs text-muted-foreground">
-                        {d.updatedAt} {project.updatedAt}
-                      </span>
-                    )}
-                  </span>
+                  {project.updatedAt && (
+                    <span className="text-xs text-muted-foreground">
+                      {d.updatedAt} {project.updatedAt}
+                    </span>
+                  )}
                 </div>
 
                 <h3 className="mt-4 text-lg font-semibold text-foreground">
                   {project.title}
                 </h3>
-                <p className="font-body mt-2 flex-1 text-sm leading-relaxed text-muted-foreground text-pretty">
-                  {project.description}
-                </p>
 
-                <div className="mt-5 flex flex-wrap gap-1.5">
-                  {project.tags.map((tag) => (
+                <dl className="mt-4 space-y-3">
+                  <div>
+                    <dt className="font-mono text-[11px] text-primary">
+                      {d.problemLabel}
+                    </dt>
+                    <dd className="mt-0.5 text-sm leading-relaxed text-muted-foreground text-pretty">
+                      {project.problem}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="font-mono text-[11px] text-primary">
+                      {d.solutionLabel}
+                    </dt>
+                    <dd className="mt-0.5 text-sm leading-relaxed text-muted-foreground text-pretty">
+                      {project.solution}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="font-mono text-[11px] text-primary">
+                      {d.highlightLabel}
+                    </dt>
+                    <dd className="mt-0.5 text-sm leading-relaxed text-muted-foreground text-pretty">
+                      {project.highlight}
+                    </dd>
+                  </div>
+                </dl>
+
+                <div className="mt-4 flex flex-wrap items-center gap-1.5">
+                  <span className="mr-1 font-mono text-[11px] text-muted-foreground/70">
+                    {d.stackLabel}:
+                  </span>
+                  {project.stack.map((tech) => (
                     <span
-                      key={tag}
+                      key={tech}
                       className="rounded-md border border-border bg-secondary/40 px-2 py-0.5 font-mono text-[11px] text-muted-foreground"
                     >
-                      {tag}
+                      {tech}
                     </span>
                   ))}
                 </div>
 
-                <div className="mt-5 flex items-center justify-between border-t border-border pt-4">
+                <div className="mt-5 flex items-center justify-between gap-3 border-t border-border pt-4">
                   {project.language ? (
                     <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
                       <span
@@ -128,25 +147,23 @@ export function ProjectsGrid({
                   )}
                   <div className="flex items-center gap-4">
                     <a
+                      href={project.demoUrl ?? project.repoUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="focus-ring inline-flex items-center gap-1 rounded-md text-sm font-medium text-primary transition-opacity hover:opacity-80"
+                    >
+                      {d.viewProject}
+                      <ArrowUpRight className="size-3.5" aria-hidden />
+                    </a>
+                    <a
                       href={project.repoUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="focus-ring inline-flex items-center gap-2 rounded-md text-sm font-medium text-foreground transition-colors hover:text-primary"
                     >
                       <GitHubIcon className="size-4" />
-                      {d.repo}
+                      {d.github}
                     </a>
-                    {project.demoUrl && (
-                      <a
-                        href={project.demoUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="focus-ring inline-flex items-center gap-1 rounded-md text-sm font-medium text-primary transition-opacity hover:opacity-80"
-                      >
-                        {d.demo}
-                        <ArrowUpRight className="size-3.5" aria-hidden />
-                      </a>
-                    )}
                   </div>
                 </div>
               </div>

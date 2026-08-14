@@ -1,4 +1,4 @@
-import type { ProjectCategory } from "@/data/projects";
+import { projectMetas } from "@/data/projects";
 import type { FeaturedProject, Locale } from "@/i18n";
 
 const GITHUB_USER = "tavinholoco";
@@ -15,13 +15,9 @@ type GitHubRepo = {
   pushed_at: string;
 };
 
-export type Project = {
+/** Projeto pronto para renderização: curadoria traduzida + metadados do GitHub. */
+export type Project = FeaturedProject & {
   repo: string;
-  title: string;
-  description: string;
-  category: ProjectCategory;
-  tags: string[];
-  inDevelopment?: boolean;
   language: string | null;
   /** Data do último push formatada (ex.: "ago 2026"). */
   updatedAt: string | null;
@@ -44,7 +40,7 @@ function formatDate(iso: string | null, lang: Locale): string | null {
 /**
  * Busca os projetos em destaque no GitHub e mescla com a curadoria.
  * Roda no servidor (SSG/ISR). Se a API falhar ou estiver em rate limit,
- * cai no fallback estático, o site nunca quebra.
+ * cai no fallback estático (repo/demo da curadoria), o site nunca quebra.
  */
 export async function getFeaturedProjects(
   featured: FeaturedProject[],
@@ -70,20 +66,21 @@ export async function getFeaturedProjects(
     // API indisponível, usa o fallback abaixo
   }
 
-  const byName = new Map(
-    repos.map((repo) => [repo.name.toLowerCase(), repo])
-  );
+  const byName = new Map(repos.map((repo) => [repo.name.toLowerCase(), repo]));
+  const metaBySlug = new Map(projectMetas.map((meta) => [meta.slug, meta]));
 
-  return featured.map((featured) => {
-    const gh = byName.get(featured.repo.toLowerCase());
+  return featured.map((f) => {
+    const meta = metaBySlug.get(f.slug);
+    const repo = meta?.repo ?? f.slug;
+    const gh = byName.get(repo.toLowerCase());
     return {
-      ...featured,
+      ...f,
+      repo,
       language: gh?.language ?? null,
       updatedAt: formatDate(gh?.pushed_at ?? null, lang),
-      repoUrl:
-        gh?.html_url ??
-        `https://github.com/${GITHUB_USER}/${featured.repo}`,
-      demoUrl: gh?.homepage || null,
+      repoUrl: gh?.html_url ?? `https://github.com/${GITHUB_USER}/${repo}`,
+      // A homepage do GitHub tem prioridade; a demo curada é o fallback (não o contrário).
+      demoUrl: gh?.homepage ?? meta?.demoUrl ?? null,
     };
   });
 }
