@@ -1,6 +1,6 @@
-# 🚀 Portfólio — Pedro Levi
+# 🚀 Portfólio · Pedro Levi
 
-Site de portfólio com seções por área e páginas individuais de projeto, projetos do GitHub, trajetória de carreira, habilidades e contato — inspirado no [kc1t.com](https://kc1t.com/pt-br), com identidade própria.
+Site de portfólio com seções por área e páginas individuais de projeto, projetos do GitHub, trajetória de carreira, habilidades e contato, inspirado no [kc1t.com](https://kc1t.com/pt-br), com identidade própria.
 
 **Live:** [pedrolevi.dev](https://pedrolevi.dev) _(definido via `NEXT_PUBLIC_SITE_URL` no deploy)_
 
@@ -10,11 +10,11 @@ Site de portfólio com seções por área e páginas individuais de projeto, pro
 |---|---|
 | Framework | **Next.js 16** (App Router, Turbopack) + TypeScript |
 | Estilo | **Tailwind CSS v4** (tema claro/escuro via classe `.dark`) |
-| Componentes | **shadcn/ui** (Base UI) — Button, Sheet, Tooltip |
+| Componentes | **shadcn/ui** (Base UI): Button, Sheet, Tooltip |
 | Animação | **Framer Motion** (scroll reveals) + animações CSS puras no hero (LCP-friendly) |
 | Ícones | **Lucide React** + ícones de marca próprios (`GitHubIcon`, `LinkedInIcon`) |
 | Dados | **GitHub API** via Server Component com ISR de 1h + fallback estático |
-| i18n | Rotas por idioma: `/` (pt-BR) e `/en/` — dicionários em `src/i18n/` + hreflang e sitemap bilíngue |
+| i18n | Rotas por idioma: `/` (pt-BR) e `/en/`; dicionários em `src/i18n/` + hreflang e sitemap bilíngue |
 | Deploy | Vercel |
 
 ## 🤖 CI (GitHub Actions)
@@ -29,9 +29,9 @@ Dois workflows rodam em **push e pull request**:
 | `.github/workflows/ci.yml` | Lint (ESLint), typecheck (`tsc --noEmit`), testes (Vitest), build de produção (Next.js) e **E2E com Playwright** (job `e2e`) |
 | `.github/workflows/gitleaks.yml` | Varredura de segredos com **Gitleaks** (versão 8.24.2 fixada) usando `.gitleaks.toml` |
 
-- **Testes unitários:** `src/**/*.test.ts` rodam com Vitest (`pnpm test`) — cobrem `cn()`, fetch do GitHub (com fallback), metadados/URL canônica e paridade dos dicionários pt/en.
-- **Testes E2E:** `e2e/*.spec.ts` rodam com Playwright (`pnpm test:e2e`) contra o **servidor de produção** e validam que o `<html lang>` nasce correto no SSR em cada rota (`/` = pt, `/en/` = en, páginas de projeto) — sem depender de script no cliente. Localmente: `pnpm build` (uma vez) e depois `pnpm test:e2e`; o Playwright sobe o `pnpm start` sozinho ou reusa um servidor já rodando na porta 3000.
-- **Gitleaks:** a config em `.gitleaks.toml` estende as regras padrão e tem um allowlist para os dados públicos do próprio site (e-mail, telefone, links) — contato de portfólio não é segredo. Para rodar localmente: `gitleaks git . --config .gitleaks.toml`.
+- **Testes unitários:** `src/**/*.test.ts` rodam com Vitest (`pnpm test`): cobrem `cn()`, fetch do GitHub (com fallback), metadados/URL canônica e paridade dos dicionários pt/en.
+- **Testes E2E:** `e2e/*.spec.ts` rodam com Playwright (`pnpm test:e2e`) contra o **servidor de produção** e validam que o `<html lang>` nasce correto no SSR em cada rota (`/` = pt, `/en/` = en, páginas de projeto), sem depender de script no cliente. Localmente: `pnpm build` (uma vez) e depois `pnpm test:e2e`; o Playwright sobe o `pnpm start` sozinho ou reusa um servidor já rodando na porta 3000.
+- **Gitleaks:** a config em `.gitleaks.toml` estende as regras padrão e tem um allowlist para os dados públicos do próprio site (e-mail, telefone, links), contato de portfólio não é segredo. Para rodar localmente: `gitleaks git . --config .gitleaks.toml`.
 
 ## 🚦 Começando
 
@@ -67,13 +67,13 @@ pnpm lint
 │   │   ├── robots.ts            # robots.txt com sitemap
 │   │   ├── (home)/              # árvore do português (rota `/`) com root layout próprio
 │   │   │   ├── layout.tsx       # root layout pt: <html lang="pt"> + script anti-flash de tema
-│   │   │   ├── page.tsx         # rota `/` — portfólio em português
+│   │   │   ├── page.tsx         # rota `/`: portfólio em português
 │   │   │   ├── portfolio-page.tsx # home compartilhada (recebe o idioma)
 │   │   │   ├── opengraph-image.tsx # OG image gerada (1200×630 PNG, pt)
 │   │   │   ├── sitemap.ts       # sitemap com as duas variantes de idioma
 │   │   │   ├── icon.svg         # favicon com as iniciais PL
 │   │   │   └── projetos/[slug]/ # páginas individuais de projeto (pt)
-│   │   └── en/                  # rota `/en/` — portfólio em inglês (+ en/projects/[slug])
+│   │   └── en/                  # rota `/en/`: portfólio em inglês (+ en/projects/[slug])
 │   │       ├── layout.tsx       # root layout en: <html lang="en"> + script anti-flash de tema
 │   │       ├── page.tsx         # metadados en + hreflang
 │   │       └── opengraph-image.tsx # OG image em inglês
@@ -115,7 +115,7 @@ pnpm lint
 ├── .gitleaks.toml               # config do Gitleaks (allowlist dos dados públicos)
 ├── vitest.config.ts             # config dos testes unitários (alias @ + include src/**/*.test.ts)
 ├── playwright.config.ts         # config dos testes E2E (servidor de produção na porta 3000)
-├── e2e/                         # specs E2E (Playwright) — html lang por rota
+├── e2e/                         # specs E2E (Playwright): html lang por rota
 └── PLANO-PORTFOLIO.md           # planejamento e plano de ação do projeto
 ```
 
@@ -125,7 +125,7 @@ Todo o conteúdo do site é editável sem tocar em componentes. Os **textos trad
 
 > Para alterar um texto, edite o **mesmo campo nos dois arquivos**: `src/i18n/pt.ts` (português) e `src/i18n/en.ts` (inglês).
 
-### 1. Contato, links e stack — `src/data/profile.ts`
+### 1. Contato, links e stack (`src/data/profile.ts`)
 
 ```ts
 export const profile = {
@@ -141,9 +141,9 @@ export const profile = {
 };
 ```
 
-> **Trocar a foto do perfil:** substitua `public/avatar.jpg` pela nova imagem (quadrada, ~500px) — o `avatarUrl` já aponta para ela.
+> **Trocar a foto do perfil:** substitua `public/avatar.jpg` pela nova imagem (quadrada, ~500px), o `avatarUrl` já aponta para ela.
 
-### 2. Textos do site — `src/i18n/pt.ts` e `src/i18n/en.ts`
+### 2. Textos do site (`src/i18n/pt.ts` e `src/i18n/en.ts`)
 
 Os dois arquivos têm a mesma estrutura (`Dict`). Exemplo do hero em `pt.ts`:
 
@@ -160,9 +160,9 @@ hero: {
 
 Os principais blocos: `nav`, `hero`, `about` (fatos, resumo, métricas e interesses), `projects` (curadoria + labels), `clients`, `process` (Como trabalho), `career` (timeline em capítulos), `skills`, `contact` e `meta` (SEO/OG).
 
-### 3. Projetos em destaque — `src/i18n/pt.ts` → `projects.featured`
+### 3. Projetos em destaque (`src/i18n/pt.ts` → `projects.featured`)
 
-A **curadoria** lista os projetos que aparecem no site. Os metadados (linguagem, data de atualização, link da demo) são buscados automaticamente do GitHub — o site nunca quebra se a API falhar.
+A **curadoria** lista os projetos que aparecem no site. Os metadados (linguagem, data de atualização, link da demo) são buscados automaticamente do GitHub, o site nunca quebra se a API falhar.
 
 ```ts
 {
@@ -177,11 +177,11 @@ A **curadoria** lista os projetos que aparecem no site. Os metadados (linguagem,
 },
 ```
 
-- Os **metadados neutros** (slug, nome do repo e demoUrl) ficam em `src/data/projects.ts` — os dicionários só guardam texto traduzível.
+- Os **metadados neutros** (slug, nome do repo e demoUrl) ficam em `src/data/projects.ts`; os dicionários só guardam texto traduzível.
 - A **demo** usa a `homepage` do repo no GitHub e, na ausência dela, o `demoUrl` curado como fallback.
 - Para trocar a ordem, reordene os itens do array.
 
-### 4. Projetos de clientes — `src/i18n/pt.ts` → `clients.projects`
+### 4. Projetos de clientes (`src/i18n/pt.ts` → `clients.projects`)
 
 Cada card mostra a **prévia do site** (screenshot do topo da página) e leva direto a ele:
 
@@ -199,22 +199,22 @@ Cada card mostra a **prévia do site** (screenshot do topo da página) e leva di
 
 > **Gerar/atualizar o screenshot de um cliente:** abra o site em um navegador (janela ~1440px), tire um print do topo da página e salve como JPEG em `public/projects/<nome>.jpg` (o card corta automaticamente em 16:10).
 
-### 5. Trajetória e Habilidades — `src/i18n/` → `career` e `skills`
+### 5. Trajetória e Habilidades (`src/i18n/` → `career` e `skills`)
 
 - `career.chapters`: capítulos da timeline por ano com `year`, `title`, `org`, `period`, `learnings` (o que aprendi) e `tags`.
-- `skills.blocks`: 4 categorias sem nível — `id` (mapeia o ícone no componente), `title`, `description` e `skills`.
+- `skills.blocks`: 4 categorias sem nível, com `id` (mapeia o ícone no componente), `title`, `description` e `skills`.
 
 ## 🌗 Tema claro/escuro e 🌐 Idioma
 
 - **Tema:** o botão no header alterna a classe `.dark` do `<html>` e persiste em `localStorage["theme"]`. O script nos layouts aplica o tema salvo antes do primeiro paint (sem flash). As cores vivem em `src/app/globals.css` (`:root` = claro, `.dark` = escuro).
-- **Idioma:** rotas separadas por idioma — `/` (pt-BR) e `/en/` (inglês), cada uma com **root layout próprio** (`(home)/layout.tsx` e `en/layout.tsx`), então o `<html lang>` já nasce correto no SSR, sem depender de JS. Ambas são estáticas (SSG + ISR) usando `src/i18n/`. O botão no header navega entre as rotas preservando a página (home ou projeto). Cada rota tem `hreflang` (pt-BR, en, x-default), canonical próprio e sitemap com as duas variantes (`/sitemap.xml`).
+- **Idioma:** rotas separadas por idioma; `/` (pt-BR) e `/en/` (inglês), cada uma com **root layout próprio** (`(home)/layout.tsx` e `en/layout.tsx`), então o `<html lang>` já nasce correto no SSR, sem depender de JS. Ambas são estáticas (SSG + ISR) usando `src/i18n/`. O botão no header navega entre as rotas preservando a página (home ou projeto). Cada rota tem `hreflang` (pt-BR, en, x-default), canonical próprio e sitemap com as duas variantes (`/sitemap.xml`).
 
 ## 🔗 Integração com o GitHub
 
-`src/lib/github.ts` busca os repositórios de `tavinholoco` na **GitHub API** dentro de um Server Component com `next: { revalidate: 3600 }` (**ISR de 1h** — os projetos refletem o GitHub sem JS no cliente).
+`src/lib/github.ts` busca os repositórios de `tavinholoco` na **GitHub API** dentro de um Server Component com `next: { revalidate: 3600 }` (**ISR de 1h**, os projetos refletem o GitHub sem JS no cliente).
 
-- **Rate limit:** 60 requisições/h sem token — suficiente com revalidação de 1h. Para mais folga, defina `GITHUB_TOKEN` (fine-grained, escopo de leitura) no ambiente.
-- **Fallback:** se a API falhar, o site usa os dados curados de `src/i18n` — nunca quebra.
+- **Rate limit:** 60 requisições/h sem token, suficiente com revalidação de 1h. Para mais folga, defina `GITHUB_TOKEN` (fine-grained, escopo de leitura) no ambiente.
+- **Fallback:** se a API falhar, o site usa os dados curados de `src/i18n`, nunca quebra.
 
 ## 🎨 Personalização visual
 
@@ -228,7 +228,7 @@ Cada card mostra a **prévia do site** (screenshot do topo da página) e leva di
 O CLI do Vercel já está no projeto (`pnpm deploy`). Primeira vez:
 
 ```bash
-# 1. login (abre o navegador) — apenas na primeira vez
+# 1. login (abre o navegador), apenas na primeira vez
 pnpm exec vercel login
 
 # 2. conectar o projeto à sua conta Vercel
@@ -260,6 +260,6 @@ pnpm deploy
 | `pnpm lint` | ESLint |
 | `pnpm typecheck` | Checagem de tipos (`tsc --noEmit`) |
 | `pnpm test` | Testes unitários (Vitest) |
-| `pnpm test:e2e` | Testes E2E (Playwright) — requer `pnpm build` antes |
+| `pnpm test:e2e` | Testes E2E (Playwright), requer `pnpm build` antes |
 | `pnpm deploy` | Deploy de produção na Vercel |
 | `pnpm deploy:preview` | Deploy de preview (ambiente de teste) na Vercel |
