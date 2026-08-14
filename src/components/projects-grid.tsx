@@ -71,7 +71,16 @@ export function ProjectsGrid({
       {/* Grid de cards */}
       <motion.div layout className="mt-8 grid gap-5 sm:grid-cols-2">
         <AnimatePresence mode="popLayout">
-          {visible.map((project) => (
+          {visible.map((project) => {
+            // Oculta o badge de linguagem do GitHub quando a linguagem já
+            // aparece no Stack (evita redundância visual, ex.: TypeScript).
+            const showLanguage =
+              project.language !== null &&
+              !project.stack.some(
+                (tech) => tech.toLowerCase() === project.language!.toLowerCase()
+              );
+
+            return (
             <motion.article
               key={project.slug}
               layout
@@ -139,7 +148,7 @@ export function ProjectsGrid({
                 </div>
 
                 <div className="mt-5 flex items-center justify-between gap-3 border-t border-border pt-4">
-                  {project.language ? (
+                  {showLanguage ? (
                     <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
                       <span
                         className="size-2 rounded-full bg-primary/70"
@@ -174,7 +183,8 @@ export function ProjectsGrid({
                 </div>
               </div>
             </motion.article>
-          ))}
+            );
+          })}
         </AnimatePresence>
       </motion.div>
 

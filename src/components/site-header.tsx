@@ -98,7 +98,7 @@ export function SiteHeader({ lang }: { lang: Locale }) {
                 href={link.href}
                 aria-current={isActive ? "true" : undefined}
                 className={cn(
-                  "focus-ring relative rounded-md px-3 py-2 text-sm transition-colors",
+                  "focus-ring relative rounded-md px-3 py-2 text-sm whitespace-nowrap transition-colors",
                   isActive
                     ? "text-foreground"
                     : "text-muted-foreground hover:text-foreground"

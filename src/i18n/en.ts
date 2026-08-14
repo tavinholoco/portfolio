@@ -26,7 +26,7 @@ export const en: Dict = {
       { label: "Home", href: "#inicio" },
       { label: "About", href: "#sobre" },
       { label: "Projects", href: "#projetos" },
-      { label: "Professional projects", href: "#clientes" },
+      { label: "Professional", href: "#clientes" },
       { label: "Career", href: "#trajetoria" },
       { label: "Skills", href: "#habilidades" },
       { label: "Contact", href: "#contato" },
