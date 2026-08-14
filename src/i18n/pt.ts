@@ -26,7 +26,7 @@ export const pt: Dict = {
       { label: "Início", href: "#inicio" },
       { label: "Sobre", href: "#sobre" },
       { label: "Projetos", href: "#projetos" },
-      { label: "Profissionais", href: "#clientes" },
+      { label: "Clientes", href: "#clientes" },
       { label: "Trajetória", href: "#trajetoria" },
       { label: "Habilidades", href: "#habilidades" },
       { label: "Contato", href: "#contato" },
@@ -54,7 +54,6 @@ export const pt: Dict = {
   about: {
     label: "sobre mim",
     title: "Sobre mim",
-    description: "Quem sou por trás do código e o que me move a cada projeto.",
     facts: [
       { id: "formation", label: "Formação", value: "ADS · UNOESTE" },
       { id: "location", label: "Localização", value: "Rancharia, São Paulo" },
@@ -63,7 +62,6 @@ export const pt: Dict = {
     ],
     summary: [
       "Formado em Análise e Desenvolvimento de Sistemas pela UNOESTE, construo soluções web e mobile, do back-end com Node.js e Fastify ao app em React Native.",
-      "Minha trajetória começou no suporte e na infraestrutura de TI, o que me ensinou a diagnosticar a causa raiz antes de agir. Hoje desenvolvo projetos completos, como um portal de notícias com geração de conteúdo por IA e um app de estudos com 144 testes automatizados, sempre buscando qualidade, boas práticas e aprendizado contínuo.",
     ],
     metricsTitle: "Engenharia além da interface",
     metrics: [
@@ -192,10 +190,10 @@ export const pt: Dict = {
     ],
   },
   clients: {
-    label: "projetos profissionais",
-    title: "Projetos profissionais",
+    label: "clientes",
+    title: "Clientes",
     description:
-      "Trabalhos entregues e publicados para clientes — da ideia ao site no ar.",
+      "Trabalhos entregues e publicados para clientes, da ideia ao site no ar.",
     live: "No ar",
     visit: "Visitar projeto",
     previewAlt: "Prévia do site",
@@ -219,7 +217,7 @@ export const pt: Dict = {
     label: "como trabalho",
     title: "Como trabalho",
     description:
-      "Como transformo um problema em software — do primeiro contato ao deploy.",
+      "Como transformo um problema em software, do primeiro contato ao deploy.",
     steps: [
       {
         title: "Entendo",

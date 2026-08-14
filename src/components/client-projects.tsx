@@ -4,7 +4,7 @@ import { ExternalLink } from "lucide-react";
 import { Section, SectionHeading } from "@/components/section";
 import { dictionaries, type Locale } from "@/i18n";
 
-/** Projetos profissionais (cases de cliente): demonstram capacidade comercial, não só técnica. */
+/** Clientes (cases de cliente): demonstram capacidade comercial, não só técnica. */
 export function ClientProjectsSection({ lang }: { lang: Locale }) {
   const d = dictionaries[lang].clients;
 

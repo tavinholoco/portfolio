@@ -95,7 +95,6 @@ export type Dict = {
   about: {
     label: string;
     title: string;
-    description: string;
     facts: Fact[];
     summary: string[];
     metricsTitle: string;

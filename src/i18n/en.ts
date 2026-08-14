@@ -26,7 +26,7 @@ export const en: Dict = {
       { label: "Home", href: "#inicio" },
       { label: "About", href: "#sobre" },
       { label: "Projects", href: "#projetos" },
-      { label: "Professional", href: "#clientes" },
+      { label: "Clients", href: "#clientes" },
       { label: "Career", href: "#trajetoria" },
       { label: "Skills", href: "#habilidades" },
       { label: "Contact", href: "#contato" },
@@ -54,7 +54,6 @@ export const en: Dict = {
   about: {
     label: "about me",
     title: "About me",
-    description: "Who I am behind the code and what drives me in every project.",
     facts: [
       { id: "formation", label: "Education", value: "Systems Analysis · UNOESTE" },
       { id: "location", label: "Location", value: "Rancharia, São Paulo" },
@@ -63,7 +62,6 @@ export const en: Dict = {
     ],
     summary: [
       "Graduated in Systems Analysis and Development from UNOESTE, I build web and mobile solutions, from the backend with Node.js and Fastify to the app in React Native.",
-      "My journey started in IT support and infrastructure, which taught me to diagnose the root cause before acting. Today I build complete projects, like a news portal with AI-generated content and a study app with 144 automated tests, always pursuing quality, good practices and continuous learning.",
     ],
     metricsTitle: "Engineering beyond the interface",
     metrics: [
@@ -192,10 +190,10 @@ export const en: Dict = {
     ],
   },
   clients: {
-    label: "professional projects",
-    title: "Professional projects",
+    label: "clients",
+    title: "Clients",
     description:
-      "Delivered and published work for clients — from idea to live website.",
+      "Delivered and published work for clients, from idea to live website.",
     live: "Live",
     visit: "Visit project",
     previewAlt: "Site preview",
@@ -219,7 +217,7 @@ export const en: Dict = {
     label: "how I work",
     title: "How I work",
     description:
-      "How I turn a problem into software — from first contact to deployment.",
+      "How I turn a problem into software, from first contact to deployment.",
     steps: [
       {
         title: "Understand",

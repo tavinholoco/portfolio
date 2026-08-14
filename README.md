@@ -86,12 +86,11 @@ pnpm lint
 │   │   ├── featured-project.tsx # destaque do projeto principal (Newra News)
 │   │   ├── projects-grid.tsx    # grid de cards + filtro por categoria (client)
 │   │   ├── project-detail.tsx   # página individual de projeto
-│   │   ├── client-projects.tsx  # projetos profissionais (cases de cliente)
+│   │   ├── client-projects.tsx  # clientes (cases de cliente)
 │   │   ├── process.tsx          # seção "Como trabalho" (5 passos)
 │   │   ├── career.tsx           # trajetória: timeline de storytelling
 │   │   ├── skills.tsx           # habilidades: 4 categorias sem nível
 │   │   ├── contact.tsx          # contato com 2 CTAs + cards
-│   │   ├── scroll-progress.tsx  # barra de progresso de leitura
 │   │   ├── json-ld.tsx          # dados estruturados (Schema.org)
 │   │   ├── site-header.tsx      # nav sticky + scrollspy + botões de tema/idioma + menu mobile
 │   │   ├── site-footer.tsx      # footer

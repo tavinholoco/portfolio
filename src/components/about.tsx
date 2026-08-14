@@ -77,11 +77,7 @@ export function About({ lang }: { lang: Locale }) {
 
         {/* Coluna direita: cabeçalho + resumo + interesses */}
         <div className="min-w-0">
-          <SectionHeading
-            label={d.label}
-            title={d.title}
-            description={d.description}
-          />
+          <SectionHeading label={d.label} title={d.title} />
 
           <FadeIn delay={0.1}>
             {d.summary.map((paragraph, index) => (
