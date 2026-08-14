@@ -14,8 +14,8 @@ const blockIcons: Record<string, LucideIcon> = {
 };
 
 /**
- * Habilidades em 4 categorias enxutas, sem classificação de nível —
- * o nível é demonstrado pelos projetos (decisão 12 do plano v2).
+ * Habilidades em 4 categorias enxutas, sem classificação de nível.
+ * O nível é demonstrado pelos projetos (decisão 12 do plano v2).
  */
 export function Skills({ lang }: { lang: Locale }) {
   const d = dictionaries[lang].skills;

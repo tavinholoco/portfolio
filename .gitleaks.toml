@@ -1,6 +1,6 @@
 # Configuração do Gitleaks para o portfólio.
 # Estende as regras padrão e adiciona um allowlist para os dados públicos
-# do próprio site (e-mail, telefone, links) — são informações de contato
+# do próprio site (e-mail, telefone, links), são informações de contato
 # intencionalmente expostas no portfólio, não segredos.
 
 title = "Gitleaks config do portfólio"

@@ -4,7 +4,7 @@ import { getSiteUrl } from "@/lib/metadata";
 
 const siteUrl = getSiteUrl();
 
-/** Schema.org Person — perfil do dono do site (home). */
+/** Schema.org Person: perfil do dono do site (home). */
 export function personJsonLd(lang: Locale) {
   const d = dictionaries[lang];
   return {
@@ -24,7 +24,7 @@ export function personJsonLd(lang: Locale) {
   };
 }
 
-/** Schema.org WebSite — home por idioma. */
+/** Schema.org WebSite: home por idioma. */
 export function webSiteJsonLd(lang: Locale) {
   const d = dictionaries[lang];
   return {
@@ -55,7 +55,7 @@ export function projectListJsonLd(lang: Locale) {
   };
 }
 
-/** Schema.org SoftwareApplication — página individual de projeto. */
+/** Schema.org SoftwareApplication: página individual de projeto. */
 export function projectJsonLd(slug: string, lang: Locale) {
   const d = dictionaries[lang];
   const project = d.projects.featured.find((p) => p.slug === slug);

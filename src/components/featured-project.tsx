@@ -7,7 +7,7 @@ import { dictionaries, type Locale } from "@/i18n";
 import type { Project } from "@/lib/github";
 
 /**
- * Destaque do projeto principal (Newra News) — sempre visível acima do grid
+ * Destaque do projeto principal (Newra News), sempre visível acima do grid
  * (decisão 9 do plano v2). O mockup do portal é em CSS puro (decisão 7),
  * sem screenshot real por enquanto.
  */
@@ -101,7 +101,7 @@ export function FeaturedProject({
           </div>
         </div>
 
-        {/* Mockup do portal em CSS puro (sem screenshot real — decisão 7) */}
+        {/* Mockup do portal em CSS puro (sem screenshot real, decisão 7) */}
         <div
           aria-hidden
           className="relative transition-transform duration-500 group-hover:scale-[1.02]"

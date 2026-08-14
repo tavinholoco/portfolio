@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { translatedPath } from "./lang-path";
 
-describe("translatedPath — rota correspondente no outro idioma", () => {
+describe("translatedPath: rota correspondente no outro idioma", () => {
   it("troca a home pt ↔ en", () => {
     expect(translatedPath("/", "pt")).toBe("/en/");
     expect(translatedPath("/en/", "en")).toBe("/");

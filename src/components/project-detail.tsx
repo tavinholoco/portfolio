@@ -197,7 +197,7 @@ export async function ProjectDetailPage({
             </Link>
           </nav>
 
-          {/* CTA final — leva à seção de contato da home (sem duplicar email/WhatsApp) */}
+          {/* CTA final, que leva à seção de contato da home (sem duplicar email/WhatsApp) */}
           <section className="mt-16 rounded-2xl border border-border bg-card/60 p-8 text-center sm:p-10">
             <h2 className="text-2xl font-semibold tracking-tight text-foreground">
               {d.contact.title}

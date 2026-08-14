@@ -26,7 +26,7 @@ export type Stat = {
   label: string;
 };
 
-/** Projeto em destaque — só texto traduzível. Metadados neutros (slug/repo/demo) ficam em `src/data/projects.ts` (decisão 5 do plano v2). */
+/** Projeto em destaque: só texto traduzível. Metadados neutros (slug/repo/demo) ficam em `src/data/projects.ts` (decisão 5 do plano v2). */
 export type FeaturedProject = {
   slug: string;
   title: string;
@@ -36,11 +36,11 @@ export type FeaturedProject = {
   highlight: string;
   stack: string[];
   category: ProjectCategory;
-  /** O que aprendi no projeto — usado na página individual. */
+  /** O que aprendi no projeto, usado na página individual. */
   learnings: string[];
 };
 
-/** Case de cliente — demonstra capacidade comercial, não só técnica. */
+/** Case de cliente: demonstra capacidade comercial, não só técnica. */
 export type ClientProject = {
   name: string;
   client: string;

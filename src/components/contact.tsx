@@ -48,7 +48,7 @@ export function Contact({ lang }: { lang: Locale }) {
             {d.description}
           </p>
 
-          {/* Duas CTAs lado a lado — um caminho para cada público */}
+          {/* Duas CTAs lado a lado, um caminho para cada público */}
           <div className="mx-auto mt-10 grid max-w-3xl gap-4 sm:grid-cols-2">
             <div className="flex flex-col rounded-2xl border border-border bg-card/60 p-6 sm:p-7">
               <h3 className="text-lg font-semibold text-foreground">

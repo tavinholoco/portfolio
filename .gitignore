@@ -41,7 +41,7 @@ yarn-error.log*
 # vercel
 .vercel
 
-# freebuff (dados locais do app — nunca versionar)
+# freebuff (dados locais do app, nunca versionar)
 .freebuff
 
 # typescript

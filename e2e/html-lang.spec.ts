@@ -18,7 +18,7 @@ const routes = [
 test.describe("<html lang> por rota (SSR)", () => {
   for (const { path, lang } of routes) {
     test(`${path} nasce com lang="${lang}"`, async ({ page, request }) => {
-      // 1. HTML bruto do servidor (SSR) — não passa por JS de cliente.
+      // 1. HTML bruto do servidor (SSR), não passa por JS de cliente.
       const response = await request.get(path);
       expect(response.ok(), `${path} deveria responder 200`).toBeTruthy();
       const html = await response.text();

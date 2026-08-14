@@ -1,7 +1,7 @@
 /**
  * Metadados neutros dos projetos em destaque (não dependem do idioma).
  * Textos traduzíveis (tagline, problema, solução, destaque, stack) ficam
- * nos dicionários em `src/i18n/` — aqui só slug + repo + demoUrl
+ * nos dicionários em `src/i18n/`; aqui só slug + repo + demoUrl
  * (decisão 5 do plano v2).
  */
 
