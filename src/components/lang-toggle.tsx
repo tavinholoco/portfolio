@@ -1,10 +1,16 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { Languages } from "lucide-react";
 
 import type { Locale } from "@/i18n";
+import { translatedPath } from "@/lib/lang-path";
 
-/** Alterna o idioma navegando para a rota correspondente: / (pt) ou /en/ (en). */
+/**
+ * Alterna o idioma navegando para a rota correspondente, preservando o contexto:
+ * na home troca `/` ↔ `/en/`; numa página de projeto troca
+ * `/projetos/[slug]/` ↔ `/en/projects/[slug]/`.
+ */
 export function LangToggle({
   lang,
   labels,
@@ -12,8 +18,9 @@ export function LangToggle({
   lang: Locale;
   labels: { toEnglish: string; toPortuguese: string };
 }) {
+  const pathname = usePathname();
   const next: Locale = lang === "pt" ? "en" : "pt";
-  const href = next === "en" ? "/en/" : "/";
+  const href = translatedPath(pathname, lang);
   const label = lang === "pt" ? labels.toEnglish : labels.toPortuguese;
 
   return (

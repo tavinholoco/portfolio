@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { Mail, Menu } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
 
@@ -23,6 +24,13 @@ import { cn } from "@/lib/utils";
 
 export function SiteHeader({ lang }: { lang: Locale }) {
   const d = dictionaries[lang];
+  const pathname = usePathname();
+  // Em páginas de projeto não existem as seções da home; os links apontam para a home do idioma.
+  const isProjectPage =
+    pathname.startsWith("/projetos") || pathname.startsWith("/en/projects");
+  const home = lang === "pt" ? "/" : "/en/";
+  const navHref = (href: string) => (isProjectPage ? `${home}${href}` : href);
+  const logoHref = isProjectPage ? home : "#inicio";
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState("#inicio");
   const [scrolled, setScrolled] = useState(false);
@@ -76,7 +84,7 @@ export function SiteHeader({ lang }: { lang: Locale }) {
         {/* Logo + controles (idioma e tema) */}
         <div className="flex shrink-0 items-center gap-1.5">
           <a
-            href="#inicio"
+            href={logoHref}
             className="focus-ring rounded-md font-mono text-sm font-medium tracking-tight text-foreground"
           >
             <span className="text-primary">&gt;_</span> pedrolevi
@@ -95,7 +103,7 @@ export function SiteHeader({ lang }: { lang: Locale }) {
             return (
               <a
                 key={link.href}
-                href={link.href}
+                href={navHref(link.href)}
                 aria-current={isActive ? "true" : undefined}
                 className={cn(
                   "focus-ring relative rounded-md px-3 py-2 text-sm whitespace-nowrap transition-colors",
@@ -148,7 +156,7 @@ export function SiteHeader({ lang }: { lang: Locale }) {
                   nativeButton={false}
                   render={
                     <a
-                      href={link.href}
+                      href={navHref(link.href)}
                       role="link"
                       className="focus-ring rounded-md px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                     />
