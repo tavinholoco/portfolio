@@ -34,7 +34,6 @@ export function Hero({ lang }: { lang: Locale }) {
         <div className="absolute left-1/2 top-[-28%] h-[36rem] w-[36rem] -translate-x-1/2 rounded-full bg-primary/10 blur-3xl" />
         <div className="absolute -right-24 top-1/3 h-72 w-72 rounded-full bg-sky-500/5 blur-3xl" />
         <div className="absolute -left-24 bottom-10 h-72 w-72 rounded-full bg-primary/5 blur-3xl" />
-        <div className="bg-grid-pattern mask-fade-hero absolute inset-0" />
       </div>
 
       <div className="mx-auto w-full max-w-3xl px-4 py-24 text-center sm:px-6">

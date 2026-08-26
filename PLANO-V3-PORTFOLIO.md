@@ -4,7 +4,7 @@
 >
 > **Base:** v2 publicada (Next 16.3 + React 19, Tailwind v4, bilíngue com paridade testada, 36 unit + 6 E2E, Lighthouse 95/100/100/100).
 > **Referência de inspiração:** [p5aholic.me](https://p5aholic.me) (Keita Yamada). Inspiração estrutural, **não cópia**. Ver seção 0.3.
-> **Status:** 📋 **Plano aprovado em 25/08/2026, desenvolvimento não iniciado.** Nenhuma fase executada. Duas auditorias completas realizadas (seções 5 e 6, 30 achados já incorporados às fases).
+> **Status:** 🚧 **Em desenvolvimento. Fase 0 concluída em 26/08/2026.** Duas auditorias completas realizadas (seções 5 e 6, 30 achados já incorporados às fases). Próxima: Fase 1 (motor WebGL).
 > **Versão do documento:** V3.2
 
 ---
@@ -15,7 +15,9 @@ Esta seção existe para quem abre o repositório sem contexto nenhum. Leia ela 
 
 ### 0.1 Estado atual
 
-Nada da v3 foi implementado. O site em produção é a v2. A árvore do git está limpa e a v2 está integralmente funcional. O trabalho começa do zero na **Fase 0** (seção 7).
+**Fase 0 concluída em 26/08/2026.** Estão em pé: `ogl` e `lenis` instalados, os tokens de shell da v3 em `globals.css` (com o fundo no `:root`, não no `body`), a camada shadcn reneutralizada, a escala tipográfica fluida, e o manifesto de rotas em [src/lib/routes.ts](src/lib/routes.ts) com 19 testes. A pré-condição de F1 foi verificada em runtime: com o CSS novo, uma seção `blend` dentro de um `<main>` estático não tem nenhum ancestral confinando o backdrop.
+
+O site em produção continua sendo a v2, e as páginas ainda são as da v2: a Fase 0 mexeu em fundação, não em telas. O trabalho continua na **Fase 1** (seção 7).
 
 ### 0.2 As três coisas que mais quebram este plano
 
@@ -576,7 +578,7 @@ Roteiro manual, nos dois temas e nos dois idiomas:
 
 ## 10. Checklist de progresso
 
-- [ ] Fase 0: Fundação (deps, tokens, manifesto de rotas)
+- [x] Fase 0: Fundação (deps, tokens, manifesto de rotas), concluída em 26/08/2026
 - [ ] Fase 1: Motor WebGL
 - [ ] Fase 2: Shell, blend e moldura ⚠️ portão de saída obrigatório
 - [ ] Fase 3: Rotas, navegação e scroll

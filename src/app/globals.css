@@ -4,107 +4,81 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Tema premium, portfólio single-page (inspirado em kc1t.com).
- * Paleta: accent verde-água; claro (padrão) e escuro via classe .dark no <html>.
+ * V3, identidade neutra: a cor do site vive no shader de fundo, não na UI.
+ * A camada de tokens shadcn continua existindo porque ui/button, ui/sheet e
+ * ui/tooltip dependem dela, mas foi reneutralizada para acompanhar --c-bg e
+ * --c-ink. Nada aqui introduz matiz.
+ *
+ * LEI DE CAMADAS (F1 do PLANO-V3-PORTFOLIO.md, seção 6.1):
+ * o fundo da página fica no :root e NUNCA no body. O fundo do elemento raiz é
+ * propagado para o canvas do documento e pintado abaixo de tudo, inclusive do
+ * <BackgroundCanvas> em z-index -1. Se estivesse no body, seria o fundo de um
+ * bloco em fluxo e cobriria o canvas, matando o mix-blend-mode das seções.
  */
 :root {
-  --radius: 0.625rem;
+  /* Nenhum border-radius acima de 2px na v3 (seção 8 do plano). */
+  --radius: 0.125rem;
 
-  --background: #fafafa;
-  --foreground: #131316;
+  /* Tokens de shell da v3. */
+  --pad: max(20px, 4vmin);
+  --c-bg: #f0f0f0;
+  --c-ink: #0d0d0d;
+  --shell-fade: 900ms;
+  --shell-ease: cubic-bezier(0.1, 0.4, 0.2, 1);
 
-  --card: #ffffff;
-  --card-foreground: #131316;
+  /* Camada shadcn reneutralizada. */
+  --background: var(--c-bg);
+  --foreground: var(--c-ink);
 
-  --popover: #ffffff;
-  --popover-foreground: #131316;
+  --card: var(--c-bg);
+  --card-foreground: var(--c-ink);
 
-  --primary: #0d9488;
-  --primary-foreground: #f0fdfa;
+  /* Opaco de propósito: o painel do Sheet portaliza para o body e não pode
+     deixar o canvas aparecer através dele (F7). */
+  --popover: var(--c-bg);
+  --popover-foreground: var(--c-ink);
 
-  --secondary: #ececef;
-  --secondary-foreground: #131316;
+  --primary: var(--c-ink);
+  --primary-foreground: var(--c-bg);
 
-  --muted: #f2f2f5;
-  --muted-foreground: #56565f;
+  --secondary: #e3e3e3;
+  --secondary-foreground: var(--c-ink);
 
-  --accent: #ececef;
-  --accent-foreground: #131316;
+  --muted: #e7e7e7;
+  --muted-foreground: #666668;
 
-  --destructive: #dc2626;
-  --destructive-foreground: #fef2f2;
+  --accent: #e3e3e3;
+  --accent-foreground: var(--c-ink);
 
-  --border: #e4e4e7;
-  --input: #d4d4d8;
-  --ring: #0d9488;
+  --destructive: #b42318;
+  --destructive-foreground: #fdf3f2;
 
-  --chart-1: #0d9488;
-  --chart-2: #0284c7;
-  --chart-3: #d97706;
-  --chart-4: #7c3aed;
-  --chart-5: #e11d48;
+  --border: rgb(13 13 13 / 0.14);
+  --input: rgb(13 13 13 / 0.2);
+  --ring: var(--c-ink);
 
-  --sidebar: #ffffff;
-  --sidebar-foreground: #131316;
-  --sidebar-primary: #0d9488;
-  --sidebar-primary-foreground: #f0fdfa;
-  --sidebar-accent: #ececef;
-  --sidebar-accent-foreground: #131316;
-  --sidebar-border: #e4e4e7;
-  --sidebar-ring: #0d9488;
-
-  --grid-line: rgb(0 0 0 / 0.07);
-  --scrollbar-thumb: #c8c8cf;
-  --scrollbar-thumb-hover: #b0b0b8;
+  background: var(--c-bg);
+  transition: background-color var(--shell-fade) var(--shell-ease);
 }
 
 .dark {
-  --background: #0a0a0b;
-  --foreground: #fafafa;
+  --c-bg: #0b0b0c;
+  --c-ink: #fafafa;
 
-  --card: #111113;
-  --card-foreground: #fafafa;
+  --secondary: #1a1a1c;
+  --secondary-foreground: var(--c-ink);
 
-  --popover: #111113;
-  --popover-foreground: #fafafa;
+  --muted: #161618;
+  --muted-foreground: #9a9a9e;
 
-  --primary: #2dd4bf;
-  --primary-foreground: #042f2e;
-
-  --secondary: #1b1b1f;
-  --secondary-foreground: #fafafa;
-
-  --muted: #161619;
-  --muted-foreground: #a1a1aa;
-
-  --accent: #1b1b1f;
-  --accent-foreground: #fafafa;
+  --accent: #1a1a1c;
+  --accent-foreground: var(--c-ink);
 
   --destructive: #f87171;
-  --destructive-foreground: #450a0a;
+  --destructive-foreground: #2b0a0a;
 
-  --border: #232326;
-  --input: #26262b;
-  --ring: #2dd4bf;
-
-  --chart-1: #2dd4bf;
-  --chart-2: #38bdf8;
-  --chart-3: #facc15;
-  --chart-4: #a78bfa;
-  --chart-5: #fb7185;
-
-  --sidebar: #111113;
-  --sidebar-foreground: #fafafa;
-  --sidebar-primary: #2dd4bf;
-  --sidebar-primary-foreground: #042f2e;
-  --sidebar-accent: #1b1b1f;
-  --sidebar-accent-foreground: #fafafa;
-  --sidebar-border: #232326;
-  --sidebar-ring: #2dd4bf;
-
-  --grid-line: rgb(255 255 255 / 0.06);
-  --scrollbar-thumb: #2a2a2f;
-  --scrollbar-thumb-hover: #3f3f46;
+  --border: rgb(250 250 250 / 0.16);
+  --input: rgb(250 250 250 / 0.22);
 }
 
 @theme inline {
@@ -127,27 +101,30 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
+
   --font-sans: var(--font-fira-code);
   --font-mono: var(--font-fira-code);
   --font-body: var(--font-open-sans);
 
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
+  /*
+   * Escala tipográfica fluida da v3. Só três degraus: hierarquia se faz por
+   * tamanho e opacidade, não por cor nem por caixa (seção 8 do plano).
+   */
+  --text-display: clamp(2.75rem, 1.15rem + 6.6vw, 7rem);
+  --text-display--line-height: 0.95;
+  --text-display--letter-spacing: -0.03em;
+
+  --text-title: clamp(1.75rem, 1.1rem + 2.9vw, 3.5rem);
+  --text-title--line-height: 1.05;
+  --text-title--letter-spacing: -0.02em;
+
+  --text-lede: clamp(1.0625rem, 0.98rem + 0.55vw, 1.375rem);
+  --text-lede--line-height: 1.55;
+
+  --radius-sm: calc(var(--radius) - 1px);
+  --radius-md: var(--radius);
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  --radius-xl: var(--radius);
 }
 
 @layer base {
@@ -159,53 +136,21 @@
     scroll-behavior: smooth;
   }
 
+  /*
+   * Sem bg-background aqui (F1). O antialiased não é enfeite: navegadores
+   * desligam antialiasing de subpixel em camadas com blend, e sem suavização
+   * grayscale global o mesmo texto pesaria diferente em seções blend e solid
+   * (F12).
+   */
   body {
-    @apply bg-background font-sans text-foreground antialiased;
+    @apply font-sans text-foreground antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
     text-rendering: optimizeLegibility;
   }
 
   ::selection {
-    @apply bg-primary/25 text-foreground;
+    @apply bg-primary/20 text-foreground;
   }
-}
-
-/* Scrollbar discreta e premium */
-::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
-
-::-webkit-scrollbar-track {
-  background: var(--background);
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--scrollbar-thumb);
-  border-radius: 9999px;
-  border: 2px solid var(--background);
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--scrollbar-thumb-hover);
-}
-
-/* Grade sutil de fundo (usada no hero), adaptada ao tema */
-@utility bg-grid-pattern {
-  background-image:
-    linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
-    linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
-  background-size: 72px 72px;
-}
-
-/* Máscara radial para esmaecer a grade no topo */
-@utility mask-fade-hero {
-  -webkit-mask-image: radial-gradient(
-    ellipse 65% 55% at 50% 0%,
-    black,
-    transparent
-  );
-  mask-image: radial-gradient(ellipse 65% 55% at 50% 0%, black, transparent);
 }
 
 /* Anel de foco consistente para links e elementos interativos comuns */
@@ -216,7 +161,7 @@
   }
 }
 
-/* Entrada do hero: animação CSS pura (roda no paint, sem depender de JS) */
+/* Entrada: animação CSS pura (roda no paint, sem depender de JS) */
 @keyframes fade-up {
   from {
     opacity: 0;
@@ -241,6 +186,11 @@
   animation: fade-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+/*
+ * A entrada permitida dentro de seções blend: anima só opacity. Qualquer
+ * transform num ancestral de seção blend cria contexto de empilhamento e mata
+ * o efeito (F1/E5).
+ */
 @utility animate-fade-in {
   animation: fade-in 0.8s ease-out both;
 }

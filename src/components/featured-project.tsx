@@ -117,7 +117,6 @@ export function FeaturedProject({
             </div>
             <div className="space-y-3 p-4">
               <div className="relative h-24 overflow-hidden rounded-lg border border-border/60 bg-gradient-to-br from-primary/25 via-primary/10 to-sky-500/10">
-                <div className="bg-grid-pattern absolute inset-0 opacity-40" />
               </div>
               <div className="h-2.5 w-4/5 rounded-full bg-foreground/15" />
               <div className="h-2.5 w-3/5 rounded-full bg-foreground/10" />
