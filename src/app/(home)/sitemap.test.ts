@@ -1,5 +1,8 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { projectMetas } from "@/data/projects";
+import { routes } from "@/lib/routes";
+
 function setEnv(vars: Record<string, string | undefined>) {
   for (const [key, value] of Object.entries(vars)) {
     if (value === undefined) {
@@ -18,40 +21,86 @@ afterEach(() => {
   });
 });
 
+async function freshSitemap() {
+  setEnv({ NEXT_PUBLIC_SITE_URL: "https://pedrolevi.dev" });
+  vi.resetModules();
+  const { default: sitemap } = await import("./sitemap");
+  return sitemap();
+}
+
+/**
+ * Reescrito na v3 (E3): antes o sitemap era uma lista à mão de duas rotas, e
+ * agora deriva do manifesto. Os testes deixam de conferir URLs digitadas e
+ * passam a conferir que a derivação cobre o manifesto inteiro, que é o que
+ * garante que acrescentar uma rota não deixe buraco no SEO.
+ */
 describe("sitemap", () => {
-  it("lista as 2 rotas principais + 8 rotas de projeto (10 URLs)", async () => {
-    setEnv({ NEXT_PUBLIC_SITE_URL: "https://pedrolevi.dev" });
-    vi.resetModules();
-    const { default: sitemap } = await import("./sitemap");
+  it("cobre as duas versões de idioma de toda rota do manifesto", async () => {
+    const urls = (await freshSitemap()).map((entry) => entry.url);
 
-    const entries = sitemap();
-    expect(entries).toHaveLength(10);
-
-    const urls = entries.map((entry) => entry.url);
-    expect(urls).toEqual(
-      expect.arrayContaining([
-        "https://pedrolevi.dev/",
-        "https://pedrolevi.dev/en/",
-        "https://pedrolevi.dev/projetos/newra-news/",
-        "https://pedrolevi.dev/projetos/netsheet-engine/",
-        "https://pedrolevi.dev/projetos/repertorio-progressivo/",
-        "https://pedrolevi.dev/projetos/trak-assessoria/",
-        "https://pedrolevi.dev/en/projects/newra-news/",
-        "https://pedrolevi.dev/en/projects/netsheet-engine/",
-        "https://pedrolevi.dev/en/projects/repertorio-progressivo/",
-        "https://pedrolevi.dev/en/projects/trak-assessoria/",
-      ])
-    );
+    for (const route of routes) {
+      expect(urls, `rota "${route.id}" em pt`).toContain(
+        `https://pedrolevi.dev${route.pt}`
+      );
+      expect(urls, `rota "${route.id}" em en`).toContain(
+        `https://pedrolevi.dev${route.en}`
+      );
+    }
   });
 
-  it("as rotas de projeto têm hreflang apontando para os dois idiomas", async () => {
-    setEnv({ NEXT_PUBLIC_SITE_URL: "https://pedrolevi.dev" });
-    vi.resetModules();
-    const { default: sitemap } = await import("./sitemap");
+  it("cobre as duas versões de idioma de toda página de projeto", async () => {
+    const urls = (await freshSitemap()).map((entry) => entry.url);
 
-    const entry = sitemap().find((e) =>
+    for (const meta of projectMetas) {
+      expect(urls).toContain(`https://pedrolevi.dev/projetos/${meta.slug}/`);
+      expect(urls).toContain(
+        `https://pedrolevi.dev/en/projects/${meta.slug}/`
+      );
+    }
+  });
+
+  it("tem exatamente 2 URLs por rota e por projeto, sem duplicata", async () => {
+    const entries = await freshSitemap();
+    const esperado = (routes.length + projectMetas.length) * 2;
+
+    expect(entries).toHaveLength(esperado);
+    expect(new Set(entries.map((e) => e.url)).size).toBe(esperado);
+  });
+
+  it("toda URL termina em barra, batendo com trailingSlash", async () => {
+    for (const entry of await freshSitemap()) {
+      expect(entry.url.endsWith("/"), entry.url).toBe(true);
+    }
+  });
+
+  it("a home é a de maior prioridade", async () => {
+    const entries = await freshSitemap();
+    const home = entries.find((e) => e.url === "https://pedrolevi.dev/");
+    const outras = entries.filter((e) => e.url !== "https://pedrolevi.dev/");
+
+    expect(home?.priority).toBe(1);
+    for (const entry of outras) {
+      expect(entry.priority ?? 0).toBeLessThan(1);
+    }
+  });
+
+  it("cada rota aponta o hreflang para o par dela, não para a home", async () => {
+    const entries = await freshSitemap();
+    const info = entries.find((e) => e.url === "https://pedrolevi.dev/info/");
+
+    expect(info?.alternates?.languages).toEqual({
+      "pt-BR": "https://pedrolevi.dev/info/",
+      en: "https://pedrolevi.dev/en/info/",
+      "x-default": "https://pedrolevi.dev/info/",
+    });
+  });
+
+  it("as páginas de projeto têm hreflang apontando para os dois idiomas", async () => {
+    const entries = await freshSitemap();
+    const entry = entries.find((e) =>
       e.url.endsWith("/projetos/newra-news/")
     );
+
     expect(entry?.alternates?.languages).toEqual({
       "pt-BR": "https://pedrolevi.dev/projetos/newra-news/",
       en: "https://pedrolevi.dev/en/projects/newra-news/",

@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { BackgroundCanvas } from "@/components/background/background-canvas";
 import type { PalettePreset } from "@/components/background/background-config";
 import { Frame } from "@/components/shell/frame";
+import { SmoothScroll } from "@/components/shell/smooth-scroll";
 import { ViewportMask } from "@/components/shell/viewport-mask";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
@@ -24,6 +25,7 @@ import type { Locale } from "@/i18n";
  * | ViewportMask      | fixed                | 30      |
  * | Frame             | fixed                | 40      |
  * | SiteHeader        | fixed                | 50      |
+ * | SiteFooter        | fixed                | 50      |
  *
  * ⚠️ O `<main>` abaixo é deliberadamente pelado: sem `position`, sem `z-index`,
  * sem `transform`, sem `isolation`. Qualquer um desses transformaria o `<main>`
@@ -48,9 +50,18 @@ export function SiteShell({
   return (
     <>
       <BackgroundCanvas preset={palette} />
+      <SmoothScroll />
       <SiteHeader lang={lang} />
+      {/*
+        Sem padding vertical, de propósito. Header e footer são fixos e em
+        difference: o conteúdo passa por baixo deles e eles invertem contra o
+        que estiver ali, que é o desenho pretendido. Um padding aqui abriria uma
+        faixa do canvas entre o header e a primeira seção, com uma borda dura
+        que parece acidente. O respiro vem do padding vertical das seções, e as
+        faixas de var(--pad) no topo e na base são cobertas pela ViewportMask.
+      */}
       <main>{children}</main>
-      <SiteFooter lang={lang} />
+      <SiteFooter />
       <ViewportMask />
       <Frame />
     </>

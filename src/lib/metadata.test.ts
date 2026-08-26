@@ -74,14 +74,61 @@ describe("buildMetadata", () => {
     const pt = build("pt");
     const en = build("en");
 
-    expect(pt.title).toEqual(
-      expect.objectContaining({ default: expect.any(String) })
-    );
-    expect(en.title).toEqual(
-      expect.objectContaining({ default: expect.any(String) })
-    );
-    // Cada idioma tem seus próprios textos (não são idênticos)
+    /* Título é string simples, não mais o par default/template: cada rota traz
+       o próprio título completo do dicionário, então não há o que compor. */
+    expect(typeof pt.title).toBe("string");
+    expect(typeof en.title).toBe("string");
     expect(JSON.stringify(pt)).not.toBe(JSON.stringify(en));
+  });
+});
+
+describe("buildRouteMetadata: SEO por rota", () => {
+  it("dá canonical próprio a cada rota, no idioma certo", async () => {
+    setEnv({ NEXT_PUBLIC_SITE_URL: "https://pedrolevi.dev" });
+    vi.resetModules();
+    const { buildRouteMetadata } = await import("./metadata");
+
+    expect(buildRouteMetadata("home", "pt").alternates?.canonical).toBe("/");
+    expect(buildRouteMetadata("clients", "pt").alternates?.canonical).toBe(
+      "/clientes/"
+    );
+    expect(buildRouteMetadata("clients", "en").alternates?.canonical).toBe(
+      "/en/clients/"
+    );
+    expect(buildRouteMetadata("contact", "pt").alternates?.canonical).toBe(
+      "/contato/"
+    );
+  });
+
+  it("aponta o hreflang de cada rota para o par dela, não para a home", async () => {
+    setEnv({ NEXT_PUBLIC_SITE_URL: "https://pedrolevi.dev" });
+    vi.resetModules();
+    const { buildRouteMetadata } = await import("./metadata");
+
+    expect(buildRouteMetadata("info", "pt").alternates?.languages).toEqual({
+      "pt-BR": "https://pedrolevi.dev/info/",
+      en: "https://pedrolevi.dev/en/info/",
+      "x-default": "https://pedrolevi.dev/info/",
+    });
+  });
+
+  it("dá título distinto a cada rota, que é o ponto de dividir em cinco", async () => {
+    vi.resetModules();
+    const { buildRouteMetadata } = await import("./metadata");
+    const { routeIds } = await import("./routes");
+
+    const titles = routeIds.map((id) => buildRouteMetadata(id, "pt").title);
+    expect(new Set(titles).size).toBe(routeIds.length);
+  });
+
+  it("buildMetadata é a rota home, e nada além disso", async () => {
+    vi.resetModules();
+    const { buildMetadata: build, buildRouteMetadata } = await import(
+      "./metadata"
+    );
+    expect(JSON.stringify(build("pt"))).toBe(
+      JSON.stringify(buildRouteMetadata("home", "pt"))
+    );
   });
 });
 

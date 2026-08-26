@@ -21,16 +21,34 @@ export const pt: Dict = {
     ogDescription:
       "Desenvolvedor Full Stack especializado em React, Next.js, Node.js e TypeScript. Projetos web, mobile e soluções com IA.",
   },
+  routes: {
+    home: {
+      title: "Pedro Levi | Desenvolvedor Full Stack",
+      description:
+        "Entendo o problema antes de escolher a tecnologia. Veja como eu trabalho, do primeiro contato ao deploy.",
+    },
+    clients: {
+      title: "Clientes | Pedro Levi",
+      description:
+        "Sites e sistemas entregues para clientes reais, com o problema de cada um e o que foi construído.",
+    },
+    projects: {
+      title: "Projetos | Pedro Levi",
+      description:
+        "Projetos próprios de web, mobile e IA. Cada um começa pelo problema que resolveu.",
+    },
+    info: {
+      title: "Info | Pedro Levi",
+      description:
+        "Quem sou, como cheguei até aqui, com o que trabalho e onde me encontrar.",
+    },
+    contact: {
+      title: "Contato | Pedro Levi",
+      description:
+        "Dois caminhos diretos: contratar um desenvolvedor ou tirar um projeto do papel.",
+    },
+  },
   nav: {
-    links: [
-      { label: "Início", href: "#inicio" },
-      { label: "Sobre", href: "#sobre" },
-      { label: "Projetos", href: "#projetos" },
-      { label: "Clientes", href: "#clientes" },
-      { label: "Trajetória", href: "#trajetoria" },
-      { label: "Habilidades", href: "#habilidades" },
-      { label: "Contato", href: "#contato" },
-    ],
     openMenu: "Abrir menu",
     sheetTitle: "Menu",
     sheetDescription: "Navegação do portfólio",
@@ -352,14 +370,6 @@ export const pt: Dict = {
       { id: "linkedin", label: "LinkedIn", value: "in/pedro-levi-dias" },
       { id: "github", label: "GitHub", value: "@tavinholoco" },
     ],
-  },
-  footer: {
-    socials: {
-      github: "GitHub",
-      linkedin: "LinkedIn",
-      email: "Email",
-      phone: "Telefone",
-    },
   },
   controls: {
     theme: "Alternar tema",

@@ -1,14 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Mail, Menu } from "lucide-react";
-import { motion, useReducedMotion } from "framer-motion";
+import { Menu } from "lucide-react";
 
-import { GitHubIcon } from "@/components/icons";
 import { LangToggle } from "@/components/lang-toggle";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { Button } from "@/components/ui/button";
 import {
   Sheet,
   SheetClose,
@@ -18,128 +16,84 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { profile } from "@/data/profile";
 import { dictionaries, type Locale } from "@/i18n";
+import { activeRouteId, navRoutes, pathFor } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 
+/**
+ * O header da v3.
+ *
+ * Saiu o pill com `backdrop-blur` da v2: `backdrop-filter` é incompatível com o
+ * resto do shell, e o pill era exatamente o tipo de caixa que a seção 8 do
+ * plano manda remover. Entrou um header alinhado a `var(--pad)`, em
+ * `mix-blend-difference`, que inverte contra o que estiver embaixo e por isso
+ * fica legível sobre o canvas, sobre uma seção clara e sobre uma escura, sem
+ * tratamento condicional.
+ *
+ * Duas consequências disso que não são óbvias:
+ *
+ * 1. Nada aqui dentro pode ter cor ou fundo próprios. `text-muted-foreground` e
+ *    `hover:bg-muted` não herdam, então inverteriam por conta própria e cada
+ *    elemento apareceria de uma cor diferente. A hierarquia é por opacidade.
+ * 2. Saiu o `layoutId` do Framer Motion, que animava o indicador do item ativo
+ *    com `transform`. O indicador agora é um dot que aparece e some por
+ *    opacidade.
+ *
+ * O header é irmão do `<main>`, nunca ancestral, então o blend daqui não
+ * interfere no blend das seções (F1).
+ */
 export function SiteHeader({ lang }: { lang: Locale }) {
   const d = dictionaries[lang];
   const pathname = usePathname();
-  // Em páginas de projeto não existem as seções da home; os links apontam para a home do idioma.
-  const isProjectPage =
-    pathname.startsWith("/projetos") || pathname.startsWith("/en/projects");
-  const home = lang === "pt" ? "/" : "/en/";
-  const navHref = (href: string) => (isProjectPage ? `${home}${href}` : href);
-  const logoHref = isProjectPage ? home : "#inicio";
   const [open, setOpen] = useState(false);
-  const [active, setActive] = useState("#inicio");
-  const [scrolled, setScrolled] = useState(false);
-  const reduceMotion = useReducedMotion();
 
-  // Sombra e compactação sutis quando a página é rolada
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
-  // Scrollspy: destaca a seção visível na navegação
-  useEffect(() => {
-    const sections = d.nav.links
-      .map((link) => document.getElementById(link.href.slice(1)))
-      .filter((el): el is HTMLElement => el !== null);
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            setActive(`#${entry.target.id}`);
-          }
-        }
-      },
-      { rootMargin: "-45% 0px -50% 0px" }
-    );
-
-    sections.forEach((section) => observer.observe(section));
-    return () => observer.disconnect();
-  }, [d.nav.links]);
+  const items = navRoutes(lang);
+  const active = activeRouteId(pathname);
 
   return (
-    <motion.header
-      initial={reduceMotion ? false : { y: -24, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-      className="fixed inset-x-0 top-0 z-50 px-4 pt-3 sm:px-6 sm:pt-4"
-    >
-      {/* Pill flutuante */}
-      <div
-        className={cn(
-          "mx-auto flex h-14 max-w-5xl items-center justify-between gap-4 rounded-2xl border px-4 transition-all duration-300 sm:h-16 sm:px-5",
-          scrolled
-            ? "border-border/80 bg-background/85 shadow-[0_16px_50px_-12px_rgba(0,0,0,0.35)] backdrop-blur-xl supports-[backdrop-filter]:bg-background/85 dark:shadow-[0_16px_50px_-12px_rgba(0,0,0,0.75)]"
-            : "border-border/50 bg-background/60 backdrop-blur-md supports-[backdrop-filter]:bg-background/60"
-        )}
-      >
-        {/* Logo + controles (idioma e tema) */}
-        <div className="flex shrink-0 items-center gap-1.5">
-          <a
-            href={logoHref}
-            className="focus-ring rounded-md font-mono text-sm font-medium tracking-tight text-foreground"
+    <header className="fixed inset-x-0 top-0 z-50 mix-blend-difference text-white">
+      <div className="flex items-center justify-between gap-6 [padding-block:var(--pad)] [padding-inline:calc(var(--pad)*2)]">
+        <div className="flex shrink-0 items-center gap-1">
+          <Link
+            href={pathFor("home", lang)}
+            className="focus-ring font-mono text-sm font-medium tracking-tight"
           >
-            <span className="text-primary">&gt;_</span> pedrolevi
-          </a>
+            &gt;_ pedrolevi
+          </Link>
           <LangToggle lang={lang} labels={d.controls} />
           <ThemeToggle label={d.controls.theme} />
         </div>
 
-        {/* Navegação principal (desktop, à direita) com indicador deslizante */}
         <nav
-          className="hidden items-center gap-1 lg:flex"
+          className="hidden items-center gap-6 md:flex"
           aria-label={d.nav.mainAria}
         >
-          {d.nav.links.map((link) => {
-            const isActive = active === link.href;
-            return (
-              <a
-                key={link.href}
-                href={navHref(link.href)}
-                aria-current={isActive ? "true" : undefined}
-                className={cn(
-                  "focus-ring relative rounded-md px-3 py-2 text-sm whitespace-nowrap transition-colors",
-                  isActive
-                    ? "text-foreground"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                {isActive && (
-                  <motion.span
-                    layoutId="nav-active-pill"
-                    transition={{ type: "spring", bounce: 0.25, duration: 0.5 }}
-                    className="absolute inset-0 rounded-md bg-muted"
-                  />
-                )}
-                <span className="relative z-10">{link.label}</span>
-              </a>
-            );
-          })}
+          {items.map((item) => (
+            <NavLink
+              key={item.id}
+              href={item.href}
+              label={item.label}
+              active={item.id === active}
+            />
+          ))}
         </nav>
 
-        {/* Menu mobile */}
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger
             render={
-              <Button
-                variant="ghost"
-                size="icon"
-                className="lg:hidden"
+              <button
+                type="button"
                 aria-label={d.nav.openMenu}
+                className="focus-ring inline-flex size-9 items-center justify-center rounded-md opacity-60 transition-opacity hover:opacity-100 md:hidden"
               />
             }
           >
-            <Menu />
+            <Menu className="size-5" aria-hidden />
           </SheetTrigger>
-          <SheetContent side="right" className="w-72">
+
+          {/* data-lenis-prevent: sem isso a rolagem dentro do painel seria
+              capturada pelo Lenis e moveria a página atrás dele. */}
+          <SheetContent side="right" className="w-72" data-lenis-prevent>
             <SheetHeader>
               <SheetTitle>{d.nav.sheetTitle}</SheetTitle>
               <SheetDescription className="sr-only">
@@ -150,43 +104,62 @@ export function SiteHeader({ lang }: { lang: Locale }) {
               className="flex flex-col gap-1 px-4 pt-2"
               aria-label={d.nav.mobileAria}
             >
-              {d.nav.links.map((link) => (
+              {items.map((item) => (
                 <SheetClose
-                  key={link.href}
+                  key={item.id}
                   nativeButton={false}
                   render={
-                    <a
-                      href={navHref(link.href)}
-                      role="link"
-                      className="focus-ring rounded-md px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                    <Link
+                      href={item.href}
+                      aria-current={item.id === active ? "page" : undefined}
+                      className={cn(
+                        "focus-ring rounded-md px-3 py-2.5 text-sm transition-opacity",
+                        item.id === active
+                          ? "opacity-100"
+                          : "opacity-60 hover:opacity-100"
+                      )}
                     />
                   }
                 >
-                  {link.label}
+                  {item.label}
                 </SheetClose>
               ))}
             </nav>
-            <div className="mt-auto flex items-center gap-2 px-6 pb-6">
-              <a
-                href={profile.github}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={d.hero.socials.github}
-                className="focus-ring rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-              >
-                <GitHubIcon className="size-4" />
-              </a>
-              <a
-                href={`mailto:${profile.email}`}
-                aria-label={d.hero.socials.email}
-                className="focus-ring rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-              >
-                <Mail className="size-4" />
-              </a>
-            </div>
           </SheetContent>
         </Sheet>
       </div>
-    </motion.header>
+    </header>
+  );
+}
+
+/** Item da nav: dot no ativo, opacidade no resto. */
+function NavLink({
+  href,
+  label,
+  active,
+}: {
+  href: string;
+  label: string;
+  active: boolean;
+}) {
+  return (
+    <Link
+      href={href}
+      aria-current={active ? "page" : undefined}
+      className={cn(
+        "focus-ring inline-flex items-center gap-2 text-sm whitespace-nowrap transition-opacity",
+        active ? "opacity-100" : "opacity-55 hover:opacity-100"
+      )}
+    >
+      {/* Reserva o espaço mesmo inativo, para a nav não pular ao navegar. */}
+      <span
+        aria-hidden
+        className={cn(
+          "size-1 rounded-full bg-current transition-opacity",
+          active ? "opacity-100" : "opacity-0"
+        )}
+      />
+      {label}
+    </Link>
   );
 }

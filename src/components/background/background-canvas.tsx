@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
-import type { PalettePreset } from "./background-config";
+import { setActiveBackground, type PalettePreset } from "./background-config";
 import { BackgroundRenderer } from "./renderer";
 
 /**
@@ -52,6 +52,9 @@ export function BackgroundCanvas({
           return;
         }
         rendererRef.current = renderer;
+        /* Publica o motor para o scroll e para a lista de projetos alcançarem
+           o fundo sem passar pela árvore do React. */
+        setActiveBackground(renderer);
 
         /* Se a rota mudou enquanto o import do ogl estava em voo, o efeito de
            paleta abaixo rodou com o motor ainda nulo. Aplicar aqui fecha a
@@ -65,6 +68,7 @@ export function BackgroundCanvas({
 
     return () => {
       cancelled = true;
+      setActiveBackground(null);
       renderer?.destroy();
       rendererRef.current = null;
     };

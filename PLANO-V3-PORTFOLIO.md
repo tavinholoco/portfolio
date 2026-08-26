@@ -4,7 +4,7 @@
 >
 > **Base:** v2 publicada (Next 16.3 + React 19, Tailwind v4, bilíngue com paridade testada, 36 unit + 6 E2E, Lighthouse 95/100/100/100).
 > **Referência de inspiração:** [p5aholic.me](https://p5aholic.me) (Keita Yamada). Inspiração estrutural, **não cópia**. Ver seção 0.3.
-> **Status:** 🚧 **Em desenvolvimento. Fases 0, 1 e 2 concluídas em 26/08/2026, com o portão de saída da Fase 2 aprovado.** Duas auditorias completas realizadas (seções 5 e 6, 30 achados já incorporados às fases). Próxima: Fase 3 (rotas, navegação e scroll).
+> **Status:** 🚧 **Em desenvolvimento. Fases 0 a 3 concluídas em 26/08/2026**, com o portão de saída da Fase 2 aprovado. Duas auditorias completas realizadas (seções 5 e 6, 30 achados já incorporados às fases). Próxima: Fase 4 (Home e showcase).
 > **Versão do documento:** V3.2
 
 ---
@@ -21,9 +21,11 @@ Da Fase 0 estão em pé: `ogl` e `lenis` instalados, os tokens de shell da v3 em
 
 Da Fase 1 está em pé o motor inteiro em `src/components/background/`, verificado no navegador: os três shaders compilam, os dois programas linkam, todos os uniforms ficam ativos, `gl.getError` devolve zero e o campo produz variação real de luminância.
 
-Da Fase 2 está em pé o `<SiteShell>` nos dois layouts, a moldura, a máscara e o `section.tsx` com as duas variantes. **O portão de saída foi aprovado** (evidência nas notas de execução da Fase 2). O motor está montado e rodando no site.
+Da Fase 2 está em pé o `<SiteShell>` nos dois layouts, a moldura, a máscara e o `section.tsx` com as duas variantes. **O portão de saída foi aprovado** (evidência nas notas de execução da Fase 2).
 
-O site em produção continua sendo a v2, e o conteúdo das páginas ainda é o da v2. O trabalho continua na **Fase 3** (seção 7).
+Da Fase 3 estão em pé as 10 rotas (5 por idioma, todas estáticas), o header e o footer reescritos, o Lenis em rolagem nativa e o SEO por rota derivado do manifesto. 121 testes unitários e 6 E2E passando.
+
+O conteúdo das seções ainda é o da v2, redesenhado nas Fases 4 e 5. O trabalho continua na **Fase 4** (seção 7).
 
 ### 0.2 As três coisas que mais quebram este plano
 
@@ -481,6 +483,18 @@ Duas coisas para as fases seguintes:
 
 ---
 
+#### Notas de execução da Fase 3 (26/08/2026)
+
+1. **O `<main>` não leva padding vertical.** A primeira tentativa colocou `padding-block: calc(var(--pad) * 3)` para o conteúdo não passar por baixo do header e do footer fixos. O resultado, visível na captura, foi uma faixa do canvas entre o header e a primeira seção, com borda dura, parecendo acidente. O desenho correto é o oposto: o conteúdo **passa** por baixo do header e do footer, que estão em `difference` e invertem contra o que estiver ali. O respiro vem do padding vertical das próprias seções, e as faixas de `var(--pad)` são cobertas pela `ViewportMask`.
+
+2. **`Dict.nav.links` e `Dict.footer` foram removidos.** O primeiro virou derivação do manifesto (`navRoutes(lang)`), e o segundo ficou vazio quando os sociais saíram do footer (E13). A limpeza de E6 que estava marcada para a Fase 7 aconteceu aqui, porque as chaves morreram nesta fase e deixá-las seria exatamente o problema que E6 aponta. Sobrou de E6 para a Fase 7: `filterAll`, `one` e `many`, que ainda são usadas pelo `projects-grid` da v2.
+
+3. **Os toggles de tema e idioma precisaram ser neutralizados** antes de entrar no header em `difference`, pelo motivo registrado na Fase 2: `text-muted-foreground` e `hover:bg-muted` não herdam cor e inverteriam por conta própria. Agora usam opacidade. O `ThemeToggle` também tinha `theme-color` desatualizado (`#0a0a0b`/`#fafafa`, da v2), corrigido para os tokens da v3.
+
+4. **`activeRouteId()` é diferente de `routeIdFromPath()`.** A segunda casa exatamente; a primeira casa sub-rotas, para `/projetos/newra-news/` manter "Projetos" ativo na nav. O casamento mais longo vence, senão `/en/` reivindicaria tudo que vive sob o inglês.
+
+---
+
 ### Fase 4: A Home e o showcase
 
 **Home.** Manifesto tipográfico + os 5 passos de `Dict.process.steps` (E14), em `variant="blend"`, escala display, sem cards. Nome, papel e 2 CTAs. Fecha com atalho para Projetos. É o LCP e continua em CSS puro.
@@ -637,7 +651,7 @@ Roteiro manual, nos dois temas e nos dois idiomas:
 - [x] Fase 0: Fundação (deps, tokens, manifesto de rotas), concluída em 26/08/2026
 - [x] Fase 1: Motor WebGL, concluída em 26/08/2026
 - [x] Fase 2: Shell, blend e moldura, concluída em 26/08/2026, portão de saída aprovado
-- [ ] Fase 3: Rotas, navegação e scroll
+- [x] Fase 3: Rotas, navegação e scroll, concluída em 26/08/2026
 - [ ] Fase 4: Home e showcase
 - [ ] Fase 5: Info, Contato e páginas de projeto
 - [ ] Fase 6: Performance, acessibilidade e fallbacks

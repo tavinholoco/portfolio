@@ -95,3 +95,34 @@ export function routeIdFromPath(pathname: string): RouteId | null {
   );
   return route ? route.id : null;
 }
+
+/**
+ * Rota a destacar na navegação.
+ *
+ * Diferente de `routeIdFromPath`, casa também sub-rotas: em
+ * `/projetos/newra-news/` o item "Projetos" continua ativo, que é o que a
+ * pessoa espera ver. O casamento mais longo vence, senão `/en/` reivindicaria
+ * tudo que vive sob o inglês.
+ */
+export function activeRouteId(pathname: string): RouteId | null {
+  const path = normalizePath(pathname);
+
+  const exact = routeIdFromPath(path);
+  if (exact) return exact;
+
+  let best: RouteId | null = null;
+  let bestLength = 0;
+
+  for (const route of routes) {
+    for (const candidate of [route.pt, route.en]) {
+      /* A home é prefixo de todo caminho, então só casa exatamente. */
+      if (candidate === "/") continue;
+      if (path.startsWith(candidate) && candidate.length > bestLength) {
+        best = route.id;
+        bestLength = candidate.length;
+      }
+    }
+  }
+
+  return best;
+}

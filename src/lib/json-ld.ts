@@ -1,6 +1,7 @@
 import { profile } from "@/data/profile";
 import { dictionaries, type Locale } from "@/i18n";
 import { getSiteUrl } from "@/lib/metadata";
+import { pathFor } from "@/lib/routes";
 
 const siteUrl = getSiteUrl();
 
@@ -35,24 +36,54 @@ export function webSiteJsonLd(lang: Locale) {
   };
 }
 
-/** Schema.org ItemList com os projetos em destaque (home). */
-export function projectListJsonLd(lang: Locale) {
-  const d = dictionaries[lang];
+type ListItemInput = { name: string; description: string; url: string };
+
+/**
+ * Schema.org ItemList genérico, usado pelas rotas de Projetos e de Clientes.
+ *
+ * Vale a pena existir porque as duas rotas são listas do mesmo tipo para o
+ * buscador, e é o dado estruturado que faz cada uma valer como ponto de entrada
+ * próprio depois da divisão em cinco rotas (E2).
+ */
+export function itemListJsonLd(items: ListItemInput[]) {
   return {
     "@type": "ItemList",
-    itemListElement: d.projects.featured.map((project, index) => ({
+    numberOfItems: items.length,
+    itemListElement: items.map((item, index) => ({
       "@type": "ListItem",
       position: index + 1,
       item: {
         "@type": "CreativeWork",
-        name: project.title,
-        description: project.tagline,
-        url: `${siteUrl}/${
-          lang === "pt" ? "projetos" : "en/projects"
-        }/${project.slug}/`,
+        name: item.name,
+        description: item.description,
+        url: item.url,
       },
     })),
   };
+}
+
+/** ItemList dos projetos próprios (rota de Projetos). */
+export function projectListJsonLd(lang: Locale) {
+  const d = dictionaries[lang];
+  return itemListJsonLd(
+    d.projects.featured.map((project) => ({
+      name: project.title,
+      description: project.tagline,
+      url: `${siteUrl}${pathFor("projects", lang)}${project.slug}/`,
+    }))
+  );
+}
+
+/** ItemList dos trabalhos de cliente (rota de Clientes). */
+export function clientListJsonLd(lang: Locale) {
+  const d = dictionaries[lang];
+  return itemListJsonLd(
+    d.clients.projects.map((project) => ({
+      name: project.name,
+      description: project.description,
+      url: project.url,
+    }))
+  );
 }
 
 /** Schema.org SoftwareApplication: página individual de projeto. */
@@ -64,9 +95,7 @@ export function projectJsonLd(slug: string, lang: Locale) {
     "@type": "SoftwareApplication",
     name: project.title,
     description: project.tagline,
-    url: `${siteUrl}/${
-      lang === "pt" ? "projetos" : "en/projects"
-    }/${slug}/`,
+    url: `${siteUrl}${pathFor("projects", lang)}${slug}/`,
     applicationCategory: "WebApplication",
     keywords: project.stack.join(", "),
     inLanguage: lang === "pt" ? "pt-BR" : "en",

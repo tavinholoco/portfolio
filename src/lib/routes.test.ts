@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  activeRouteId,
   navLabelFor,
   navRoutes,
   normalizePath,
@@ -123,5 +124,29 @@ describe("routeIdFromPath", () => {
     expect(routeIdFromPath("/projetos/newra-news/")).toBeNull();
     expect(routeIdFromPath("/en/projects/newra-news/")).toBeNull();
     expect(routeIdFromPath("/rota-inexistente/")).toBeNull();
+  });
+});
+
+describe("activeRouteId", () => {
+  it("casa exatamente as rotas do manifesto", () => {
+    expect(activeRouteId("/")).toBe("home");
+    expect(activeRouteId("/en/")).toBe("home");
+    expect(activeRouteId("/clientes/")).toBe("clients");
+    expect(activeRouteId("/en/info/")).toBe("info");
+  });
+
+  it("mantém Projetos ativo dentro de uma página de projeto", () => {
+    expect(activeRouteId("/projetos/newra-news/")).toBe("projects");
+    expect(activeRouteId("/en/projects/newra-news/")).toBe("projects");
+  });
+
+  it("não deixa a home reivindicar as sub-rotas do inglês", () => {
+    /* "/en/" é prefixo de "/en/contact/", e o casamento mais longo é que vale. */
+    expect(activeRouteId("/en/contact/")).toBe("contact");
+    expect(activeRouteId("/en/projects/trak-assessoria/")).toBe("projects");
+  });
+
+  it("devolve null fora de qualquer rota conhecida", () => {
+    expect(activeRouteId("/rota-inexistente/")).toBeNull();
   });
 });

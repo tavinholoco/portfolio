@@ -15,7 +15,7 @@ export function ThemeToggle({ label }: { label: string }) {
     localStorage.setItem("theme", next);
     document
       .querySelector('meta[name="theme-color"]')
-      ?.setAttribute("content", next === "dark" ? "#0a0a0b" : "#fafafa");
+      ?.setAttribute("content", next === "dark" ? "#0b0b0c" : "#f0f0f0");
   };
 
   return (
@@ -24,7 +24,10 @@ export function ThemeToggle({ label }: { label: string }) {
       onClick={toggleTheme}
       aria-label={label}
       title={label}
-      className="focus-ring inline-flex size-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+      /* Sem cor nem fundo próprios: vive dentro do header em mix-blend-difference,
+         onde qualquer cor explícita inverteria por conta própria. Hierarquia por
+         opacidade, como manda a seção 8 do plano. */
+      className="focus-ring inline-flex size-9 items-center justify-center rounded-md opacity-60 transition-opacity hover:opacity-100"
     >
       {/* Sol visível no modo escuro, lua no modo claro (mostra o tema de destino) */}
       <Sun className="hidden size-4 dark:block" aria-hidden />

@@ -212,3 +212,36 @@ export function cubicBezier(
 
 /** A curva de --shell-ease, pronta para o tween. */
 export const easeShell = cubicBezier(...SHELL_EASE);
+
+/**
+ * O que o resto do site precisa poder pedir ao fundo.
+ *
+ * Um handle mínimo em vez do `BackgroundRenderer` inteiro: quem chama daqui não
+ * tem nada a ver com WebGL, e o tipo estreito impede que alguém saia mexendo no
+ * ciclo de vida do motor de fora do componente que o criou.
+ */
+export type BackgroundHandle = {
+  setProgress(progress: number): void;
+  setPalette(preset: PalettePreset, immediate?: boolean): void;
+};
+
+let activeBackground: BackgroundHandle | null = null;
+
+/**
+ * Registro do fundo ativo, num singleton de módulo e não em contexto do React.
+ *
+ * A razão é frequência: o progresso de rolagem chega a cada frame. Passar isso
+ * por estado ou contexto do React re-renderizaria a árvore 60 vezes por segundo
+ * para atualizar um uniform de shader, que é justamente o trabalho que não
+ * precisa passar pelo React.
+ *
+ * `null` é normal e esperado: acontece antes do canvas montar, e depois que ele
+ * desmonta. Quem chama sempre usa encadeamento opcional.
+ */
+export function setActiveBackground(handle: BackgroundHandle | null): void {
+  activeBackground = handle;
+}
+
+export function getActiveBackground(): BackgroundHandle | null {
+  return activeBackground;
+}

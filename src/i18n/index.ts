@@ -1,4 +1,5 @@
 import type { ProjectCategory } from "@/data/projects";
+import type { RouteId } from "@/lib/routes";
 import type { TimelineChapter } from "@/data/career";
 
 export const locales = ["pt", "en"] as const;
@@ -73,8 +74,15 @@ export type Dict = {
     ogSiteName: string;
     ogDescription: string;
   };
+  /**
+   * Título e descrição de cada rota, para o generateMetadata correspondente.
+   *
+   * Digitado como Record<RouteId, ...>: acrescentar uma rota ao manifesto
+   * quebra os dois dicionários até que a tradução exista, que é a falha certa.
+   * O import é só de tipo, então o ciclo com lib/routes.ts some na compilação.
+   */
+  routes: Record<RouteId, { title: string; description: string }>;
   nav: {
-    links: { label: string; href: string }[];
     openMenu: string;
     sheetTitle: string;
     sheetDescription: string;
@@ -167,9 +175,6 @@ export type Dict = {
     projectCta: string;
     goToSection: string;
     cards: ContactCard[];
-  };
-  footer: {
-    socials: { github: string; linkedin: string; email: string; phone: string };
   };
   controls: {
     theme: string;
