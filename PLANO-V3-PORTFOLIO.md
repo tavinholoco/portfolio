@@ -4,7 +4,7 @@
 >
 > **Base:** v2 publicada (Next 16.3 + React 19, Tailwind v4, bilíngue com paridade testada, 36 unit + 6 E2E, Lighthouse 95/100/100/100).
 > **Referência de inspiração:** [p5aholic.me](https://p5aholic.me) (Keita Yamada). Inspiração estrutural, **não cópia**. Ver seção 0.3.
-> **Status:** 🚧 **Em desenvolvimento. Fase 0 concluída em 26/08/2026.** Duas auditorias completas realizadas (seções 5 e 6, 30 achados já incorporados às fases). Próxima: Fase 1 (motor WebGL).
+> **Status:** 🚧 **Em desenvolvimento. Fases 0 e 1 concluídas em 26/08/2026.** Duas auditorias completas realizadas (seções 5 e 6, 30 achados já incorporados às fases). Próxima: Fase 2 (shell, blend e moldura), que tem portão de saída obrigatório.
 > **Versão do documento:** V3.2
 
 ---
@@ -15,9 +15,13 @@ Esta seção existe para quem abre o repositório sem contexto nenhum. Leia ela 
 
 ### 0.1 Estado atual
 
-**Fase 0 concluída em 26/08/2026.** Estão em pé: `ogl` e `lenis` instalados, os tokens de shell da v3 em `globals.css` (com o fundo no `:root`, não no `body`), a camada shadcn reneutralizada, a escala tipográfica fluida, e o manifesto de rotas em [src/lib/routes.ts](src/lib/routes.ts) com 19 testes. A pré-condição de F1 foi verificada em runtime: com o CSS novo, uma seção `blend` dentro de um `<main>` estático não tem nenhum ancestral confinando o backdrop.
+**Fases 0 e 1 concluídas em 26/08/2026.**
 
-O site em produção continua sendo a v2, e as páginas ainda são as da v2: a Fase 0 mexeu em fundação, não em telas. O trabalho continua na **Fase 1** (seção 7).
+Da Fase 0 estão em pé: `ogl` e `lenis` instalados, os tokens de shell da v3 em `globals.css` (com o fundo no `:root`, não no `body`), a camada shadcn reneutralizada, a escala tipográfica fluida, e o manifesto de rotas em [src/lib/routes.ts](src/lib/routes.ts). A pré-condição de F1 foi verificada em runtime: com o CSS novo, uma seção `blend` dentro de um `<main>` estático não tem nenhum ancestral confinando o backdrop.
+
+Da Fase 1 está em pé o motor inteiro em `src/components/background/`, verificado no navegador: os três shaders compilam, os dois programas linkam, todos os uniforms ficam ativos, `gl.getError` devolve zero e o campo produz variação real de luminância. **O motor ainda não está montado em lugar nenhum**, e é a Fase 2 que o coloca no `<SiteShell>`.
+
+O site em produção continua sendo a v2, e as páginas ainda são as da v2. O trabalho continua na **Fase 2** (seção 7).
 
 ### 0.2 As três coisas que mais quebram este plano
 
@@ -413,6 +417,18 @@ Novo diretório `src/components/background/`.
 
 ---
 
+#### Notas de execução da Fase 1 (26/08/2026)
+
+Três coisas apareceram só na implementação e valem para quem mexer nisso depois:
+
+1. **O canvas não pode ser a fonte do próprio tamanho.** O construtor do `Renderer` do OGL chama `setSize(300, 150)` por padrão, e esse `setSize` grava `style.width` e `style.height` inline no elemento. A partir daí o `clientWidth` do canvas devolve o que o OGL escreveu, não o que o CSS pediu, e o fundo fica preso em 300x150. O motor mede o **contêiner** (`canvas.parentElement`), no mount e no `ResizeObserver`. **A Fase 2 precisa manter o canvas dentro de um wrapper dimensionado por CSS.**
+
+2. **A vinheta virou temática.** Escurecer as bordas sempre, como uma vinheta normal faz, empurraria o backdrop do tema claro na direção de L = 0.5, que é exatamente onde o texto em `difference` some. A vinheta puxa para o extremo do próprio tema: branco no claro, preto no escuro. O alvo é uniform e é interpolado junto com o tema, senão viraria no meio do crossfade.
+
+3. **A dose de campo é assimétrica entre os temas** (`FIELD_MIX`: 0.08 no claro, 0.55 no escuro), e o motivo é aritmético. Partindo de `#f0f0f0`, puxar para qualquer cor mais escura atravessa a faixa proibida de luminância; só uma dose pequena mantém o resultado acima dela. Partindo de `#0b0b0c` sobra folga para o campo inteiro. Na prática: tinta no tema claro, campo cheio no escuro. O item de contraste da Fase 6 está coberto por teste, que varre o ramp inteiro incluindo vinheta e amplitude de grain, em vez de checar só as pontas.
+
+---
+
 ### Fase 2: Shell, blend e moldura
 
 **`src/components/shell/site-shell.tsx`.** Existem dois root layouts (`(home)` e `en`) e tudo do `<body>` precisa entrar nos dois. Um `<SiteShell lang>` compartilhado evita a divergência. Montagem exatamente conforme a tabela de F1. O `<body>` **não** recebe background nem `isolation`, e o `<main>` **não** recebe `z-index` nem `position`.
@@ -579,7 +595,7 @@ Roteiro manual, nos dois temas e nos dois idiomas:
 ## 10. Checklist de progresso
 
 - [x] Fase 0: Fundação (deps, tokens, manifesto de rotas), concluída em 26/08/2026
-- [ ] Fase 1: Motor WebGL
+- [x] Fase 1: Motor WebGL, concluída em 26/08/2026
 - [ ] Fase 2: Shell, blend e moldura ⚠️ portão de saída obrigatório
 - [ ] Fase 3: Rotas, navegação e scroll
 - [ ] Fase 4: Home e showcase

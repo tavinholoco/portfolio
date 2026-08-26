@@ -153,6 +153,44 @@
   }
 }
 
+/*
+ * Fallback do fundo quando não há WebGL ou o contexto se perde.
+ *
+ * As cores saem de color-mix sobre var(--c-bg), então o gradiente acompanha o
+ * tema sozinho e fica na mesma faixa de luminância que o shader produziria. As
+ * doses (8% no claro, 55% no escuro) são as mesmas de FIELD_MIX em
+ * background-config.ts, pelo mesmo motivo: manter o backdrop longe de L = 0.5,
+ * onde o texto em difference sumiria.
+ */
+@utility background-fallback {
+  background-color: var(--c-bg);
+  background-image:
+    radial-gradient(
+      70% 60% at 22% 18%,
+      color-mix(in srgb, var(--c-bg) 92%, #454f6b),
+      transparent 70%
+    ),
+    radial-gradient(
+      65% 60% at 82% 85%,
+      color-mix(in srgb, var(--c-bg) 92%, #232838),
+      transparent 70%
+    );
+}
+
+.dark .background-fallback {
+  background-image:
+    radial-gradient(
+      70% 60% at 22% 18%,
+      color-mix(in srgb, var(--c-bg) 45%, #454f6b),
+      transparent 70%
+    ),
+    radial-gradient(
+      65% 60% at 82% 85%,
+      color-mix(in srgb, var(--c-bg) 45%, #232838),
+      transparent 70%
+    );
+}
+
 /* Anel de foco consistente para links e elementos interativos comuns */
 @utility focus-ring {
   &:focus-visible {
