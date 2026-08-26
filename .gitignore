@@ -10,6 +10,9 @@
 !.yarn/releases
 !.yarn/versions
 
+# capturas de tela de desenvolvimento (pnpm look)
+/.captures/
+
 # testing
 /coverage
 /test-results/

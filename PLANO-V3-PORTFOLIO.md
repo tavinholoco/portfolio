@@ -585,6 +585,30 @@ pnpm build && pnpm test:e2e
 pnpm dev
 ```
 
+### 9.1 Ver o site sem abrir o navegador
+
+```bash
+pnpm look
+```
+
+Captura a home nos dois temas em `.captures/` (ignorada pelo git), usando o
+Playwright que já existe no projeto, com config própria em `capture/` para não
+entrar na suíte de CI. Existe porque as duas coisas centrais da v3 não são
+observáveis por DOM nem por `getComputedStyle`: o resultado de
+`mix-blend-mode` é um efeito de composição, e o shader é pixel.
+
+Parametrizada por variáveis de ambiente:
+
+| Variável | Padrão | Efeito |
+|---|---|---|
+| `LOOK_PATHS` | `/` | Lista separada por vírgula. Aceita âncora, ex.: `/#contato` |
+| `LOOK_THEMES` | `dark,light` | Temas a capturar |
+| `LOOK_FULL` | vazio | `1` captura a página inteira, não só a viewport |
+| `LOOK_SETTLE` | `1400` | Milissegundos de espera para o campo do shader assentar |
+
+No Git Bash do Windows, prefixe com `MSYS_NO_PATHCONV=1`, senão o shell
+converte `/` em caminho do Windows antes de a variável chegar ao script.
+
 Roteiro manual, nos dois temas e nos dois idiomas:
 
 1. **Seções `blend` invertem de verdade contra o canvas** (o teste de F1). Se o texto sumir ou não inverter, a montagem de camadas está errada
