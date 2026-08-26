@@ -58,6 +58,15 @@ const viewport = { once: true, margin: "-80px" } as const;
 type SectionProps = {
   id: string;
   variant?: SectionVariant;
+  /**
+   * Container mais largo, para conteúdo em duas colunas.
+   *
+   * O showcase põe preview e lista lado a lado, e na largura padrão a coluna do
+   * título fica estreita a ponto de quebrar "Repertório Progressivo" em duas
+   * linhas. O padding continua o mesmo, então o alinhamento com a moldura não
+   * muda.
+   */
+  wide?: boolean;
   className?: string;
   children: ReactNode;
 };
@@ -81,6 +90,7 @@ type SectionProps = {
 export function Section({
   id,
   variant = "solid",
+  wide = false,
   className,
   children,
 }: SectionProps) {
@@ -97,7 +107,12 @@ export function Section({
           className
         )}
       >
-        <div className="mx-auto w-full max-w-5xl [padding-inline:calc(var(--pad)*2)]">
+        <div
+          className={cn(
+            "mx-auto w-full [padding-inline:calc(var(--pad)*2)]",
+            wide ? "max-w-7xl" : "max-w-5xl"
+          )}
+        >
           {children}
         </div>
       </section>

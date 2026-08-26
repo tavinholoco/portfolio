@@ -10,6 +10,12 @@ import { defineConfig, devices } from "@playwright/test";
  *
  * Reaproveita o servidor de produção se já houver um de pé, então rode
  * `pnpm build` antes.
+ *
+ * ⚠️ Se já houver um servidor na porta 3000 iniciado **antes** do último
+ * `pnpm build`, ele continua servindo o build velho: o `next start` lê o
+ * `.next` na hora que sobe. O sintoma é uma captura sem CSS nenhum, porque o
+ * HTML antigo aponta para arquivos de estilo que o build novo renomeou.
+ * Derrube o servidor antes de capturar depois de um build.
  */
 export default defineConfig({
   testDir: ".",

@@ -46,6 +46,10 @@ export type ClientProject = {
   name: string;
   description: string;
   responsibilities: string[];
+  /** Tecnologias, exibidas como coluna na linha do showcase. */
+  stack: string[];
+  /** Ano de entrega, exibido como coluna na linha do showcase. */
+  year: string;
   status: string;
   url: string;
   image: string;
@@ -113,9 +117,6 @@ export type Dict = {
     label: string;
     title: string;
     description: string;
-    filterAll: string;
-    one: string;
-    many: string;
     updatedAt: string;
     github: string;
     viewProject: string;

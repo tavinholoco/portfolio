@@ -4,7 +4,7 @@
 >
 > **Base:** v2 publicada (Next 16.3 + React 19, Tailwind v4, bilíngue com paridade testada, 36 unit + 6 E2E, Lighthouse 95/100/100/100).
 > **Referência de inspiração:** [p5aholic.me](https://p5aholic.me) (Keita Yamada). Inspiração estrutural, **não cópia**. Ver seção 0.3.
-> **Status:** 🚧 **Em desenvolvimento. Fases 0 a 3 concluídas em 26/08/2026**, com o portão de saída da Fase 2 aprovado. Duas auditorias completas realizadas (seções 5 e 6, 30 achados já incorporados às fases). Próxima: Fase 4 (Home e showcase).
+> **Status:** 🚧 **Em desenvolvimento. Fases 0 a 4 concluídas em 26/08/2026**, com o portão de saída da Fase 2 aprovado. Duas auditorias completas realizadas (seções 5 e 6, 30 achados já incorporados às fases). Próxima: Fase 5 (Info, Contato e páginas de projeto).
 > **Versão do documento:** V3.2
 
 ---
@@ -23,9 +23,11 @@ Da Fase 1 está em pé o motor inteiro em `src/components/background/`, verifica
 
 Da Fase 2 está em pé o `<SiteShell>` nos dois layouts, a moldura, a máscara e o `section.tsx` com as duas variantes. **O portão de saída foi aprovado** (evidência nas notas de execução da Fase 2).
 
-Da Fase 3 estão em pé as 10 rotas (5 por idioma, todas estáticas), o header e o footer reescritos, o Lenis em rolagem nativa e o SEO por rota derivado do manifesto. 121 testes unitários e 6 E2E passando.
+Da Fase 3 estão em pé as 10 rotas (5 por idioma, todas estáticas), o header e o footer reescritos, o Lenis em rolagem nativa e o SEO por rota derivado do manifesto.
 
-O conteúdo das seções ainda é o da v2, redesenhado nas Fases 4 e 5. O trabalho continua na **Fase 4** (seção 7).
+Da Fase 4 estão em pé a Home como manifesto tipográfico com os 5 passos, e o showcase com preview trocando no hover, servindo Projetos e Clientes. 133 testes unitários e 6 E2E passando.
+
+Falta redesenhar Info, Contato e as páginas de projeto, que ainda usam o visual da v2. O trabalho continua na **Fase 5** (seção 7).
 
 ### 0.2 As três coisas que mais quebram este plano
 
@@ -521,6 +523,24 @@ Client component, `variant="solid"`. Subcomponentes: `showcase-preview.tsx` (pil
 
 ---
 
+#### Notas de execução da Fase 4 (26/08/2026)
+
+1. **O showcase ficou lado a lado, não empilhado.** O diagrama da seção 3 desenha o preview sobre a lista, mas empilhado a regra 1 se volta contra si mesma: `sticky` fixa o preview no topo e a lista rola **por baixo** dele, sobrepondo os dois. Verificado em captura, não é artefato. Em coluna própria o `sticky` faz exatamente o que a regra 1 pede, e a lista inteira fica visível junto do preview, que é o ponto do componente. Abaixo de `lg` o layout empilha e o `sticky` é desligado.
+
+2. **Achado novo, e vale como lei: fundo opaco em elemento `sticky` vaza para o composite de uma seção `blend` vizinha.** A tentativa de dar `background: var(--c-bg)` ao preview `sticky` (para o modo empilhado) pintou um retângulo preto dentro da seção `blend` do cabeçalho, a centenas de pixels de distância, com a largura exata da coluna do preview. Nenhum elemento do DOM tinha esse fundo: `elementFromPoint` no lugar devolvia a própria `<section>` transparente. `position: sticky` cria contexto de empilhamento, e a combinação com `mix-blend-mode` no irmão produz isso. **Não dê fundo opaco a elemento `sticky` na mesma página de uma seção `blend`.**
+
+3. **A `Section` ganhou a prop `wide`.** Na largura padrão (`max-w-5xl`), preview e lista lado a lado espremem a coluna do título a ponto de quebrar "Repertório Progressivo" em duas linhas. O showcase usa `max-w-7xl`; o padding continua o mesmo, então o alinhamento com a moldura não muda.
+
+4. **A linha mostra 3 tecnologias, não a stack inteira**, como o diagrama da seção 3 mostra. A lista completa vive na página do case. Sem isso a coluna de stack empurra o título para duas linhas.
+
+5. **Dados verificados, não inventados.** O `stack` e o `year` do case de cliente foram conferidos no site publicado (assets em `/_next/` com Turbopack, utilitárias do Tailwind, copyright de 2026), em vez de deduzidos. Os anos dos projetos próprios saíram do diagrama da seção 3 deste plano. **Confirmar com o Pedro.**
+
+6. **Aposentados:** `hero.tsx`, `process.tsx`, `projects.tsx`, `projects-grid.tsx` e `featured-project.tsx`, cujo mockup de janela virou `showcase/window-mockup.tsx`. As chaves órfãs `filterAll`, `one` e `many` de E6 saíram junto, fechando E6 por completo.
+
+7. **Armadilha do `pnpm look`:** se houver servidor na porta 3000 iniciado antes do último `pnpm build`, ele serve o build velho e a captura sai sem CSS nenhum. Documentado em `capture/playwright.config.ts`.
+
+---
+
 ### Fase 5: Info, Contato e páginas de projeto
 
 **Info.** Funde `about`, `career` e `skills`. Sobre e habilidades em `blend`; trajetória e o bloco do avatar em `solid` (E12).
@@ -652,7 +672,7 @@ Roteiro manual, nos dois temas e nos dois idiomas:
 - [x] Fase 1: Motor WebGL, concluída em 26/08/2026
 - [x] Fase 2: Shell, blend e moldura, concluída em 26/08/2026, portão de saída aprovado
 - [x] Fase 3: Rotas, navegação e scroll, concluída em 26/08/2026
-- [ ] Fase 4: Home e showcase
+- [x] Fase 4: Home e showcase, concluída em 26/08/2026
 - [ ] Fase 5: Info, Contato e páginas de projeto
 - [ ] Fase 6: Performance, acessibilidade e fallbacks
 - [ ] Fase 7: Testes, documentação e deploy

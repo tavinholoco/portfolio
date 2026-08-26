@@ -115,9 +115,6 @@ export const pt: Dict = {
     title: "Projetos em destaque",
     description:
       "Seleção dos meus trabalhos no GitHub, do app mobile ao portal com IA. Metadados sincronizados automaticamente com os repositórios.",
-    filterAll: "Todos",
-    one: "projeto",
-    many: "projetos",
     updatedAt: "atualizado",
     github: "GitHub",
     viewProject: "Ver projeto",
@@ -223,6 +220,10 @@ export const pt: Dict = {
         description:
           "Portfólio artístico desenvolvido para apresentar o trabalho do cliente através de uma experiência digital alinhada à sua identidade visual.",
         responsibilities: ["Frontend", "UI", "Responsividade", "Deploy"],
+        /* Verificado no site publicado: assets em /_next/ com Turbopack e
+           utilitárias do Tailwind. O ano vem do copyright do próprio site. */
+        stack: ["Next.js", "Tailwind CSS", "Vercel"],
+        year: "2026",
         status: "Publicado",
         url: "https://dandarkness.vercel.app/",
         image: "/projects/dandarkness.jpg",
