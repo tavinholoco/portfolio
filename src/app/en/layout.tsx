@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import type { Metadata, Viewport } from "next";
 import { Fira_Code, Open_Sans } from "next/font/google";
 
+import { SiteShell } from "@/components/shell/site-shell";
 import { getSiteUrl } from "@/lib/metadata";
 import "../globals.css";
 
@@ -48,8 +49,11 @@ export default function EnglishLayout({ children }: { children: ReactNode }) {
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
+      {/* Sem background e sem isolation no body: o fundo da página vive no
+          :root, e qualquer contexto de empilhamento aqui mataria o blend das
+          seções (F1). */}
       <body className="min-h-full font-sans text-foreground">
-        {children}
+        <SiteShell lang="en">{children}</SiteShell>
       </body>
     </html>
   );

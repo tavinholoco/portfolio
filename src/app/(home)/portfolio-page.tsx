@@ -6,13 +6,17 @@ import { Hero } from "@/components/hero";
 import { JsonLd } from "@/components/json-ld";
 import { ProcessSection } from "@/components/process";
 import { ProjectsSection } from "@/components/projects";
-import { SiteFooter } from "@/components/site-footer";
-import { SiteHeader } from "@/components/site-header";
 import { Skills } from "@/components/skills";
 import type { Locale } from "@/i18n";
 import { personJsonLd, projectListJsonLd, webSiteJsonLd } from "@/lib/json-ld";
 
-/** Página única do portfólio, renderizada no idioma recebido (rota / = pt, /en/ = en). */
+/**
+ * Conteúdo da página única do portfólio, no idioma recebido.
+ *
+ * Header, <main> e footer vivem no <SiteShell> do layout, não aqui: os dois
+ * root layouts precisam da mesma montagem e é o shell que impede pt e en de
+ * divergirem.
+ */
 export function PortfolioPage({ lang }: { lang: Locale }) {
   return (
     <>
@@ -20,18 +24,14 @@ export function PortfolioPage({ lang }: { lang: Locale }) {
       <JsonLd
         data={[personJsonLd(lang), webSiteJsonLd(lang), projectListJsonLd(lang)]}
       />
-      <SiteHeader lang={lang} />
-      <main>
-        <Hero lang={lang} />
-        <About lang={lang} />
-        <ProjectsSection lang={lang} />
-        <ClientProjectsSection lang={lang} />
-        <ProcessSection lang={lang} />
-        <Career lang={lang} />
-        <Skills lang={lang} />
-        <Contact lang={lang} />
-      </main>
-      <SiteFooter lang={lang} />
+      <Hero lang={lang} />
+      <About lang={lang} />
+      <ProjectsSection lang={lang} />
+      <ClientProjectsSection lang={lang} />
+      <ProcessSection lang={lang} />
+      <Career lang={lang} />
+      <Skills lang={lang} />
+      <Contact lang={lang} />
     </>
   );
 }

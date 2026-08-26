@@ -11,7 +11,7 @@ export function Career({ lang }: { lang: Locale }) {
   const d = dictionaries[lang].career;
 
   return (
-    <Section id="trajetoria">
+    <Section id="trajetoria" variant="solid">
       <SectionHeading
         label={d.label}
         title={d.title}

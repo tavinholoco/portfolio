@@ -32,7 +32,7 @@ export function About({ lang }: { lang: Locale }) {
   const d = dictionaries[lang].about;
 
   return (
-    <Section id="sobre">
+    <Section id="sobre" variant="solid">
       <div className="grid gap-12 md:grid-cols-[300px_1fr] md:gap-16">
         {/* Coluna esquerda: avatar + fatos rápidos */}
         <FadeIn className="self-start md:sticky md:top-24">

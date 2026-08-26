@@ -10,8 +10,6 @@ import {
 import { GitHubIcon } from "@/components/icons";
 import { JsonLd } from "@/components/json-ld";
 import { Button } from "@/components/ui/button";
-import { SiteFooter } from "@/components/site-footer";
-import { SiteHeader } from "@/components/site-header";
 import { dictionaries, type Locale } from "@/i18n";
 import { getFeaturedProjects } from "@/lib/github";
 import { projectJsonLd } from "@/lib/json-ld";
@@ -46,9 +44,11 @@ export async function ProjectDetailPage({
     <>
       {/* Dado estruturado (Schema.org SoftwareApplication) */}
       {jsonLd && <JsonLd data={jsonLd} />}
-      <SiteHeader lang={lang} />
-      <main>
-        <article className="mx-auto w-full max-w-4xl px-4 py-16 sm:px-6 sm:py-24">
+      {/* Header, <main> e footer vivem no <SiteShell> do layout. A página de
+          projeto tem imagens e avatar, então o corpo dela é solid: em
+          difference as imagens apareceriam em negativo. */}
+      <div className="bg-[var(--c-bg)] [transition:background-color_var(--shell-fade)_var(--shell-ease)]">
+        <article className="mx-auto w-full max-w-4xl [padding-inline:calc(var(--pad)*2)] py-16 sm:py-24">
           <Link
             href={backHref}
             className="focus-ring inline-flex items-center gap-2 rounded-md text-sm text-muted-foreground transition-colors hover:text-primary"
@@ -221,8 +221,7 @@ export async function ProjectDetailPage({
             </div>
           </section>
         </article>
-      </main>
-      <SiteFooter lang={lang} />
+      </div>
     </>
   );
 }

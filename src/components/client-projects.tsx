@@ -9,7 +9,7 @@ export function ClientProjectsSection({ lang }: { lang: Locale }) {
   const d = dictionaries[lang].clients;
 
   return (
-    <Section id="clientes">
+    <Section id="clientes" variant="solid">
       <SectionHeading
         label={d.label}
         title={d.title}

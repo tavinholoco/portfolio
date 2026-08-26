@@ -15,7 +15,7 @@ export async function ProjectsSection({ lang }: { lang: Locale }) {
   const rest = projects.filter((p) => p.slug !== "newra-news");
 
   return (
-    <Section id="projetos">
+    <Section id="projetos" variant="solid">
       <SectionHeading
         label={d.label}
         title={d.title}
