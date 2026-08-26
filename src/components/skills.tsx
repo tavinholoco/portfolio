@@ -21,7 +21,7 @@ export function Skills({ lang }: { lang: Locale }) {
   const d = dictionaries[lang].skills;
 
   return (
-    <Section id="habilidades" variant="blend">
+    <Section id="habilidades" variant="solid">
       <SectionHeading
         label={d.label}
         title={d.title}

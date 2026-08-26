@@ -6,7 +6,7 @@ export function ProcessSection({ lang }: { lang: Locale }) {
   const d = dictionaries[lang].process;
 
   return (
-    <Section id="como-trabalho" variant="blend">
+    <Section id="como-trabalho" variant="solid">
       <SectionHeading
         label={d.label}
         title={d.title}

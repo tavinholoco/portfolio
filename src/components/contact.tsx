@@ -31,7 +31,7 @@ export function Contact({ lang }: { lang: Locale }) {
   const d = dictionaries[lang].contact;
 
   return (
-    <Section id="contato" variant="blend">
+    <Section id="contato" variant="solid">
       <FadeIn>
         <div className="relative overflow-hidden rounded-3xl border border-primary/20 bg-gradient-to-b from-card to-background px-6 py-14 sm:px-14 sm:py-16">
           {/* Glow decorativo */}

@@ -4,7 +4,7 @@
 >
 > **Base:** v2 publicada (Next 16.3 + React 19, Tailwind v4, bilíngue com paridade testada, 36 unit + 6 E2E, Lighthouse 95/100/100/100).
 > **Referência de inspiração:** [p5aholic.me](https://p5aholic.me) (Keita Yamada). Inspiração estrutural, **não cópia**. Ver seção 0.3.
-> **Status:** 🚧 **Em desenvolvimento. Fases 0 e 1 concluídas em 26/08/2026.** Duas auditorias completas realizadas (seções 5 e 6, 30 achados já incorporados às fases). Próxima: Fase 2 (shell, blend e moldura), que tem portão de saída obrigatório.
+> **Status:** 🚧 **Em desenvolvimento. Fases 0, 1 e 2 concluídas em 26/08/2026, com o portão de saída da Fase 2 aprovado.** Duas auditorias completas realizadas (seções 5 e 6, 30 achados já incorporados às fases). Próxima: Fase 3 (rotas, navegação e scroll).
 > **Versão do documento:** V3.2
 
 ---
@@ -19,9 +19,11 @@ Esta seção existe para quem abre o repositório sem contexto nenhum. Leia ela 
 
 Da Fase 0 estão em pé: `ogl` e `lenis` instalados, os tokens de shell da v3 em `globals.css` (com o fundo no `:root`, não no `body`), a camada shadcn reneutralizada, a escala tipográfica fluida, e o manifesto de rotas em [src/lib/routes.ts](src/lib/routes.ts). A pré-condição de F1 foi verificada em runtime: com o CSS novo, uma seção `blend` dentro de um `<main>` estático não tem nenhum ancestral confinando o backdrop.
 
-Da Fase 1 está em pé o motor inteiro em `src/components/background/`, verificado no navegador: os três shaders compilam, os dois programas linkam, todos os uniforms ficam ativos, `gl.getError` devolve zero e o campo produz variação real de luminância. **O motor ainda não está montado em lugar nenhum**, e é a Fase 2 que o coloca no `<SiteShell>`.
+Da Fase 1 está em pé o motor inteiro em `src/components/background/`, verificado no navegador: os três shaders compilam, os dois programas linkam, todos os uniforms ficam ativos, `gl.getError` devolve zero e o campo produz variação real de luminância.
 
-O site em produção continua sendo a v2, e as páginas ainda são as da v2. O trabalho continua na **Fase 2** (seção 7).
+Da Fase 2 está em pé o `<SiteShell>` nos dois layouts, a moldura, a máscara e o `section.tsx` com as duas variantes. **O portão de saída foi aprovado** (evidência nas notas de execução da Fase 2). O motor está montado e rodando no site.
+
+O site em produção continua sendo a v2, e o conteúdo das páginas ainda é o da v2. O trabalho continua na **Fase 3** (seção 7).
 
 ### 0.2 As três coisas que mais quebram este plano
 
@@ -446,6 +448,20 @@ Container com `padding-inline: calc(var(--pad) * 2)` como piso (E9). `SectionHea
 
 ---
 
+#### Notas de execução da Fase 2 (26/08/2026)
+
+**O portão de saída passou, e a prova é aritmética, não impressão.** Com o tema claro e a seção de Contato em `blend`, o card interno (`bg-card`, que vale `#f0f0f0`, ou 240) apareceu **preto**, e o botão de fundo `#0d0d0d` (13) apareceu **branco**. O backdrop composto no tema claro fica em torno de 220, então `|220 - 240| = 20` e `|220 - 13| = 207`: exatamente o que o `difference` produz. Se F1 estivesse quebrado, a seção misturaria contra o fundo transparente do `<main>` e o card teria aparecido claro, com o texto branco sumindo em cima dele. A montagem de camadas está correta.
+
+Duas coisas para as fases seguintes:
+
+1. **A variante `blend` exige conteúdo que herde a cor.** O `color: #fff` da seção só alcança texto que herda. Classes como `text-muted-foreground`, `text-foreground`, `bg-card` e `bg-primary` mantêm a própria cor e cada uma inverte para um lado diferente, produzindo um resultado sujo. **Uma seção só deve virar `blend` no mesmo passo em que perde as cores e caixas explícitas.** Isso liga as leis da seção 8 diretamente à variante: não são duas tarefas, são a mesma.
+
+2. **Por isso as 7 seções da home estão em `solid` agora.** As três que serviram ao portão (Como trabalho, Habilidades, Contato) voltaram para `solid` depois dele. A Fase 4 liga o `blend` na Home e a Fase 5 nas seções de Info e Contato, cada uma junto do redesenho que remove as cores explícitas. A prop `variant` está escrita explicitamente em todas as seções, mesmo valendo o padrão, para que essa virada seja uma palavra só e fique visível no diff.
+
+3. **O header e o footer ainda são os da v2** dentro do shell novo. O header é o pill com `backdrop-blur` e o footer está no fluxo, transparente sobre o canvas. Os dois são reescritos na Fase 3.
+
+---
+
 ### Fase 3: Rotas, navegação e scroll
 
 **Novas rotas.** `/clientes/`, `/projetos/`, `/info/`, `/contato/` e os pares em `/en/`, como shims de 5 linhas delegando a um componente compartilhado, seguindo o padrão de [src/app/(home)/portfolio-page.tsx](src/app/(home)/portfolio-page.tsx). `sitemap.ts` permanece dentro de `(home)` (F15).
@@ -596,7 +612,7 @@ Roteiro manual, nos dois temas e nos dois idiomas:
 
 - [x] Fase 0: Fundação (deps, tokens, manifesto de rotas), concluída em 26/08/2026
 - [x] Fase 1: Motor WebGL, concluída em 26/08/2026
-- [ ] Fase 2: Shell, blend e moldura ⚠️ portão de saída obrigatório
+- [x] Fase 2: Shell, blend e moldura, concluída em 26/08/2026, portão de saída aprovado
 - [ ] Fase 3: Rotas, navegação e scroll
 - [ ] Fase 4: Home e showcase
 - [ ] Fase 5: Info, Contato e páginas de projeto
