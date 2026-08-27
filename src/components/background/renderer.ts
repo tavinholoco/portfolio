@@ -9,7 +9,6 @@ import type {
 
 import {
   GRAIN_AMOUNT,
-  PALETTE_FADE_MS,
   SHELL_FADE_MS,
   VIGNETTE_STRENGTH,
   easeShell,
@@ -165,7 +164,6 @@ export class BackgroundRenderer {
   private pointerTarget: [number, number] = [0, 0];
 
   private themeTween: Tween | null = null;
-  private paletteTween: Tween | null = null;
 
   private resizeObserver: ResizeObserver | null = null;
   private intersectionObserver: IntersectionObserver | null = null;
@@ -248,7 +246,6 @@ export class BackgroundRenderer {
           /* Semente nova a cada load: dois acessos nunca abrem iguais. */
           uSeed: { value: Math.random() * 1000 },
           uResolution: { value: [target.width, target.height] },
-          uProgress: { value: 0 },
           uPointer: { value: [0, 0] },
           uPalette: { value: palette.map((color) => [...color]) },
         },
@@ -312,43 +309,12 @@ export class BackgroundRenderer {
     this.requestFrame();
   }
 
-  /** Progresso de rolagem normalizado, alimentado pelo Lenis na Fase 3. */
-  setProgress(progress: number): void {
-    if (!this.fieldMesh) return;
-    this.fieldMesh.program.uniforms.uProgress.value = Number.isFinite(progress)
-      ? progress
-      : 0;
-    this.requestFrame();
-  }
-
   /** Alvo do ponteiro, de -1 a 1. O lerp acontece a cada frame. */
   setPointer(x: number, y: number): void {
     this.pointerTarget = [
       Math.min(Math.max(x, -1), 1),
       Math.min(Math.max(y, -1), 1),
     ];
-  }
-
-  /** Troca a paleta com crossfade. Por rota e por item da lista. */
-  setPalette(preset: PalettePreset, immediate = false): void {
-    if (!this.fieldMesh) return;
-
-    const to = paletteFor(preset).flatMap((color) => [...color]);
-
-    if (immediate || this.reducedMotion) {
-      this.paletteTween = null;
-      this.applyPaletteFlat(to);
-      this.requestFrame();
-      return;
-    }
-
-    this.paletteTween = {
-      from: this.currentPaletteFlat(),
-      to,
-      start: performance.now(),
-      duration: PALETTE_FADE_MS,
-    };
-    this.syncLoop();
   }
 
   /**
@@ -580,9 +546,9 @@ export class BackgroundRenderer {
   /**
    * Renderiza um frame avulso quando o loop está parado.
    *
-   * O `framePending` importa: setProgress e setPalette podem ser chamados
-   * várias vezes antes do próximo frame, e sem a guarda cada chamada agendaria
-   * um rAF próprio, todos renderizando o mesmo estado.
+   * O `framePending` importa: o resize e a troca de tema podem chegar várias
+   * vezes antes do próximo frame, e sem a guarda cada chamada agendaria um
+   * rAF próprio, todos renderizando o mesmo estado.
    */
   private requestFrame(): void {
     if (
@@ -652,12 +618,6 @@ export class BackgroundRenderer {
       const step = this.stepTween(this.themeTween, now);
       this.applyThemeFlat(step.flat);
       if (step.done) this.themeTween = null;
-    }
-
-    if (this.paletteTween) {
-      const step = this.stepTween(this.paletteTween, now);
-      this.applyPaletteFlat(step.flat);
-      if (step.done) this.paletteTween = null;
     }
   }
 

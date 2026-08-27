@@ -145,12 +145,17 @@ test.describe("camadas do shell", () => {
     expect(cores.root).not.toBe("rgba(0, 0, 0, 0)");
   });
 
-  test("o Lenis não aplica transform em wrapper de conteúdo (F3)", async ({
+  test("nada aplica transform em html, body ou main (F1)", async ({
     page,
   }) => {
     await page.goto("/");
-    /* Dá tempo do Lenis montar antes de olhar. */
-    await page.waitForTimeout(600);
+    /*
+     * Era o teste do Lenis, que na v3.5 saiu do projeto. A invariante fica:
+     * transform em qualquer um destes cria contexto de empilhamento e mata o
+     * blend de todas as seções, venha de uma lib de rolagem ou de qualquer
+     * outra coisa que alguém acrescente depois.
+     */
+    await page.waitForTimeout(300);
 
     const transforms = await page.evaluate(() => ({
       html: getComputedStyle(document.documentElement).transform,

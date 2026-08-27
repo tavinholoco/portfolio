@@ -16,14 +16,13 @@ import {
   lerpRgb,
   mixForBack,
   paletteFor,
-  paletteForRoute,
+  DEFAULT_PALETTE,
   palettes,
   relativeLuminance,
   vignetteTargetForBack,
   type PalettePreset,
   type Rgb,
 } from "./background-config";
-import { routeIds } from "@/lib/routes";
 
 const LIGHT_BACK = hexToRgb("#f0f0f0");
 const DARK_BACK = hexToRgb("#0b0b0c");
@@ -141,12 +140,8 @@ describe("cubicBezier", () => {
 });
 
 describe("paletas", () => {
-  it("toda rota tem paleta, e toda paleta apontada existe", () => {
-    for (const id of routeIds) {
-      const preset = paletteForRoute[id];
-      expect(preset).toBeDefined();
-      expect(palettes[preset]).toBeDefined();
-    }
+  it("a paleta padrão do site existe", () => {
+    expect(palettes[DEFAULT_PALETTE]).toBeDefined();
   });
 
   it("toda paleta tem exatamente 3 cores hexadecimais válidas", () => {

@@ -119,9 +119,8 @@
   }
 
   /*
-   * Sem `scroll-behavior: smooth`: quem suaviza a rolagem agora é o Lenis, e as
-   * duas coisas juntas brigam, produzindo rolagem com dois ritmos ao clicar numa
-   * âncora. Sob movimento reduzido o Lenis nem liga, e a rolagem fica nativa.
+   * Sem `scroll-behavior`: a rolagem é a nativa do navegador, sem suavização
+   * nenhuma. O Lenis saiu na v3.5, junto com a reação do fundo ao scroll.
    */
   /*
    * Sem bg-background aqui (F1). O antialiased não é enfeite: navegadores

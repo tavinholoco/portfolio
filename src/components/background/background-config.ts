@@ -1,5 +1,3 @@
-import type { RouteId } from "@/lib/routes";
-
 /** Cor normalizada para uniform GLSL: cada canal de 0 a 1. */
 export type Rgb = readonly [number, number, number];
 
@@ -45,9 +43,6 @@ export const GRAIN_AMOUNT = 0.04;
 export const SHELL_FADE_MS = 900;
 export const SHELL_EASE = [0.1, 0.4, 0.2, 1] as const;
 
-/** Troca de paleta no hover da lista: mais curta que a troca de tema. */
-export const PALETTE_FADE_MS = 600;
-
 /**
  * Vocabulário de paletas. Rotas e itens da lista escolhem daqui, em vez de cada
  * um trazer suas cores, para o site inteiro ter um humor coerente.
@@ -61,17 +56,18 @@ export const palettes = {
   sand: ["#1a1409", "#54401a", "#9c7a3c"],
 } as const satisfies Record<string, readonly [string, string, string]>;
 
-/** Nome de paleta aceito por `setPalette` e pelos itens do showcase. */
+/** Nome de paleta aceito pelo motor do fundo. */
 export type PalettePreset = keyof typeof palettes;
 
-/** Paleta de cada rota. O humor do site muda conforme se navega. */
-export const paletteForRoute: Record<RouteId, PalettePreset> = {
-  home: "graphite",
-  clients: "ember",
-  projects: "cobalt",
-  info: "moss",
-  contact: "plum",
-};
+/**
+ * A paleta do site, uma só.
+ *
+ * A v3 trocava de paleta por rota e no hover de cada item da lista. Saiu na
+ * v3.5: o fundo passou a ser o mesmo em todo lugar, e as outras cinco ficam
+ * como vocabulário disponível, ainda cobertas pelo teste de contraste, para o
+ * dia em que alguém quiser trocar a do site inteiro numa linha.
+ */
+export const DEFAULT_PALETTE: PalettePreset = "graphite";
 
 /** Converte `#rrggbb` (ou `#rgb`) para canais de 0 a 1. */
 export function hexToRgb(hex: string): Rgb {
@@ -212,36 +208,3 @@ export function cubicBezier(
 
 /** A curva de --shell-ease, pronta para o tween. */
 export const easeShell = cubicBezier(...SHELL_EASE);
-
-/**
- * O que o resto do site precisa poder pedir ao fundo.
- *
- * Um handle mínimo em vez do `BackgroundRenderer` inteiro: quem chama daqui não
- * tem nada a ver com WebGL, e o tipo estreito impede que alguém saia mexendo no
- * ciclo de vida do motor de fora do componente que o criou.
- */
-export type BackgroundHandle = {
-  setProgress(progress: number): void;
-  setPalette(preset: PalettePreset, immediate?: boolean): void;
-};
-
-let activeBackground: BackgroundHandle | null = null;
-
-/**
- * Registro do fundo ativo, num singleton de módulo e não em contexto do React.
- *
- * A razão é frequência: o progresso de rolagem chega a cada frame. Passar isso
- * por estado ou contexto do React re-renderizaria a árvore 60 vezes por segundo
- * para atualizar um uniform de shader, que é justamente o trabalho que não
- * precisa passar pelo React.
- *
- * `null` é normal e esperado: acontece antes do canvas montar, e depois que ele
- * desmonta. Quem chama sempre usa encadeamento opcional.
- */
-export function setActiveBackground(handle: BackgroundHandle | null): void {
-  activeBackground = handle;
-}
-
-export function getActiveBackground(): BackgroundHandle | null {
-  return activeBackground;
-}

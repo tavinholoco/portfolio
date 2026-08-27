@@ -73,7 +73,6 @@ export const pt: Dict = {
     title: "Sobre mim",
     facts: [
       { id: "formation", label: "Formação", value: "ADS · UNOESTE" },
-      { id: "location", label: "Localização", value: "Rancharia, São Paulo" },
       { id: "email", label: "Email", value: "pedrolevidiass@gmail.com" },
       { id: "languages", label: "Idiomas", value: "Inglês avançado (CCAA)" },
     ],

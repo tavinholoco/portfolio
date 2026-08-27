@@ -86,7 +86,7 @@ test.describe("rolagem", () => {
     await page.waitForTimeout(600);
     expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(50);
 
-    /* Navega por link interno, que é o caminho que o Lenis intercepta. */
+    /* Navega por link interno, que é o caminho do router do Next. */
     await page.locator('header nav a[href="/projetos/"]').click();
     await page.waitForURL("**/projetos/");
     await page.waitForTimeout(800);

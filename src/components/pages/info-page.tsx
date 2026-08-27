@@ -4,8 +4,6 @@ import { Identity } from "@/components/identity";
 import { JsonLd } from "@/components/json-ld";
 import { Process } from "@/components/process";
 import { Skills } from "@/components/skills";
-import { BackgroundPalette } from "@/components/background/background-palette";
-import { paletteForRoute } from "@/components/background/background-config";
 import type { Locale } from "@/i18n";
 import { personJsonLd } from "@/lib/json-ld";
 
@@ -26,7 +24,6 @@ import { personJsonLd } from "@/lib/json-ld";
 export function InfoPage({ lang }: { lang: Locale }) {
   return (
     <>
-      <BackgroundPalette preset={paletteForRoute.info} />
       <JsonLd data={personJsonLd(lang)} />
       <About lang={lang} />
       <Identity lang={lang} />

@@ -59,7 +59,7 @@ export function SiteHeader({ lang }: { lang: Locale }) {
 
   return (
     <header className="pointer-events-none fixed inset-x-0 top-0 z-50 mix-blend-difference text-white">
-      <div className="flex items-start justify-between gap-6 [padding-block:var(--pad)] [padding-inline:calc(var(--pad)*2)]">
+      <div className="flex items-start justify-between gap-6 [padding-block:calc(var(--pad)*1.5)] lg:[padding-block:calc(var(--pad)*2)] [padding-inline:calc(var(--pad)*2)]">
         <div className="flex shrink-0 flex-col">
           <Link
             href={pathFor("home", lang)}

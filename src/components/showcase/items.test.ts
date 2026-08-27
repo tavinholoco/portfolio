@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 
 import { projectMetas } from "@/data/projects";
 import { dictionaries } from "@/i18n";
-import { palettes } from "@/components/background/background-config";
 
 import { clientShowcaseItems, projectShowcaseItems } from "./items";
 
@@ -45,14 +44,6 @@ describe("projectShowcaseItems", () => {
     }
   });
 
-  it("dá paleta existente e distinta a cada item", () => {
-    const items = projectShowcaseItems("pt");
-    for (const item of items) {
-      expect(palettes[item.palette]).toBeDefined();
-    }
-    expect(new Set(items.map((i) => i.palette)).size).toBe(items.length);
-  });
-
   it("gera a mesma quantidade de itens nos dois idiomas", () => {
     expect(projectShowcaseItems("en")).toHaveLength(
       projectShowcaseItems("pt").length
@@ -81,11 +72,6 @@ describe("clientShowcaseItems", () => {
     }
   });
 
-  it("dá paleta existente a cada item", () => {
-    for (const item of clientShowcaseItems("pt")) {
-      expect(palettes[item.palette]).toBeDefined();
-    }
-  });
 });
 
 describe("as duas listas alimentam o mesmo componente", () => {
@@ -101,7 +87,6 @@ describe("as duas listas alimentam o mesmo componente", () => {
       "category",
       "year",
       "href",
-      "palette",
     ] as const;
 
     for (const chave of obrigatorias) {

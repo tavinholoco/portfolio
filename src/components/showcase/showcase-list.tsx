@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { getActiveBackground } from "@/components/background/background-config";
 import { Section } from "@/components/section";
 import { ShowcaseCaption } from "@/components/showcase/showcase-caption";
 import { ShowcasePreview } from "@/components/showcase/showcase-preview";
@@ -53,14 +52,9 @@ export function ShowcaseList({
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const listRef = useRef<HTMLOListElement>(null);
 
-  const apply = useCallback(
-    (index: number) => {
-      setActiveIndex(index);
-      const preset = items[index]?.palette;
-      if (preset) getActiveBackground()?.setPalette(preset);
-    },
-    [items]
-  );
+  const apply = useCallback((index: number) => {
+    setActiveIndex(index);
+  }, []);
 
   const activate = useCallback(
     (index: number, immediate: boolean) => {
@@ -85,12 +79,6 @@ export function ShowcaseList({
       if (timerRef.current) clearTimeout(timerRef.current);
     };
   }, []);
-
-  /* A paleta do primeiro item já no load, para o fundo abrir coerente. */
-  useEffect(() => {
-    const preset = items[0]?.palette;
-    if (preset) getActiveBackground()?.setPalette(preset, true);
-  }, [items]);
 
   /* Regra 6: em touch, quem manda é a proximidade do centro da tela. */
   useEffect(() => {

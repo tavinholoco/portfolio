@@ -31,7 +31,6 @@ varying vec2 vUv;
 uniform float uTime;
 uniform float uSeed;
 uniform vec2 uResolution;
-uniform float uProgress;
 uniform vec2 uPointer;
 uniform vec3 uPalette[3];
 
@@ -129,9 +128,8 @@ float fbm(vec3 p) {
  * **z grande é longe** (junto ao horizonte). A areia fica em z pequeno, o mar
  * em z grande, e a linha d'água é o z onde os dois se encontram.
  */
-float waveField(vec2 uv, vec2 aspect, float t, float progress, vec2 pointer) {
-  /* Rolar a página caminha de leve em direção ao mar. */
-  float horizon = 0.62 + progress * 0.05 + pointer.y * 0.01;
+float waveField(vec2 uv, vec2 aspect, float t, vec2 pointer) {
+  float horizon = 0.62 + pointer.y * 0.01;
 
   /* A coluna do rastro do sol, seguida de longe pelo ponteiro. */
   float sunX = 0.5 + pointer.x * 0.06;
@@ -154,10 +152,16 @@ float waveField(vec2 uv, vec2 aspect, float t, float progress, vec2 pointer) {
    * Duas trens de crista com períodos diferentes, viajando em direção ao
    * observador, com a fase deformada por fbm. Sem o warp as cristas viram
    * listras regulares de tutorial.
+   *
+   * **O sinal do termo de tempo é a direção da onda, e é fácil errar.**
+   * Com 'z * k - t * w', a fase constante exige z crescente, e a crista
+   * viaja para o horizonte, ou seja, mar adentro. Somando, z decresce e a
+   * crista vem para a praia, que é o que a arrebentação faz. Lembre que
+   * aqui z pequeno é perto do observador.
    */
   float warp = fbm(vec3(x * 0.35, z * 0.25, t * 0.4));
-  float w = sin(z * 0.9 - t * 1.6 + warp * 2.2) * 0.6
-          + sin(z * 1.7 - t * 2.3 + warp * 1.3) * 0.4;
+  float w = sin(z * 0.9 + t * 1.6 + warp * 2.2) * 0.6
+          + sin(z * 1.7 + t * 2.3 + warp * 1.3) * 0.4;
 
   /*
    * Perto do horizonte um período inteiro de onda cabe em menos de um pixel e
@@ -210,7 +214,7 @@ void main() {
 
   float t = uTime * 0.09 + uSeed;
 
-  float v = waveField(vUv, aspect, t, uProgress, uPointer);
+  float v = waveField(vUv, aspect, t, uPointer);
 
   /* Ramp de 3 cores, sem ramificação. */
   vec3 color = mix(uPalette[0], uPalette[1], smoothstep(0.0, 0.5, v));

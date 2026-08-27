@@ -1,4 +1,3 @@
-import type { PalettePreset } from "@/components/background/background-config";
 
 /**
  * Um item do showcase, servindo tanto Projetos quanto Clientes.
@@ -39,6 +38,4 @@ export type ShowcaseItem = {
   href: string;
   /** Destino externo abre em aba nova, com rel de segurança. */
   external?: boolean;
-  /** Preset que o shader assume quando este item está ativo (seção 3.2). */
-  palette: PalettePreset;
 };

@@ -1,9 +1,7 @@
 import type { ReactNode } from "react";
 
 import { BackgroundCanvas } from "@/components/background/background-canvas";
-import type { PalettePreset } from "@/components/background/background-config";
 import { Frame } from "@/components/shell/frame";
-import { SmoothScroll } from "@/components/shell/smooth-scroll";
 import { ViewportMask } from "@/components/shell/viewport-mask";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
@@ -40,17 +38,14 @@ import type { Locale } from "@/i18n";
  */
 export function SiteShell({
   lang,
-  palette = "graphite",
   children,
 }: {
   lang: Locale;
-  palette?: PalettePreset;
   children: ReactNode;
 }) {
   return (
     <>
-      <BackgroundCanvas preset={palette} />
-      <SmoothScroll />
+      <BackgroundCanvas />
       <SiteHeader lang={lang} />
       {/*
         Sem padding vertical, de propósito. Header e footer são fixos e em

@@ -932,4 +932,27 @@ CLS **zero** em todas.
 | Tema claro | O campo entra a `FIELD_MIX.light` de 0.08 e as ondas ficam quase invisíveis. É o comportamento de projeto desde a v3, não regressão, mas vale decidir se a praia merece exceção |
 | Paleta da Home | Continua `graphite`. A `sand` já existe e combinaria com o tema de praia. É uma linha em `paletteForRoute` |
 | Chaves `label` órfãs | `about`, `skills`, `career`, `process`, `clients` e `projects` têm `label` sem consumidor. Limpeza para outro dia, nos dois dicionários no mesmo commit |
+| **Lighthouse depois da 12.4** | Os números da 12.2 são de antes de tirar o Lenis e as trocas de paleta. Devem ter melhorado, mas não foram remedidos |
 | Herdados da v3 | PR #2, Netsheet Engine sem deploy, domínio próprio. Ver §11 |
+
+### 12.4 Segunda rodada, depois de ver o site rodando
+
+A primeira rodada da V3.5 foi conferida por captura. Ver o site de verdade rendeu seis correções, e **duas delas eram defeito meu, não mudança de escopo**.
+
+**1. O rodapé estava dentro da moldura, e eu tinha lido o pedido errado.** Quando o Pedro escreveu "os textos que estão dentro do quadrado, desça eles para fora", eu entendi a legenda do showcase e mexi nela. O que ele apontava era o rodapé: ano, nome e cidade viviam com `padding-block: var(--pad)`, logo **acima** da linha inferior da moldura. Agora ocupam a faixa de `var(--pad)` que sobra abaixo dela, alinhados a `var(--pad)` na horizontal para começar na quina, em 10px. É onde a referência põe o dela. A mudança na legenda do showcase foi mantida, porque melhorou de qualquer jeito.
+
+**2. As ondas corriam para o horizonte.** O Pedro viu antes da suíte. Com `sin(z * k - t * w)`, fase constante exige z crescente, e como z cresce em direção ao horizonte, a crista fugia mar adentro em vez de quebrar na praia. O conserto é o sinal: `+ t`. **Isto não gera erro nenhum**, o fundo continua animado e bonito, e por isso ganhou teste próprio, `pnpm waves`, que compila o GLSL real num contexto próprio e mede o deslocamento por correlação cruzada entre dois instantes. Com o sinal certo dá `-3px` de deslocamento e erro 1.65; com o sinal errado o teste reprova. Controle negativo conferido.
+
+**3. A localidade saiu do projeto.** "Rancharia, São Paulo" saiu do rodapé, de `profile.location`, do fato de `/info/` nos dois dicionários (com o `id` fora do union de `Fact`) e do `PostalAddress` do JSON-LD. **Ficou** "Prefeitura de Rancharia" na trajetória, que é nome de empregador e não localidade.
+
+**4. O menu desceu.** Estava em `var(--pad)`, encostado na linha de cima da moldura. Foi para `calc(var(--pad)*2)` em `lg`, que é onde a referência põe o dela. No mobile ficou em `1.5x`, porque lá o conteúdo passa por baixo do bloco de identidade sem a coluna da nav para afastar, e `2x` encostava o `h1` no cargo. A primeira seção ganhou `pt-28` no mobile pelo mesmo motivo.
+
+**5. Saíram as trocas de cor e a rolagem suave.** A paleta por rota, a troca de paleta no hover da lista e a reação do fundo ao scroll foram removidas; o site inteiro usa `DEFAULT_PALETTE`. O **Lenis saiu do projeto**, dependência inclusive, e a rolagem voltou a ser a nativa do navegador.
+
+O efeito cascata foi maior que o pedido e vale registrar, porque o que sumiu era estrutura: `<BackgroundPalette>` e `<SmoothScroll>` deletados; `setPalette`, `setProgress`, `paletteTween` e `PALETTE_FADE_MS` fora do motor; o uniform `uProgress` fora do shader; e o **singleton `activeBackground` inteiro**, que existia só para o scroll e a lista alcançarem o fundo sem passar pelo React. Sem esses dois consumidores ele não tinha mais razão de existir. O `palette` saiu de `ShowcaseItem`, junto com `paletteForSlug` e as listas de presets.
+
+**A lei F3 deixou de existir**, e com ela a razão original do teste que a guardava. O teste ficou, com outro nome: `transform` em `html`, `body` ou `main` mata o blend venha de onde vier, e a próxima lib de rolagem suave que alguém instalar vai esbarrar nisso de novo.
+
+**6. Duas paletas do vocabulário continuam sem uso.** As seis seguem definidas e cobertas pelo teste de contraste, para trocar a do site inteiro numa linha. Trocar `DEFAULT_PALETTE` para `sand` é o caminho se um dia a praia pedir cor de areia.
+
+Verificação desta rodada: lint e typecheck limpos, **139 unitários** (dois a menos, os que provavam a paleta por rota e por item), **68 E2E**, `pnpm waves` passando com controle negativo conferido, e captura em 1440 e 390 nos dois casos.

@@ -85,7 +85,9 @@ export function Section({
       id={id}
       data-variant={variant}
       className={cn(
-        "scroll-mt-24 py-24 sm:py-28",
+        /* Topo maior que a base no mobile: la o bloco de identidade do header
+           fica logo acima do conteudo, sem a coluna da nav para afastar. */
+        "scroll-mt-24 pt-28 pb-24 sm:py-28",
         variant === "blend"
           ? "mix-blend-difference text-white"
           : "bg-[var(--c-bg)] [transition:background-color_var(--shell-fade)_var(--shell-ease)]",

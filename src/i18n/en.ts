@@ -73,7 +73,6 @@ export const en: Dict = {
     title: "About me",
     facts: [
       { id: "formation", label: "Education", value: "Systems Analysis · UNOESTE" },
-      { id: "location", label: "Location", value: "Rancharia, São Paulo" },
       { id: "email", label: "Email", value: "pedrolevidiass@gmail.com" },
       { id: "languages", label: "Languages", value: "Advanced English (CCAA)" },
     ],

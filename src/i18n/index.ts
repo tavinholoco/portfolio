@@ -11,7 +11,7 @@ export function resolveLocale(value: string | null | undefined): Locale {
 }
 
 export type Fact = {
-  id: "formation" | "location" | "email" | "languages";
+  id: "formation" | "email" | "languages";
   label: string;
   value: string;
 };
