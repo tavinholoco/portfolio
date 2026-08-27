@@ -8,7 +8,15 @@ import { expect, test } from "@playwright/test";
  */
 const routes = [
   { path: "/", lang: "pt" },
+  { path: "/clientes/", lang: "pt" },
+  { path: "/projetos/", lang: "pt" },
+  { path: "/info/", lang: "pt" },
+  { path: "/contato/", lang: "pt" },
   { path: "/en/", lang: "en" },
+  { path: "/en/clients/", lang: "en" },
+  { path: "/en/projects/", lang: "en" },
+  { path: "/en/info/", lang: "en" },
+  { path: "/en/contact/", lang: "en" },
   { path: "/projetos/newra-news/", lang: "pt" },
   { path: "/en/projects/newra-news/", lang: "en" },
   { path: "/projetos/netsheet-engine/", lang: "pt" },

@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 
-import { PortfolioPage } from "./portfolio-page";
-import { buildMetadata } from "@/lib/metadata";
+import { HomePage } from "@/components/pages/home-page";
+import { buildRouteMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = buildMetadata("pt");
+export const metadata: Metadata = buildRouteMetadata("home", "pt");
 
 export default function Home() {
-  return <PortfolioPage lang="pt" />;
+  return <HomePage lang="pt" />;
 }

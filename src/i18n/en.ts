@@ -21,16 +21,34 @@ export const en: Dict = {
     ogDescription:
       "Full Stack Developer specialized in React, Next.js, Node.js and TypeScript. Web, mobile and AI-powered projects.",
   },
+  routes: {
+    home: {
+      title: "Pedro Levi | Full Stack Developer",
+      description:
+        "I understand the problem before picking the technology. See how I work, from first contact to deploy.",
+    },
+    clients: {
+      title: "Clients | Pedro Levi",
+      description:
+        "Sites and systems delivered for real clients, each with the problem it solved and what was built.",
+    },
+    projects: {
+      title: "Projects | Pedro Levi",
+      description:
+        "Personal projects across web, mobile and AI. Each one starts from the problem it solved.",
+    },
+    info: {
+      title: "Info | Pedro Levi",
+      description:
+        "Who I am, how I got here, what I work with and where to find me.",
+    },
+    contact: {
+      title: "Contact | Pedro Levi",
+      description:
+        "Two direct paths: hire a developer, or get a project off the ground.",
+    },
+  },
   nav: {
-    links: [
-      { label: "Home", href: "#inicio" },
-      { label: "About", href: "#sobre" },
-      { label: "Projects", href: "#projetos" },
-      { label: "Clients", href: "#clientes" },
-      { label: "Career", href: "#trajetoria" },
-      { label: "Skills", href: "#habilidades" },
-      { label: "Contact", href: "#contato" },
-    ],
     openMenu: "Open menu",
     sheetTitle: "Menu",
     sheetDescription: "Portfolio navigation",
@@ -41,10 +59,8 @@ export const en: Dict = {
     role: "Full Stack Developer",
     name: "Pedro Levi",
     bio: "I build web and mobile applications with a focus on architecture, quality and functional experiences.",
-    stackLabel: "Technologies",
     viewProjects: "View projects",
     downloadCv: "Download CV",
-    scrollLabel: "Scroll to the about section",
     socials: {
       github: "GitHub",
       linkedin: "LinkedIn",
@@ -97,23 +113,16 @@ export const en: Dict = {
     title: "Featured projects",
     description:
       "A selection of my work on GitHub, from the mobile app to the AI-powered portal. Metadata synced automatically with the repositories.",
-    filterAll: "All",
-    one: "project",
-    many: "projects",
     updatedAt: "updated",
     github: "GitHub",
-    viewProject: "View project",
-    featuredBadge: "Main project",
     problemLabel: "Problem",
     solutionLabel: "Solution",
     highlightLabel: "Technical highlight",
-    stackLabel: "Stack",
     backToProjects: "Back to projects",
     learningsTitle: "What I learned",
     previous: "Previous",
     next: "Next",
     demoLabel: "Demo",
-    allOnGithub: "View all projects on GitHub",
     categories: {
       fullstack: "Full Stack",
       mobile: "Mobile",
@@ -196,8 +205,6 @@ export const en: Dict = {
       "Delivered and published work for clients, from idea to live website.",
     projectKind: "Professional project",
     responsibilitiesLabel: "Responsibilities",
-    statusLabel: "Status",
-    visit: "Visit project",
     previewAlt: "Site preview",
     projects: [
       {
@@ -205,9 +212,12 @@ export const en: Dict = {
         description:
           "Artistic portfolio developed to present the client's work through a digital experience aligned with their visual identity.",
         responsibilities: ["Frontend", "UI", "Responsiveness", "Deploy"],
-        status: "Published",
+        /* Verificado no site publicado: assets em /_next/ com Turbopack e
+           utilitárias do Tailwind. O ano vem do copyright do próprio site. */
+        stack: ["Next.js", "Tailwind CSS", "Vercel"],
+        year: "2026",
         url: "https://dandarkness.vercel.app/",
-        image: "/projects/dandarkness.jpg",
+        image: "/projects/dandarkness.webp",
       },
     ],
   },
@@ -351,14 +361,6 @@ export const en: Dict = {
       { id: "linkedin", label: "LinkedIn", value: "in/pedro-levi-dias" },
       { id: "github", label: "GitHub", value: "@tavinholoco" },
     ],
-  },
-  footer: {
-    socials: {
-      github: "GitHub",
-      linkedin: "LinkedIn",
-      email: "Email",
-      phone: "Phone",
-    },
   },
   controls: {
     theme: "Toggle theme",

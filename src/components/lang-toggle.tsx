@@ -27,7 +27,8 @@ export function LangToggle({
     <a
       href={href}
       title={label}
-      className="focus-ring inline-flex h-9 items-center gap-1.5 rounded-md px-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+      /* Sem cor nem fundo próprios, pelo mesmo motivo do ThemeToggle. */
+      className="focus-ring inline-flex h-9 items-center gap-1.5 rounded-md px-2 text-sm font-medium opacity-70 transition-opacity hover:opacity-100"
     >
       <Languages className="size-4" aria-hidden />
       {next.toUpperCase()}

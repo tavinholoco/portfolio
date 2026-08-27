@@ -1,60 +1,28 @@
-import { Mail, Phone } from "lucide-react";
-
-import { GitHubIcon, LinkedInIcon } from "@/components/icons";
 import { profile } from "@/data/profile";
-import { dictionaries, type Locale } from "@/i18n";
 
-export function SiteFooter({ lang }: { lang: Locale }) {
-  const d = dictionaries[lang];
-
+/**
+ * O footer da v3: fixo, e só o copyright.
+ *
+ * Os quatro links sociais saíram (E13). Um footer fixo alinhado a `var(--pad)`
+ * não comporta quatro alvos de clique sem virar uma barra, e a informação já
+ * existe em `contact.cards`, na rota de Contato, com mais contexto. Nada se
+ * perdeu, mudou de lugar.
+ *
+ * Em `mix-blend-difference` pelo mesmo motivo do header: inverte contra o que
+ * estiver embaixo e fica legível sobre o canvas e sobre os dois tipos de seção.
+ * Fica acima da máscara de viewport, em z-50 contra os 30 dela.
+ *
+ * Sem texto traduzível: nome, ano e cidade são iguais nos dois idiomas, então
+ * não há chave de dicionário aqui.
+ */
+export function SiteFooter() {
   return (
-    <footer className="border-t border-border/60 py-8">
-      <div className="mx-auto flex w-full max-w-5xl flex-col items-center justify-between gap-5 px-4 sm:flex-row sm:px-6">
-        <a
-          href="#inicio"
-          className="focus-ring rounded-md font-mono text-sm font-medium tracking-tight text-foreground"
-        >
-          <span className="text-primary">&gt;_</span> pedrolevi
-        </a>
-
-        <p className="text-xs text-muted-foreground">
-          © {new Date().getFullYear()} {profile.name} · {profile.location}
-        </p>
-
-        <div className="flex items-center gap-1.5">
-          <a
-            href={profile.github}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label={d.footer.socials.github}
-            className="focus-ring rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-          >
-            <GitHubIcon className="size-4" />
-          </a>
-          <a
-            href={profile.linkedin}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label={d.footer.socials.linkedin}
-            className="focus-ring rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-          >
-            <LinkedInIcon className="size-4" />
-          </a>
-          <a
-            href={`mailto:${profile.email}`}
-            aria-label={d.footer.socials.email}
-            className="focus-ring rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-          >
-            <Mail className="size-4" aria-hidden />
-          </a>
-          <a
-            href={`tel:${profile.phoneRaw}`}
-            aria-label={d.footer.socials.phone}
-            className="focus-ring rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-          >
-            <Phone className="size-4" aria-hidden />
-          </a>
-        </div>
+    <footer className="pointer-events-none fixed inset-x-0 bottom-0 z-50 mix-blend-difference text-white">
+      <div className="flex items-center justify-between gap-4 font-mono text-xs [padding-block:var(--pad)] [padding-inline:calc(var(--pad)*2)]">
+        <span className="opacity-70">
+          © {new Date().getFullYear()} {profile.name}
+        </span>
+        <span className="opacity-70">{profile.location}</span>
       </div>
     </footer>
   );

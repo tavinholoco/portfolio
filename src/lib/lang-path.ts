@@ -1,22 +1,28 @@
 import type { Locale } from "@/i18n";
+import { normalizePath, pathFor, routeIdFromPath } from "@/lib/routes";
 
 /**
- * Retorna a rota correspondente no outro idioma, preservando o contexto:
- * `/` → `/en/` e `/projetos/[slug]/` → `/en/projects/[slug]/` (e o inverso).
- * Rotas desconhecidas caem na home do idioma de destino.
+ * Retorna a rota correspondente no outro idioma, preservando o contexto.
+ *
+ * `lang` é o idioma **atual** da página, não o de destino: `translatedPath("/", "pt")`
+ * devolve `/en/`. É o que o botão de troca de idioma precisa.
+ *
+ * Deriva tudo do manifesto de rotas, então acrescentar uma rota lá faz o botão
+ * passar a funcionar nela sem tocar neste arquivo. As páginas de projeto não
+ * estão no manifesto (o slug é dado), e por isso são tratadas trocando o
+ * prefixo da rota de projetos.
  */
 export function translatedPath(pathname: string, lang: Locale): string {
-  if (lang === "en") {
-    if (pathname === "/en" || pathname === "/en/") return "/";
-    if (pathname.startsWith("/en/projects/")) {
-      return `/projetos${pathname.slice("/en/projects".length)}`;
-    }
-    return "/";
-  }
+  const target: Locale = lang === "pt" ? "en" : "pt";
+  const path = normalizePath(pathname);
 
-  if (pathname === "/") return "/en/";
-  if (pathname.startsWith("/projetos/")) {
-    return `/en/projects${pathname.slice("/projetos".length)}`;
-  }
-  return "/en/";
+  const id = routeIdFromPath(path);
+  if (id) return pathFor(id, target);
+
+  const from = pathFor("projects", lang);
+  const to = pathFor("projects", target);
+  if (path.startsWith(from)) return `${to}${path.slice(from.length)}`;
+
+  /* Rota desconhecida: a home do idioma de destino é o destino seguro. */
+  return pathFor("home", target);
 }

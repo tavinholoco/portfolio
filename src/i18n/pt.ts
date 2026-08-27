@@ -21,16 +21,34 @@ export const pt: Dict = {
     ogDescription:
       "Desenvolvedor Full Stack especializado em React, Next.js, Node.js e TypeScript. Projetos web, mobile e soluções com IA.",
   },
+  routes: {
+    home: {
+      title: "Pedro Levi | Desenvolvedor Full Stack",
+      description:
+        "Entendo o problema antes de escolher a tecnologia. Veja como eu trabalho, do primeiro contato ao deploy.",
+    },
+    clients: {
+      title: "Clientes | Pedro Levi",
+      description:
+        "Sites e sistemas entregues para clientes reais, com o problema de cada um e o que foi construído.",
+    },
+    projects: {
+      title: "Projetos | Pedro Levi",
+      description:
+        "Projetos próprios de web, mobile e IA. Cada um começa pelo problema que resolveu.",
+    },
+    info: {
+      title: "Info | Pedro Levi",
+      description:
+        "Quem sou, como cheguei até aqui, com o que trabalho e onde me encontrar.",
+    },
+    contact: {
+      title: "Contato | Pedro Levi",
+      description:
+        "Dois caminhos diretos: contratar um desenvolvedor ou tirar um projeto do papel.",
+    },
+  },
   nav: {
-    links: [
-      { label: "Início", href: "#inicio" },
-      { label: "Sobre", href: "#sobre" },
-      { label: "Projetos", href: "#projetos" },
-      { label: "Clientes", href: "#clientes" },
-      { label: "Trajetória", href: "#trajetoria" },
-      { label: "Habilidades", href: "#habilidades" },
-      { label: "Contato", href: "#contato" },
-    ],
     openMenu: "Abrir menu",
     sheetTitle: "Menu",
     sheetDescription: "Navegação do portfólio",
@@ -41,10 +59,8 @@ export const pt: Dict = {
     role: "Desenvolvedor Full Stack",
     name: "Pedro Levi",
     bio: "Construo aplicações web e mobile com foco em arquitetura, qualidade e experiências funcionais.",
-    stackLabel: "Tecnologias",
     viewProjects: "Ver projetos",
     downloadCv: "Baixar CV",
-    scrollLabel: "Rolar para a seção sobre",
     socials: {
       github: "GitHub",
       linkedin: "LinkedIn",
@@ -97,23 +113,16 @@ export const pt: Dict = {
     title: "Projetos em destaque",
     description:
       "Seleção dos meus trabalhos no GitHub, do app mobile ao portal com IA. Metadados sincronizados automaticamente com os repositórios.",
-    filterAll: "Todos",
-    one: "projeto",
-    many: "projetos",
     updatedAt: "atualizado",
     github: "GitHub",
-    viewProject: "Ver projeto",
-    featuredBadge: "Projeto principal",
     problemLabel: "Problema",
     solutionLabel: "Solução",
     highlightLabel: "Destaque técnico",
-    stackLabel: "Stack",
     backToProjects: "Voltar aos projetos",
     learningsTitle: "O que aprendi",
     previous: "Anterior",
     next: "Próximo",
     demoLabel: "Demo",
-    allOnGithub: "Ver todos os projetos no GitHub",
     categories: {
       fullstack: "Full Stack",
       mobile: "Mobile",
@@ -196,8 +205,6 @@ export const pt: Dict = {
       "Trabalhos entregues e publicados para clientes, da ideia ao site no ar.",
     projectKind: "Projeto profissional",
     responsibilitiesLabel: "Responsabilidades",
-    statusLabel: "Status",
-    visit: "Visitar projeto",
     previewAlt: "Prévia do site",
     projects: [
       {
@@ -205,9 +212,12 @@ export const pt: Dict = {
         description:
           "Portfólio artístico desenvolvido para apresentar o trabalho do cliente através de uma experiência digital alinhada à sua identidade visual.",
         responsibilities: ["Frontend", "UI", "Responsividade", "Deploy"],
-        status: "Publicado",
+        /* Verificado no site publicado: assets em /_next/ com Turbopack e
+           utilitárias do Tailwind. O ano vem do copyright do próprio site. */
+        stack: ["Next.js", "Tailwind CSS", "Vercel"],
+        year: "2026",
         url: "https://dandarkness.vercel.app/",
-        image: "/projects/dandarkness.jpg",
+        image: "/projects/dandarkness.webp",
       },
     ],
   },
@@ -352,14 +362,6 @@ export const pt: Dict = {
       { id: "linkedin", label: "LinkedIn", value: "in/pedro-levi-dias" },
       { id: "github", label: "GitHub", value: "@tavinholoco" },
     ],
-  },
-  footer: {
-    socials: {
-      github: "GitHub",
-      linkedin: "LinkedIn",
-      email: "Email",
-      phone: "Telefone",
-    },
   },
   controls: {
     theme: "Alternar tema",

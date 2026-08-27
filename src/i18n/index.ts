@@ -1,4 +1,5 @@
 import type { ProjectCategory } from "@/data/projects";
+import type { RouteId } from "@/lib/routes";
 import type { TimelineChapter } from "@/data/career";
 
 export const locales = ["pt", "en"] as const;
@@ -44,8 +45,18 @@ export type FeaturedProject = {
 export type ClientProject = {
   name: string;
   description: string;
+  /**
+   * O que foi feito no projeto, exibido junto do preview.
+   *
+   * Para trabalho de cliente isso responde uma pergunta diferente da stack:
+   * a stack diz qual tecnologia, isto diz até onde foi o envolvimento. Um
+   * recrutador quer saber se a pessoa fez só a tela ou levou até o deploy.
+   */
   responsibilities: string[];
-  status: string;
+  /** Tecnologias, exibidas como coluna na linha do showcase. */
+  stack: string[];
+  /** Ano de entrega, exibido como coluna na linha do showcase. */
+  year: string;
   url: string;
   image: string;
 };
@@ -73,8 +84,15 @@ export type Dict = {
     ogSiteName: string;
     ogDescription: string;
   };
+  /**
+   * Título e descrição de cada rota, para o generateMetadata correspondente.
+   *
+   * Digitado como Record<RouteId, ...>: acrescentar uma rota ao manifesto
+   * quebra os dois dicionários até que a tradução exista, que é a falha certa.
+   * O import é só de tipo, então o ciclo com lib/routes.ts some na compilação.
+   */
+  routes: Record<RouteId, { title: string; description: string }>;
   nav: {
-    links: { label: string; href: string }[];
     openMenu: string;
     sheetTitle: string;
     sheetDescription: string;
@@ -85,10 +103,8 @@ export type Dict = {
     role: string;
     name: string;
     bio: string;
-    stackLabel: string;
     viewProjects: string;
     downloadCv: string;
-    scrollLabel: string;
     socials: { github: string; linkedin: string; email: string };
   };
   about: {
@@ -105,23 +121,16 @@ export type Dict = {
     label: string;
     title: string;
     description: string;
-    filterAll: string;
-    one: string;
-    many: string;
     updatedAt: string;
     github: string;
-    viewProject: string;
-    featuredBadge: string;
     problemLabel: string;
     solutionLabel: string;
     highlightLabel: string;
-    stackLabel: string;
     backToProjects: string;
     learningsTitle: string;
     previous: string;
     next: string;
     demoLabel: string;
-    allOnGithub: string;
     categories: Record<ProjectCategory, string>;
     featured: FeaturedProject[];
   };
@@ -131,8 +140,6 @@ export type Dict = {
     description: string;
     projectKind: string;
     responsibilitiesLabel: string;
-    statusLabel: string;
-    visit: string;
     previewAlt: string;
     projects: ClientProject[];
   };
@@ -167,9 +174,6 @@ export type Dict = {
     projectCta: string;
     goToSection: string;
     cards: ContactCard[];
-  };
-  footer: {
-    socials: { github: string; linkedin: string; email: string; phone: string };
   };
   controls: {
     theme: string;

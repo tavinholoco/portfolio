@@ -1,264 +1,287 @@
 # 🚀 Portfólio · Pedro Levi
 
-Site de portfólio com seções por área e páginas individuais de projeto, projetos do GitHub, trajetória de carreira, habilidades e contato, inspirado no [kc1t.com](https://kc1t.com/pt-br), com identidade própria.
+Portfólio minimalista com fundo WebGL próprio, tipografia fluida e navegação em 5 rotas por idioma. O texto branco das seções usa `mix-blend-mode: difference` e inverte contra o que estiver embaixo, então o contraste sai de graça sem escurecer o fundo.
 
 **Live:** [pedrolevi.dev](https://pedrolevi.dev) _(definido via `NEXT_PUBLIC_SITE_URL` no deploy)_
+
+> A referência estrutural foi [p5aholic.me](https://p5aholic.me), **sem reúso de código**: shader, paleta, composição e CSS foram escritos do zero. O plano completo, com as decisões e as duas auditorias, está em [PLANO-V3-PORTFOLIO.md](PLANO-V3-PORTFOLIO.md).
 
 ## ✨ Stack
 
 | Camada | Tecnologia |
 |---|---|
 | Framework | **Next.js 16** (App Router, Turbopack) + TypeScript |
-| Estilo | **Tailwind CSS v4** (tema claro/escuro via classe `.dark`) |
-| Componentes | **shadcn/ui** (Base UI): Button, Sheet, Tooltip |
-| Animação | **Framer Motion** (scroll reveals) + animações CSS puras no hero (LCP-friendly) |
-| Ícones | **Lucide React** + ícones de marca próprios (`GitHubIcon`, `LinkedInIcon`) |
-| Dados | **GitHub API** via Server Component com ISR de 1h + fallback estático |
-| i18n | Rotas por idioma: `/` (pt-BR) e `/en/`; dicionários em `src/i18n/` + hreflang e sitemap bilíngue |
+| Estilo | **Tailwind CSS v4**, tema claro/escuro via classe `.dark` |
+| Fundo | **OGL** (~20 KB gzip), simplex noise com domain warping em dois passes |
+| Rolagem | **Lenis** em modo de rolagem nativa da janela |
+| Componentes | **Base UI** (Sheet do menu mobile). Não é Radix: a API é `render={<a/>}`, não `asChild` |
+| Ícones | **Lucide React** |
+| Dados | **GitHub API** em Server Component com ISR de 1h + fallback estático |
+| i18n | Rotas por idioma, 5 de cada: `/` (pt-BR) e `/en/`, com dicionários em `src/i18n/` |
 | Deploy | Vercel |
 
-## 🤖 CI (GitHub Actions)
+## ⚠️ A lei de camadas, leia antes de mexer no layout
 
-[![CI](https://github.com/tavinholoco/portfolio/actions/workflows/ci.yml/badge.svg)](https://github.com/tavinholoco/portfolio/actions/workflows/ci.yml)
-[![Gitleaks](https://github.com/tavinholoco/portfolio/actions/workflows/gitleaks.yml/badge.svg)](https://github.com/tavinholoco/portfolio/actions/workflows/gitleaks.yml)
+Esta é a única coisa deste repositório que quebra **em silêncio**. Vale um minuto.
 
-Dois workflows rodam em **push e pull request**:
+`mix-blend-mode` mistura um elemento com o **backdrop** dele, que é tudo o que foi pintado abaixo **dentro do mesmo contexto de empilhamento**. O canvas do fundo é irmão do `<main>`, com `z-index: -1`.
 
-| Workflow | O que faz |
-|---|---|
-| `.github/workflows/ci.yml` | Lint (ESLint), typecheck (`tsc --noEmit`), testes (Vitest), build de produção (Next.js) e **E2E com Playwright** (job `e2e`) |
-| `.github/workflows/gitleaks.yml` | Varredura de segredos com **Gitleaks** (versão 8.24.2 fixada) usando `.gitleaks.toml` |
+Portanto: **nenhum ancestral de uma seção `blend` pode criar contexto de empilhamento.** Nem o `<body>`, nem o `<main>`, nem qualquer wrapper entre eles pode ganhar `z-index`, `position` com z, `transform`, `opacity < 1`, `filter`, `isolation` ou `contain: paint`.
 
-- **Testes unitários:** `src/**/*.test.ts` rodam com Vitest (`pnpm test`): cobrem `cn()`, fetch do GitHub (com fallback), metadados/URL canônica e paridade dos dicionários pt/en.
-- **Testes E2E:** `e2e/*.spec.ts` rodam com Playwright (`pnpm test:e2e`) contra o **servidor de produção** e validam que o `<html lang>` nasce correto no SSR em cada rota (`/` = pt, `/en/` = en, páginas de projeto), sem depender de script no cliente. Localmente: `pnpm build` (uma vez) e depois `pnpm test:e2e`; o Playwright sobe o `pnpm start` sozinho ou reusa um servidor já rodando na porta 3000.
-- **Gitleaks:** a config em `.gitleaks.toml` estende as regras padrão e tem um allowlist para os dados públicos do próprio site (e-mail, telefone, links), contato de portfólio não é segredo. Para rodar localmente: `gitleaks git . --config .gitleaks.toml`.
+Se isso for violado, a mistura fica confinada no ancestral e passa a acontecer contra o fundo dele, que é transparente, nunca contra o canvas. O texto some e **não há erro nenhum no console**.
+
+A montagem correta, em `src/components/shell/site-shell.tsx`:
+
+| Elemento | Posição | z-index | Papel |
+|---|---|---|---|
+| `<BackgroundCanvas>` | `fixed`, `inset: var(--pad)` | **-1** | Canvas WebGL, recuado, sem eventos de ponteiro |
+| `<main>` | **estático, sem z-index** | auto | **Não pode** criar contexto de empilhamento |
+| `Section variant="blend"` | em fluxo | auto | `mix-blend-difference`, mistura contra o canvas |
+| `Section variant="solid"` | em fluxo | auto | Fundo opaco, cobre o canvas |
+| `<ViewportMask>` | `fixed` | 30 | Cobre as faixas de `var(--pad)` no topo e na base |
+| `<Frame>` | `fixed` | 40 | Moldura de 1px, em `difference` |
+| `<SiteHeader>` / `<SiteFooter>` | `fixed` | 50 | Em `difference`, acima da máscara |
+
+Três detalhes decorrentes, todos descobertos na prática:
+
+1. **O fundo da página vive no `:root`, nunca no `body`.** O fundo do elemento raiz é propagado para o canvas do documento e pintado abaixo de tudo, inclusive do canvas em z negativo. No `body`, ele seria o fundo de um bloco em fluxo e cobriria o canvas.
+2. **O Lenis roda em rolagem nativa da janela.** Não configure `wrapper` nem `content`: nesse outro modo ele aplica `transform` num wrapper de conteúdo, o que mataria o blend de todas as seções de uma vez.
+3. **Não dê fundo opaco a elemento `sticky`** na mesma página de uma seção `blend`. Sticky cria contexto de empilhamento, e a combinação pinta um retângulo da cor do fundo dentro da seção misturada, a centenas de pixels de distância.
+
+Há teste E2E para tudo isso em `e2e/shell.spec.ts`, inclusive com controle negativo: um caso introduz a quebra de propósito e exige que a auditoria a enxergue.
+
+## 🎨 As duas variantes de seção
+
+```tsx
+<Section id="contato" variant="blend">  {/* texto branco, mistura com o canvas */}
+<Section id="clientes" variant="solid"> {/* fundo opaco, cobre o canvas */}
+```
+
+**Uma seção só pode ser `blend` se o conteúdo dela herdar a cor.** O `color: #fff` da seção alcança apenas texto que herda: classes como `text-muted-foreground`, `bg-card` e `bg-primary` mantêm a própria cor e cada uma inverte para um lado diferente, produzindo um resultado sujo.
+
+Regra prática: qualquer seção com **imagem, foto ou screenshot** vai em `solid`, senão aparece em negativo.
+
+### Regra de opacidade em texto
+
+A hierarquia é feita por tamanho e opacidade, e é fácil exagerar. Duas regras, medidas e não estimadas:
+
+1. **Texto nunca abaixo de `opacity-70`.** A 0.7 o contraste passa os 4.5:1 da WCAG AA nos dois temas e também dentro de uma seção `blend`.
+2. **Nunca aninhe opacidade em texto.** Uma linha a 60% com um filho a 40% resulta em 24% efetivo. Os dois valores parecem razoáveis lidos separadamente, e é por isso que revisão de código não pega. Há teste que multiplica as opacidades ao longo da árvore.
+
+Opacidade em elemento decorativo (moldura, máscara, ícone `aria-hidden`) não entra nesta regra.
 
 ## 🚦 Começando
 
 **Pré-requisitos:** Node.js 20+ e [pnpm](https://pnpm.io).
 
 ```bash
-# instalar dependências
 pnpm install
-
-# servidor de desenvolvimento (http://localhost:3000)
 pnpm dev
-
-# build de produção + verificação
-pnpm build
-
-# servidor do build (após pnpm build)
-pnpm start
-
-# lint
-pnpm lint
 ```
+
+Para ver o site sem abrir o navegador (útil em revisão automatizada):
+
+```bash
+pnpm build && pnpm look
+```
+
+Captura as telas em `.captures/` (ignorada pelo git). Parametrizável por `LOOK_PATHS`, `LOOK_THEMES`, `LOOK_FULL`, `LOOK_SCROLL` e `LOOK_HOVER`. No Git Bash do Windows, prefixe com `MSYS_NO_PATHCONV=1`.
+
+> ⚠️ Se houver servidor na porta 3000 iniciado **antes** do último `pnpm build`, ele continua servindo o `.next` antigo, e tanto a captura quanto os E2E veem o estado velho. Derrube a porta antes.
 
 ## 🗂 Estrutura do projeto
 
 ```
 ├── public/
-│   ├── cv/                      # currículo PDF (botão "Baixar CV")
-│   ├── projects/                # screenshots dos sites de clientes (prévias dos cards)
-│   └── avatar.jpg               # foto do perfil (avatar do GitHub)
+│   ├── cv/                       # currículo PDF
+│   ├── projects/                 # screenshots dos previews do showcase
+│   └── avatar.jpg                # foto do perfil
 ├── src/
 │   ├── app/
-│   │   ├── globals.css          # tokens de tema (claro + escuro), utilitários e animações CSS
-│   │   ├── robots.ts            # robots.txt com sitemap
-│   │   ├── (home)/              # árvore do português (rota `/`) com root layout próprio
-│   │   │   ├── layout.tsx       # root layout pt: <html lang="pt"> + script anti-flash de tema
-│   │   │   ├── page.tsx         # rota `/`: portfólio em português
-│   │   │   ├── portfolio-page.tsx # home compartilhada (recebe o idioma)
-│   │   │   ├── opengraph-image.tsx # OG image gerada (1200×630 PNG, pt)
-│   │   │   ├── sitemap.ts       # sitemap com as duas variantes de idioma
-│   │   │   ├── icon.svg         # favicon com as iniciais PL
-│   │   │   └── projetos/[slug]/ # páginas individuais de projeto (pt)
-│   │   └── en/                  # rota `/en/`: portfólio em inglês (+ en/projects/[slug])
-│   │       ├── layout.tsx       # root layout en: <html lang="en"> + script anti-flash de tema
-│   │       ├── page.tsx         # metadados en + hreflang
-│   │       └── opengraph-image.tsx # OG image em inglês
+│   │   ├── globals.css           # tokens de shell, escala tipográfica e as leis em comentário
+│   │   ├── robots.ts             # fora do route group de propósito (ver nota abaixo)
+│   │   ├── (home)/               # árvore do português, com root layout próprio
+│   │   │   ├── layout.tsx        # <html lang="pt"> + script anti-flash + <SiteShell>
+│   │   │   ├── page.tsx  clientes/  projetos/  info/  contato/
+│   │   │   ├── projetos/[slug]/  # páginas de case
+│   │   │   └── sitemap.ts        # dentro do group, também de propósito
+│   │   └── en/                   # espelho em inglês, mesma estrutura
 │   ├── components/
-│   │   ├── ui/                  # componentes shadcn/ui (não edite)
-│   │   ├── section.tsx          # Section, SectionHeading e FadeIn (padrão das seções)
-│   │   ├── hero.tsx             # hero (server component, animação CSS)
-│   │   ├── about.tsx            # sobre: avatar, fatos, resumo, interesses
-│   │   ├── projects.tsx         # seção projetos (server wrapper: busca no GitHub)
-│   │   ├── featured-project.tsx # destaque do projeto principal (Newra News)
-│   │   ├── projects-grid.tsx    # grid de cards + filtro por categoria (client)
-│   │   ├── project-detail.tsx   # página individual de projeto
-│   │   ├── client-projects.tsx  # clientes (cases de cliente)
-│   │   ├── process.tsx          # seção "Como trabalho" (5 passos)
-│   │   ├── career.tsx           # trajetória: timeline de storytelling
-│   │   ├── skills.tsx           # habilidades: 4 categorias sem nível
-│   │   ├── contact.tsx          # contato com 2 CTAs + cards
-│   │   ├── json-ld.tsx          # dados estruturados (Schema.org)
-│   │   ├── site-header.tsx      # nav sticky + scrollspy + botões de tema/idioma + menu mobile
-│   │   ├── site-footer.tsx      # footer
-│   │   ├── theme-toggle.tsx     # botão claro/escuro (localStorage "theme")
-│   │   ├── lang-toggle.tsx      # botão pt/en (navega entre / ↔ /en/, preservando a página de projeto)
-│   │   └── icons.tsx            # ícones de marca (GitHub, LinkedIn)
-│   ├── data/                    # dados neutros (não dependem do idioma) + tipos
-│   │   ├── profile.ts           # contato, links, stack
-│   │   ├── projects.ts          # curadoria neutra (slug + repo + demoUrl) + tipo
-│   │   └── career.ts            # tipo dos capítulos da timeline
-│   ├── i18n/                    # ⭐ TODOS os textos do site ficam aqui (editáveis)
-│   │   ├── index.ts             # tipos e helpers de locale (pt | en)
-│   │   ├── pt.ts                # textos em português (Brasil)
-│   │   └── en.ts                # textos em inglês
+│   │   ├── background/           # o motor do fundo
+│   │   │   ├── renderer.ts       # BackgroundRenderer, sem React
+│   │   │   ├── background-config.ts  # paletas, contraste, tweens e o singleton
+│   │   │   ├── background-canvas.tsx # componente cliente, carrega o ogl no efeito
+│   │   │   ├── background-palette.tsx # define a paleta da rota
+│   │   │   ├── grain-texture.ts  # buffer puro + wrapper de Texture
+│   │   │   └── shaders/          # vertex, campo e composição, em template literal
+│   │   ├── shell/                # site-shell, frame, viewport-mask, smooth-scroll
+│   │   ├── showcase/             # lista com preview trocando no hover
+│   │   ├── pages/                # o conteúdo de cada rota, compartilhado pelos dois idiomas
+│   │   ├── home/manifesto.tsx    # a home: a tese e os 5 passos
+│   │   ├── section.tsx           # Section e SectionHeading, com a lei F1 no topo
+│   │   └── ui/sheet.tsx          # Base UI, usado pelo menu mobile
+│   ├── data/                     # dados neutros (não dependem do idioma)
+│   ├── i18n/                     # ⭐ TODOS os textos do site, em pt.ts e en.ts
 │   └── lib/
-│       ├── github.ts            # fetch da GitHub API (ISR) + fallback
-│       ├── metadata.ts          # metadados por idioma (title, OG, canonical, hreflang)
-│       └── utils.ts             # helper cn() (clsx + tailwind-merge)
-├── .github/workflows/
-│   ├── ci.yml                   # CI: lint, typecheck, testes e build
-│   └── gitleaks.yml             # varredura de segredos (Gitleaks)
-├── .gitleaks.toml               # config do Gitleaks (allowlist dos dados públicos)
-├── vitest.config.ts             # config dos testes unitários (alias @ + include src/**/*.test.ts)
-├── playwright.config.ts         # config dos testes E2E (servidor de produção na porta 3000)
-├── e2e/                         # specs E2E (Playwright): html lang por rota
-└── PLANO-PORTFOLIO.md           # planejamento e plano de ação do projeto
+│       ├── routes.ts             # ⭐ manifesto de rotas: nav, sitemap e hreflang derivam daqui
+│       ├── github.ts             # fetch da GitHub API (ISR) + fallback
+│       ├── metadata.ts           # metadados por rota e por idioma
+│       ├── json-ld.ts            # dados estruturados
+│       └── utils.ts              # helper cn()
+├── e2e/                          # Playwright: shell, showcase, navegação e html lang
+├── capture/                      # `pnpm look`, config própria fora do CI
+└── PLANO-V3-PORTFOLIO.md         # o plano, as auditorias e as notas de cada fase
 ```
 
-## ✏️ Guia de edição de conteúdo
+> **Nota sobre `robots.ts` e `sitemap.ts`:** um fica fora do route group e o outro dentro. A assimetria não é descuido, ela existe por causa desta versão do Next. Não "arrume".
 
-Todo o conteúdo do site é editável sem tocar em componentes. Os **textos traduzíveis** ficam em `src/i18n/` e os **dados neutros** (contato, links) em `src/data/`.
+## ✏️ Guia de edição
 
-> Para alterar um texto, edite o **mesmo campo nos dois arquivos**: `src/i18n/pt.ts` (português) e `src/i18n/en.ts` (inglês).
+Todo o conteúdo é editável sem tocar em componentes. **Textos traduzíveis** ficam em `src/i18n/`, **dados neutros** em `src/data/`.
 
-### 1. Contato, links e stack (`src/data/profile.ts`)
+> Todo texto vive em dobro: edite o mesmo campo em `src/i18n/pt.ts` **e** em `src/i18n/en.ts`. Um campo novo em um só arquivo quebra o teste de paridade.
+
+### 1. Acrescentar uma rota
+
+Uma linha em `src/lib/routes.ts`:
 
 ```ts
-export const profile = {
-  email: "pedrolevidiass@gmail.com",
-  phoneRaw: "+5518996260781",          // formato internacional (tel:)
-  github: "https://github.com/tavinholoco",
-  linkedin: "https://www.linkedin.com/in/pedro-levi-dias-96720126a/",
-  whatsapp: "https://wa.me/5518996260781",
-  avatarUrl: "/avatar.jpg",            // foto do perfil (avatar do GitHub)
-  cvUrl: "/cv/pedro-levi-curriculo.pdf",
-  stack: ["React", "Next.js", "Node.js", "TypeScript"], // chips do hero
-};
+{ id: "blog", pt: "/blog/", en: "/en/blog/", navPt: "Blog", navEn: "Blog" },
 ```
 
-> **Trocar a foto do perfil:** substitua `public/avatar.jpg` pela nova imagem (quadrada, ~500px), o `avatarUrl` já aponta para ela.
+Dela derivam a nav do header, o `translatedPath`, o sitemap, o hreflang e o `alternates` de cada `generateMetadata`. O TypeScript passa a exigir título e descrição nos dois dicionários, e um teste exige o `page.tsx` nos dois idiomas.
 
-### 2. Textos do site (`src/i18n/pt.ts` e `src/i18n/en.ts`)
+### 2. Acrescentar um projeto ao showcase
 
-Os dois arquivos têm a mesma estrutura (`Dict`). Exemplo do hero em `pt.ts`:
+Dois lugares, nesta ordem:
 
 ```ts
-hero: {
-  role: "Desenvolvedor Full Stack",
-  name: "Pedro Levi",
-  bio: "Construo aplicações web e mobile com foco em arquitetura, qualidade e experiências funcionais.",
-  viewProjects: "Ver projetos",
-  downloadCv: "Baixar CV",
-  // …
-},
+// src/data/projects.ts  (metadado neutro; a ordem daqui é a numeração 01..04)
+{ slug: "meu-projeto", repo: "MeuProjeto", year: "2026",
+  demoUrl: "https://…", image: "/projects/meu-projeto.webp" },
 ```
-
-Os principais blocos: `nav`, `hero`, `about` (fatos, resumo, métricas e interesses), `projects` (curadoria + labels), `clients`, `process` (Como trabalho), `career` (timeline em capítulos), `skills`, `contact` e `meta` (SEO/OG).
-
-### 3. Projetos em destaque (`src/i18n/pt.ts` → `projects.featured`)
-
-A **curadoria** lista os projetos que aparecem no site. Os metadados (linguagem, data de atualização, link da demo) são buscados automaticamente do GitHub, o site nunca quebra se a API falhar.
 
 ```ts
-{
-  slug: "newra-news",                   // liga ao metadado em src/data/projects.ts (slug/repo/demoUrl)
-  title: "Newra News",
-  tagline: "…",
-  problem: "…",
-  solution: "…",
-  highlight: "…",
-  stack: ["Next.js", "Fastify", "Gemini", "Turborepo", "TypeScript"],
-  category: "fullstack",                // "fullstack" | "mobile" | "landing"
-},
+// src/i18n/pt.ts e en.ts  →  projects.featured
+{ slug: "meu-projeto", title: "…", tagline: "…", problem: "…",
+  solution: "…", highlight: "…", stack: [...], category: "fullstack",
+  learnings: ["…"] },
 ```
 
-- Os **metadados neutros** (slug, nome do repo e demoUrl) ficam em `src/data/projects.ts`; os dicionários só guardam texto traduzível.
-- A **demo** usa a `homepage` do repo no GitHub e, na ausência dela, o `demoUrl` curado como fallback.
-- Para trocar a ordem, reordene os itens do array.
+- A **ordem** de `projectMetas` é curadoria, não cronologia: o ano é apenas mais uma coluna.
+- O `problem` aparece junto do preview: é ele que faz a lista argumentar em vez de só catalogar.
+- Sem `image`, o preview cai no **mockup de janela em CSS**, que é o placeholder oficial. Preencher `image` depois não exige mudar componente nenhum.
+- Para gerar a imagem: acrescente o alvo em `capture/previews.spec.ts` e rode `pnpm capture`. O script fotografa o site publicado em 16:10, converte para WebP pelo próprio Chromium (sem dependência de processamento de imagem) e salva em `public/projects/`. Projeto **mobile** não tem página web: aponte para uma print já existente na lista `imagens` do mesmo arquivo, e o preview a enquadra como tela de celular.
+- A linha mostra as **3 primeiras** tecnologias da stack; a lista completa fica na página do case.
 
-### 4. Projetos de clientes (`src/i18n/pt.ts` → `clients.projects`)
+### 3. Acrescentar um trabalho de cliente
 
-Cada card mostra a **prévia do site** (screenshot do topo da página) e leva direto a ele:
+Em `src/i18n/*.ts` → `clients.projects`. Mesmo componente de lista dos projetos, com destino externo:
 
 ```ts
 {
   name: "Dandarkness",
-  client: "Dandarkness",                 // "Cliente:" do card
-  type: "Portfólio artístico",           // "Tipo:" do card
-  tech: ["Next.js", "TypeScript", "Tailwind CSS"], // "Tecnologias:"
-  outcome: "…",                          // resultado/descrição do case
-  url: "https://dandarkness.vercel.app/",  // link do site do projeto
-  image: "/projects/dandarkness.jpg",      // screenshot do topo do site
-},
+  description: "…",                 // aparece junto do preview
+  responsibilities: ["Frontend", "UI", "Responsividade", "Deploy"],  // exibido no preview
+  stack: ["Next.js", "Tailwind CSS", "Vercel"],  // colunas da linha
+  year: "2026",
+  url: "https://dandarkness.vercel.app/",
+  image: "/projects/dandarkness.webp",
+}
 ```
 
-> **Gerar/atualizar o screenshot de um cliente:** abra o site em um navegador (janela ~1440px), tire um print do topo da página e salve como JPEG em `public/projects/<nome>.jpg` (o card corta automaticamente em 16:10).
+### 4. Ajustar a paleta do fundo
 
-### 5. Trajetória e Habilidades (`src/i18n/` → `career` e `skills`)
+Em `src/components/background/background-config.ts`:
 
-- `career.chapters`: capítulos da timeline por ano com `year`, `title`, `org`, `period`, `learnings` (o que aprendi) e `tags`.
-- `skills.blocks`: 4 categorias sem nível, com `id` (mapeia o ícone no componente), `title`, `description` e `skills`.
+```ts
+export const palettes = {
+  cobalt: ["#05101f", "#0e3560", "#2a6ea8"],  // ramp do escuro ao claro
+  // …
+};
+export const paletteForRoute = { home: "graphite", projects: "cobalt", … };
+```
 
-## 🌗 Tema claro/escuro e 🌐 Idioma
+Cada item do showcase também escolhe uma paleta, e passar o mouse na lista muda o humor do fundo inteiro.
 
-- **Tema:** o botão no header alterna a classe `.dark` do `<html>` e persiste em `localStorage["theme"]`. O script nos layouts aplica o tema salvo antes do primeiro paint (sem flash). As cores vivem em `src/app/globals.css` (`:root` = claro, `.dark` = escuro).
-- **Idioma:** rotas separadas por idioma; `/` (pt-BR) e `/en/` (inglês), cada uma com **root layout próprio** (`(home)/layout.tsx` e `en/layout.tsx`), então o `<html lang>` já nasce correto no SSR, sem depender de JS. Ambas são estáticas (SSG + ISR) usando `src/i18n/`. O botão no header navega entre as rotas preservando a página (home ou projeto). Cada rota tem `hreflang` (pt-BR, en, x-default), canonical próprio e sitemap com as duas variantes (`/sitemap.xml`).
+> **Antes de inventar cores:** existe uma faixa de luminância proibida. Com texto branco, o `difference` devolve `1 − L`, então o contraste vai a zero em `L = 0.5` e o site vira cinza sobre cinza **sem acusar erro**. O teste em `background-config.test.ts` varre o ramp inteiro das paletas, nos dois temas, com vinheta e grain, e reprova qualquer uma que caia na faixa. Rode `pnpm test` depois de mexer.
+
+### 5. Trajetória, habilidades e contato
+
+`career.chapters`, `skills.blocks` e `contact` em `src/i18n/`. Os links sociais vivem em `contact.cards`, não no footer.
+
+## 🌗 Tema e 🌐 Idioma
+
+- **Tema:** o botão alterna a classe `.dark` do `<html>` e persiste em `localStorage["theme"]`. Um script nos layouts aplica o tema salvo antes do primeiro paint. A cor de fundo do shader é interpolada em JS durante os mesmos 900ms da transição do CSS, com a mesma curva, para os dois chegarem juntos.
+- **Idioma:** cada idioma tem **root layout próprio**, então o `<html lang>` nasce correto no SSR sem depender de JS. O botão navega para a rota correspondente, preservando o contexto: de `/contato/` vai para `/en/contact/`, e de um case vai para o mesmo case.
+
+## ♿ Acessibilidade e performance
+
+Lighthouse no build de produção, preset desktop:
+
+| Rota | Perf | A11y | Best Practices | SEO |
+|---|---|---|---|---|
+| `/` | 99 | 100 | 100 | 100 |
+| `/clientes/` | 98 | 100 | 100 | 100 |
+| `/projetos/` | 98 | 100 | 100 | 100 |
+| `/info/` | 100 | 100 | 100 | 100 |
+| `/contato/` | 99 | 100 | 100 | 100 |
+
+Como rodar: a máquina de desenvolvimento não tem Chrome próprio, então aponte o `CHROME_PATH` para o Chromium do Playwright.
+
+```bash
+CHROME_PATH="$HOME/AppData/Local/ms-playwright/chromium-1234/chrome-win64/chrome.exe" \
+  npx lighthouse http://localhost:3000/ --preset=desktop --chrome-flags="--headless=new"
+```
+
+Cuidados que o motor do fundo já respeita: DPR limitado a 1.5 (e 1 abaixo de 768px), rAF pausado com `document.hidden` e via `IntersectionObserver`, um único frame sob `prefers-reduced-motion`, fallback em gradiente CSS sem WebGL e no `webglcontextlost`.
+
+O anel de foco usa `currentColor` de propósito: com uma cor fixa, ele ficaria invisível no tema claro dentro de seções `blend`.
+
+## 🤖 CI (GitHub Actions)
+
+[![CI](https://github.com/tavinholoco/portfolio/actions/workflows/ci.yml/badge.svg)](https://github.com/tavinholoco/portfolio/actions/workflows/ci.yml)
+[![Gitleaks](https://github.com/tavinholoco/portfolio/actions/workflows/gitleaks.yml/badge.svg)](https://github.com/tavinholoco/portfolio/actions/workflows/gitleaks.yml)
+
+| Workflow | O que faz |
+|---|---|
+| `ci.yml` | Lint, typecheck, testes unitários (Vitest), build de produção e E2E (Playwright) |
+| `gitleaks.yml` | Varredura de segredos com Gitleaks, config em `.gitleaks.toml` |
+
+- **Unitários** (`pnpm test`): manifesto de rotas e os arquivos em disco, contraste das paletas, grain determinístico, aritmética do render target, metadados, sitemap, GitHub com fallback e paridade dos dicionários.
+- **E2E** (`pnpm test:e2e`): a lei de camadas nas 11 rotas com controle negativo, o fallback sem WebGL, DPR por tamanho de tela, movimento reduzido, as regras do showcase em ponteiro, teclado e toque, a navegação nos dois idiomas e o `<html lang>` no SSR.
+- O `pnpm look` **não** roda no CI: tem config própria em `capture/`.
 
 ## 🔗 Integração com o GitHub
 
-`src/lib/github.ts` busca os repositórios de `tavinholoco` na **GitHub API** dentro de um Server Component com `next: { revalidate: 3600 }` (**ISR de 1h**, os projetos refletem o GitHub sem JS no cliente).
+`src/lib/github.ts` busca os repositórios em Server Component com `next: { revalidate: 3600 }`. O dado alimenta a linha `atualizado <data> · <linguagem>` na página de case, e os links de repositório e demo.
 
-- **Rate limit:** 60 requisições/h sem token, suficiente com revalidação de 1h. Para mais folga, defina `GITHUB_TOKEN` (fine-grained, escopo de leitura) no ambiente.
-- **Fallback:** se a API falhar, o site usa os dados curados de `src/i18n`, nunca quebra.
-
-## 🎨 Personalização visual
-
-- **Cores do tema:** `src/app/globals.css` → variáveis `--background`, `--primary` (accent), `--border`, etc. (claro em `:root`, escuro em `.dark`).
-- **Fontes:** `src/app/(home)/layout.tsx` e `src/app/en/layout.tsx` (Fira Code como principal + Open Sans como secundária, via `next/font`).
-- **Favicon:** `src/app/icon.svg` (iniciais PL).
-- **OG image:** `src/app/opengraph-image.tsx` (gera a imagem 1200×630 usada no compartilhamento).
+- **Rate limit:** 60 requisições/h sem token. Para folga, defina `GITHUB_TOKEN`.
+- **Fallback:** se a API falhar, o site usa os dados curados. Nunca quebra.
 
 ## 🚀 Deploy na Vercel
 
-O CLI do Vercel já está no projeto (`pnpm deploy`). Primeira vez:
-
 ```bash
-# 1. login (abre o navegador), apenas na primeira vez
 pnpm exec vercel login
-
-# 2. conectar o projeto à sua conta Vercel
 pnpm exec vercel link
-
-# 3. definir a URL do site (alimenta canonical, hreflang e sitemap)
-pnpm exec vercel env add NEXT_PUBLIC_SITE_URL production
-#    ex.: https://pedrolevi.dev  (ou a URL *.vercel.app gerada)
-
-# 4. deploy de produção
+pnpm exec vercel env add NEXT_PUBLIC_SITE_URL production   # ex.: https://pedrolevi.dev
 pnpm deploy
 ```
 
-> Alternativa sem CLI: importe `tavinholoco/portfolio` em [vercel.com/new](https://vercel.com/new) e configure as variáveis no dashboard (Settings → Environment Variables).
-
-> **Sem `NEXT_PUBLIC_SITE_URL`**, o site usa automaticamente a URL do deploy (`VERCEL_URL`/`VERCEL_PROJECT_PRODUCTION_URL`) para canonical, hreflang e sitemap. Quando tiver domínio próprio, defina a variável para fixar a URL canônica.
-
-- (Opcional) Adicione `GITHUB_TOKEN` para folga no rate limit da GitHub API.
-- Veja `.env.example` para todas as variáveis disponíveis.
-- As duas rotas (`/` e `/en/`) são estáticas com os dados do GitHub cacheados por ISR de 1h.
+> Sem `NEXT_PUBLIC_SITE_URL`, o site usa a URL do deploy para canonical, hreflang e sitemap. Com domínio próprio, defina a variável para fixar a canônica.
 
 ## 📄 Scripts
 
 | Comando | Descrição |
 |---|---|
-| `pnpm dev` | Dev server (Turbopack) em `http://localhost:3000` |
+| `pnpm dev` | Dev server em `http://localhost:3000` |
 | `pnpm build` | Build de produção |
 | `pnpm start` | Serve o build de produção |
 | `pnpm lint` | ESLint |
-| `pnpm typecheck` | Checagem de tipos (`tsc --noEmit`) |
+| `pnpm typecheck` | `tsc --noEmit` |
 | `pnpm test` | Testes unitários (Vitest) |
 | `pnpm test:e2e` | Testes E2E (Playwright), requer `pnpm build` antes |
+| `pnpm look` | Captura telas do site em `.captures/`, requer `pnpm build` antes |
+| `pnpm capture` | Gera os previews do showcase em `public/projects/`, sob demanda |
 | `pnpm deploy` | Deploy de produção na Vercel |
-| `pnpm deploy:preview` | Deploy de preview (ambiente de teste) na Vercel |
+| `pnpm deploy:preview` | Deploy de preview na Vercel |

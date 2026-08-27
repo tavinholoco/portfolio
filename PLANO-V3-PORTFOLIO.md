@@ -4,7 +4,7 @@
 >
 > **Base:** v2 publicada (Next 16.3 + React 19, Tailwind v4, bilíngue com paridade testada, 36 unit + 6 E2E, Lighthouse 95/100/100/100).
 > **Referência de inspiração:** [p5aholic.me](https://p5aholic.me) (Keita Yamada). Inspiração estrutural, **não cópia**. Ver seção 0.3.
-> **Status:** 📋 **Plano aprovado em 25/08/2026, desenvolvimento não iniciado.** Nenhuma fase executada. Duas auditorias completas realizadas (seções 5 e 6, 30 achados já incorporados às fases).
+> **Status:** ✅ **Concluído em 27/08/2026. As 7 fases fechadas**, com o portão de saída da Fase 2 aprovado e o Lighthouse acima da meta nas 5 rotas. Resta o deploy, que depende do Pedro, e o registro do Lighthouse pós-deploy.
 > **Versão do documento:** V3.2
 
 ---
@@ -15,7 +15,25 @@ Esta seção existe para quem abre o repositório sem contexto nenhum. Leia ela 
 
 ### 0.1 Estado atual
 
-Nada da v3 foi implementado. O site em produção é a v2. A árvore do git está limpa e a v2 está integralmente funcional. O trabalho começa do zero na **Fase 0** (seção 7).
+**Fases 0 e 1 concluídas em 26/08/2026.**
+
+Da Fase 0 estão em pé: `ogl` e `lenis` instalados, os tokens de shell da v3 em `globals.css` (com o fundo no `:root`, não no `body`), a camada shadcn reneutralizada, a escala tipográfica fluida, e o manifesto de rotas em [src/lib/routes.ts](src/lib/routes.ts). A pré-condição de F1 foi verificada em runtime: com o CSS novo, uma seção `blend` dentro de um `<main>` estático não tem nenhum ancestral confinando o backdrop.
+
+Da Fase 1 está em pé o motor inteiro em `src/components/background/`, verificado no navegador: os três shaders compilam, os dois programas linkam, todos os uniforms ficam ativos, `gl.getError` devolve zero e o campo produz variação real de luminância.
+
+Da Fase 2 está em pé o `<SiteShell>` nos dois layouts, a moldura, a máscara e o `section.tsx` com as duas variantes. **O portão de saída foi aprovado** (evidência nas notas de execução da Fase 2).
+
+Da Fase 3 estão em pé as 10 rotas (5 por idioma, todas estáticas), o header e o footer reescritos, o Lenis em rolagem nativa e o SEO por rota derivado do manifesto.
+
+Da Fase 4 estão em pé a Home como manifesto tipográfico com os 5 passos, e o showcase com preview trocando no hover, servindo Projetos e Clientes.
+
+Da Fase 5 estão em pé Info, Contato e as páginas de case redesenhadas, e o **Framer Motion foi removido do projeto** (F10 resolvido).
+
+Da Fase 6 está em pé a auditoria inteira, agora automatizada, e da Fase 7 a limpeza final e a documentação.
+
+**Estado final: 141 testes unitários e 68 E2E.** Lighthouse nas 5 rotas: **Perf 96 a 100, A11y 100, Best Practices 100, SEO 100**, contra o baseline de 95/100/100/100 da v2 numa rota só.
+
+O que falta não é código: é o deploy, que depende do Pedro, e o registro do Lighthouse rodado contra a URL de produção.
 
 ### 0.2 As três coisas que mais quebram este plano
 
@@ -411,6 +429,18 @@ Novo diretório `src/components/background/`.
 
 ---
 
+#### Notas de execução da Fase 1 (26/08/2026)
+
+Três coisas apareceram só na implementação e valem para quem mexer nisso depois:
+
+1. **O canvas não pode ser a fonte do próprio tamanho.** O construtor do `Renderer` do OGL chama `setSize(300, 150)` por padrão, e esse `setSize` grava `style.width` e `style.height` inline no elemento. A partir daí o `clientWidth` do canvas devolve o que o OGL escreveu, não o que o CSS pediu, e o fundo fica preso em 300x150. O motor mede o **contêiner** (`canvas.parentElement`), no mount e no `ResizeObserver`. **A Fase 2 precisa manter o canvas dentro de um wrapper dimensionado por CSS.**
+
+2. **A vinheta virou temática.** Escurecer as bordas sempre, como uma vinheta normal faz, empurraria o backdrop do tema claro na direção de L = 0.5, que é exatamente onde o texto em `difference` some. A vinheta puxa para o extremo do próprio tema: branco no claro, preto no escuro. O alvo é uniform e é interpolado junto com o tema, senão viraria no meio do crossfade.
+
+3. **A dose de campo é assimétrica entre os temas** (`FIELD_MIX`: 0.08 no claro, 0.55 no escuro), e o motivo é aritmético. Partindo de `#f0f0f0`, puxar para qualquer cor mais escura atravessa a faixa proibida de luminância; só uma dose pequena mantém o resultado acima dela. Partindo de `#0b0b0c` sobra folga para o campo inteiro. Na prática: tinta no tema claro, campo cheio no escuro. O item de contraste da Fase 6 está coberto por teste, que varre o ramp inteiro incluindo vinheta e amplitude de grain, em vez de checar só as pontas.
+
+---
+
 ### Fase 2: Shell, blend e moldura
 
 **`src/components/shell/site-shell.tsx`.** Existem dois root layouts (`(home)` e `en`) e tudo do `<body>` precisa entrar nos dois. Um `<SiteShell lang>` compartilhado evita a divergência. Montagem exatamente conforme a tabela de F1. O `<body>` **não** recebe background nem `isolation`, e o `<main>` **não** recebe `z-index` nem `position`.
@@ -425,6 +455,20 @@ Container com `padding-inline: calc(var(--pad) * 2)` como piso (E9). `SectionHea
 **`frame.tsx` e `viewport-mask.tsx`.** Presentacionais, sem estado. Moldura: 4 divs absolutos de 1px em branco, `opacity: .5`, em container `difference` (F13).
 
 > ⚠️ **Portão de saída obrigatório desta fase:** montar uma seção `blend` e uma `solid` na mesma página, com o shader rodando, e confirmar que o texto da `blend` inverte de verdade contra o canvas. Se não inverter, é F1 e a montagem está errada. **Não avançar antes disso.**
+
+---
+
+#### Notas de execução da Fase 2 (26/08/2026)
+
+**O portão de saída passou, e a prova é aritmética, não impressão.** Com o tema claro e a seção de Contato em `blend`, o card interno (`bg-card`, que vale `#f0f0f0`, ou 240) apareceu **preto**, e o botão de fundo `#0d0d0d` (13) apareceu **branco**. O backdrop composto no tema claro fica em torno de 220, então `|220 - 240| = 20` e `|220 - 13| = 207`: exatamente o que o `difference` produz. Se F1 estivesse quebrado, a seção misturaria contra o fundo transparente do `<main>` e o card teria aparecido claro, com o texto branco sumindo em cima dele. A montagem de camadas está correta.
+
+Duas coisas para as fases seguintes:
+
+1. **A variante `blend` exige conteúdo que herde a cor.** O `color: #fff` da seção só alcança texto que herda. Classes como `text-muted-foreground`, `text-foreground`, `bg-card` e `bg-primary` mantêm a própria cor e cada uma inverte para um lado diferente, produzindo um resultado sujo. **Uma seção só deve virar `blend` no mesmo passo em que perde as cores e caixas explícitas.** Isso liga as leis da seção 8 diretamente à variante: não são duas tarefas, são a mesma.
+
+2. **Por isso as 7 seções da home estão em `solid` agora.** As três que serviram ao portão (Como trabalho, Habilidades, Contato) voltaram para `solid` depois dele. A Fase 4 liga o `blend` na Home e a Fase 5 nas seções de Info e Contato, cada uma junto do redesenho que remove as cores explícitas. A prop `variant` está escrita explicitamente em todas as seções, mesmo valendo o padrão, para que essa virada seja uma palavra só e fique visível no diff.
+
+3. **O header e o footer ainda são os da v2** dentro do shell novo. O header é o pill com `backdrop-blur` e o footer está no fluxo, transparente sobre o canvas. Os dois são reescritos na Fase 3.
 
 ---
 
@@ -444,6 +488,18 @@ Container com `padding-inline: calc(var(--pad) * 2)` como piso (E9). `SectionHea
 - Alimenta `renderer.setProgress()` via singleton em `background-config.ts`, **não** via estado React
 
 **SEO por rota.** `buildMetadata()` de [src/lib/metadata.ts](src/lib/metadata.ts) ganha variante por rota, com `alternates` do manifesto. JSON-LD: `WebSite` na Home, `Person` no Info, novo `itemListJsonLd()` em Projetos e Clientes (E2).
+
+---
+
+#### Notas de execução da Fase 3 (26/08/2026)
+
+1. **O `<main>` não leva padding vertical.** A primeira tentativa colocou `padding-block: calc(var(--pad) * 3)` para o conteúdo não passar por baixo do header e do footer fixos. O resultado, visível na captura, foi uma faixa do canvas entre o header e a primeira seção, com borda dura, parecendo acidente. O desenho correto é o oposto: o conteúdo **passa** por baixo do header e do footer, que estão em `difference` e invertem contra o que estiver ali. O respiro vem do padding vertical das próprias seções, e as faixas de `var(--pad)` são cobertas pela `ViewportMask`.
+
+2. **`Dict.nav.links` e `Dict.footer` foram removidos.** O primeiro virou derivação do manifesto (`navRoutes(lang)`), e o segundo ficou vazio quando os sociais saíram do footer (E13). A limpeza de E6 que estava marcada para a Fase 7 aconteceu aqui, porque as chaves morreram nesta fase e deixá-las seria exatamente o problema que E6 aponta. Sobrou de E6 para a Fase 7: `filterAll`, `one` e `many`, que ainda são usadas pelo `projects-grid` da v2.
+
+3. **Os toggles de tema e idioma precisaram ser neutralizados** antes de entrar no header em `difference`, pelo motivo registrado na Fase 2: `text-muted-foreground` e `hover:bg-muted` não herdam cor e inverteriam por conta própria. Agora usam opacidade. O `ThemeToggle` também tinha `theme-color` desatualizado (`#0a0a0b`/`#fafafa`, da v2), corrigido para os tokens da v3.
+
+4. **`activeRouteId()` é diferente de `routeIdFromPath()`.** A segunda casa exatamente; a primeira casa sub-rotas, para `/projetos/newra-news/` manter "Projetos" ativo na nav. O casamento mais longo vence, senão `/en/` reivindicaria tudo que vive sob o inglês.
 
 ---
 
@@ -473,6 +529,24 @@ Client component, `variant="solid"`. Subcomponentes: `showcase-preview.tsx` (pil
 
 ---
 
+#### Notas de execução da Fase 4 (26/08/2026)
+
+1. **O showcase ficou lado a lado, não empilhado.** O diagrama da seção 3 desenha o preview sobre a lista, mas empilhado a regra 1 se volta contra si mesma: `sticky` fixa o preview no topo e a lista rola **por baixo** dele, sobrepondo os dois. Verificado em captura, não é artefato. Em coluna própria o `sticky` faz exatamente o que a regra 1 pede, e a lista inteira fica visível junto do preview, que é o ponto do componente. Abaixo de `lg` o layout empilha e o `sticky` é desligado.
+
+2. **Achado novo, e vale como lei: fundo opaco em elemento `sticky` vaza para o composite de uma seção `blend` vizinha.** A tentativa de dar `background: var(--c-bg)` ao preview `sticky` (para o modo empilhado) pintou um retângulo preto dentro da seção `blend` do cabeçalho, a centenas de pixels de distância, com a largura exata da coluna do preview. Nenhum elemento do DOM tinha esse fundo: `elementFromPoint` no lugar devolvia a própria `<section>` transparente. `position: sticky` cria contexto de empilhamento, e a combinação com `mix-blend-mode` no irmão produz isso. **Não dê fundo opaco a elemento `sticky` na mesma página de uma seção `blend`.**
+
+3. **A `Section` ganhou a prop `wide`.** Na largura padrão (`max-w-5xl`), preview e lista lado a lado espremem a coluna do título a ponto de quebrar "Repertório Progressivo" em duas linhas. O showcase usa `max-w-7xl`; o padding continua o mesmo, então o alinhamento com a moldura não muda.
+
+4. **A linha mostra 3 tecnologias, não a stack inteira**, como o diagrama da seção 3 mostra. A lista completa vive na página do case. Sem isso a coluna de stack empurra o título para duas linhas.
+
+5. **Dados verificados, não inventados.** O `stack` e o `year` do case de cliente foram conferidos no site publicado (assets em `/_next/` com Turbopack, utilitárias do Tailwind, copyright de 2026), em vez de deduzidos. Os anos dos projetos próprios saíram do diagrama da seção 3 deste plano. **Confirmar com o Pedro.**
+
+6. **Aposentados:** `hero.tsx`, `process.tsx`, `projects.tsx`, `projects-grid.tsx` e `featured-project.tsx`, cujo mockup de janela virou `showcase/window-mockup.tsx`. As chaves órfãs `filterAll`, `one` e `many` de E6 saíram junto, fechando E6 por completo.
+
+7. **Armadilha do `pnpm look`:** se houver servidor na porta 3000 iniciado antes do último `pnpm build`, ele serve o build velho e a captura sai sem CSS nenhum. Documentado em `capture/playwright.config.ts`.
+
+---
+
 ### Fase 5: Info, Contato e páginas de projeto
 
 **Info.** Funde `about`, `career` e `skills`. Sobre e habilidades em `blend`; trajetória e o bloco do avatar em `solid` (E12).
@@ -487,33 +561,101 @@ Client component, `variant="solid"`. Subcomponentes: `showcase-preview.tsx` (pil
 
 ---
 
+#### Notas de execução da Fase 5 (26/08/2026)
+
+1. **F10 resolvido: o Framer Motion saiu do projeto.** Depois do redesenho, `FadeIn` ficou sem nenhum consumidor e `SectionHeading` só era usado dentro de seções `blend`, onde a entrada já era CSS. Com uma implementação só, a regra E5 ("em blend, só opacity") deixa de ser regra a lembrar e passa a ser verdade por construção. Isso permitiu remover também o contexto de variante e, com ele, o `"use client"` de `section.tsx`, que voltou a ser server component.
+
+2. **`identity.tsx` é novo** e resolve E12: a foto e os fatos rápidos saíram de `about.tsx` para um bloco `solid`, porque foto em `difference` apareceria em negativo. A foto é pequena e quadrada, sem halo e sem gradiente.
+
+3. **`BackgroundPalette` liga o que estava solto.** `paletteForRoute` existia desde a Fase 1 e não tinha consumidor nenhum: o `<SiteShell>` vive nos layouts e não sabe a rota. Um componente que só dispara um efeito resolve isso. Rotas com showcase não o usam, porque lá quem manda na paleta é o item ativo da lista.
+
+4. **Regressão minha, achada e corrigida:** ao reescrever a página de case, parei de renderizar `updatedAt` e `language`, que são os únicos campos que vêm do GitHub. O ISR de 1h em `lib/github.ts` continuava buscando dados que nada exibia. A página de case voltou a mostrar `atualizado <data> · <linguagem>`, verificado no HTML gerado. **`projects.updatedAt` não era chave órfã, eu é que tinha parado de usá-la.**
+
+5. **Oito rótulos ficaram realmente órfãos** com o redesenho e foram removidos dos dois dicionários: `stackLabel` (em `hero` e em `projects`), `scrollLabel`, `viewProject`, `featuredBadge`, `allOnGithub`, `visit`, `responsibilitiesLabel` e `statusLabel`.
+
+6. **Pendência de conteúdo para a Fase 7:** `clients.projects[].responsibilities` e `.status` continuam nos dicionários mas não são renderizados por nenhuma tela. São conteúdo, não rótulo, então não foram removidos sem decisão do Pedro: ou ganham lugar no showcase, ou saem.
+
+---
+
 ### Fase 6: Performance, acessibilidade e fallbacks
 
-- [ ] Canvas em SSR normal, `ogl` via `await import()` no efeito. Sem `ssr: false` (E1)
-- [ ] Nenhum ancestral de seção `blend` cria contexto de empilhamento (F1). Auditar em DevTools > Layers
-- [ ] Lenis sem transform de conteúdo (F3)
-- [ ] `prefers-reduced-motion`: 1 frame e para, Lenis desligado, preview sem crossfade
-- [ ] rAF pausado com `document.hidden` e via `IntersectionObserver`
-- [ ] DPR limitado a 1.5; render target ~320px no lado maior
-- [ ] Telas < 768px: DPR 1 e render target menor
-- [ ] Fallback CSS sem WebGL e em `webglcontextlost`
-- [ ] Showcase funcional em touch e teclado
-- [ ] Contraste verificado **com o shader rodando**, nos dois temas, no pior frame. O `difference` garante inversão, mas paletas de luminância média produzem cinza sobre cinza. A paleta precisa ser restringida a faixas seguras
-- [ ] Foco visível em toda a UI em difference
-- [ ] `user-select` **não** desativado globalmente (a referência desativa; nós não, porque recrutador copia email)
-- [ ] Lighthouse Perf >= 90 e A11y 100 nas 5 rotas
+- [x] Canvas em SSR normal, `ogl` via `await import()` no efeito. Sem `ssr: false` (E1)
+- [x] Nenhum ancestral de seção `blend` cria contexto de empilhamento (F1). Auditar em DevTools > Layers
+- [x] Lenis sem transform de conteúdo (F3)
+- [x] `prefers-reduced-motion`: 1 frame e para, Lenis desligado, preview sem crossfade
+- [x] rAF pausado com `document.hidden` e via `IntersectionObserver`
+- [x] DPR limitado a 1.5; render target ~320px no lado maior
+- [x] Telas < 768px: DPR 1 e render target menor
+- [x] Fallback CSS sem WebGL e em `webglcontextlost`
+- [x] Showcase funcional em touch e teclado
+- [x] Contraste verificado **com o shader rodando**, nos dois temas, no pior frame. O `difference` garante inversão, mas paletas de luminância média produzem cinza sobre cinza. A paleta precisa ser restringida a faixas seguras
+- [x] Foco visível em toda a UI em difference
+- [x] `user-select` **não** desativado globalmente (a referência desativa; nós não, porque recrutador copia email)
+- [x] Lighthouse Perf >= 90 e A11y 100 nas 5 rotas
+
+---
+
+#### Notas de execução da Fase 6 (27/08/2026)
+
+A fase encontrou **quatro problemas reais**. Nenhum apareceria em revisão de código, e três só apareceram porque a auditoria virou medição em vez de leitura.
+
+1. **O anel de foco era invisível no tema claro dentro de seções `blend`.** `focus-ring` usava `outline: 2px solid var(--ring)`, e `--ring` vale `--c-ink`, ou `#0d0d0d` no claro. Dentro de uma seção misturada isso resulta em `|220 - 13| = 207`, quase branco sobre fundo claro. Quem navega por teclado não via onde estava. Corrigido para `currentColor`, que acompanha o texto e inverte junto com ele. Em seções `solid` os dois valores coincidem, então nada mudou lá.
+
+2. **O canvas ficava preso em 1x1 quando a aba nascia em segundo plano.** Página oculta não faz layout, então o contêiner media 0 no mount. O `ResizeObserver` não salvava, porque ele entrega nas etapas de renderização, que uma página oculta não executa. Ao voltar, o site pintaria um único pixel esticado na tela inteira, ou seja, uma cor chapada. O motor passou a remedir no `visibilitychange`, e há teste para isso.
+
+3. **Contraste real abaixo da WCAG AA, por opacidade aninhada.** O pior caso media 2.0:1 em texto de 12px. A causa não era um valor exagerado isolado: era uma linha da lista a 60% com um número a 40% dentro dela, dando **24% efetivo**. Separadamente os dois valores parecem razoáveis, e é por isso que ler o código não pega. **Regra nova, documentada no `globals.css` e verificada por teste E2E que multiplica as opacidades ao longo da árvore: texto nunca abaixo de `opacity-70`, e nunca aninhado.**
+
+4. **Alvos de toque abaixo de 24x24** nos links da nav e no logo (17px de altura). Resolvido com `min-h-6` e padding próprio.
+
+**Lighthouse, preset desktop, build de produção:**
+
+| Rota | Perf | A11y | Best Practices | SEO | LCP | CLS |
+|---|---|---|---|---|---|---|
+| `/` | 100 | 100 | 100 | 100 | 0.6s | 0 |
+| `/clientes/` | 96 | 100 | 100 | 100 | 0.9s | 0 |
+| `/projetos/` | 99 | 100 | 100 | 100 | 0.6s | 0 |
+| `/info/` | 99 | 100 | 100 | 100 | 0.6s | 0 |
+| `/contato/` | 99 | 100 | 100 | 100 | 0.6s | 0 |
+
+O baseline da v2 era 95/100/100/100 numa rota só. O Lighthouse não vem instalado: rode com `CHROME_PATH` apontando para o Chromium do Playwright, porque a máquina não tem Chrome próprio.
+
+**Armadilha que custou tempo duas vezes, agora documentada nas duas configs do Playwright:** `reuseExistingServer` aproveita qualquer servidor na porta 3000, inclusive um iniciado antes do último build. O sintoma é teste falhando por uma correção que já está no código, ou captura de tela sem CSS nenhum.
+
+**Sobra para a Fase 7:** `ui/button.tsx` e `ui/tooltip.tsx` ficaram sem nenhum consumidor depois da Fase 5. E as capturas de `/projects/dandarkness.jpg` têm proporção e resolução que o Lighthouse aponta como inadequadas para o slot 16:10 do preview, o que a recaptura já prevista resolve.
 
 ---
 
 ### Fase 7: Testes, documentação e deploy
 
-- **Testes novos:** manifesto de rotas contra arquivos em disco, `background-config` (interpolação de paleta), `createGrainBuffer` (E8), `itemListJsonLd`
-- **Reescritos:** `lang-path.test.ts`, `sitemap.test.ts` (E3)
-- **Intactos:** `utils`, `metadata`, `github`, paridade i18n
-- **E2E:** canvas com dimensões > 0; navegação pelas 5 rotas nos dois idiomas; hover troca o preview; `prefers-reduced-motion` sem erro de console; `html-lang.spec.ts` ampliado
-- **Limpeza:** chaves órfãs (E6) e as sobras de `create-next-app` em `public/` (`file.svg`, `globe.svg`, `next.svg`, `vercel.svg`, `window.svg`), pendência aberta desde a v2
+- ✅ **Testes novos:** manifesto de rotas contra arquivos em disco, `background-config` (interpolação de paleta), `createGrainBuffer` (E8), `itemListJsonLd`
+- ✅ **Reescritos:** `lang-path.test.ts`, `sitemap.test.ts` (E3)
+- ✅ **Intactos:** `utils`, `metadata`, `github`, paridade i18n
+- ✅ **E2E:** canvas com dimensões > 0; navegação pelas 5 rotas nos dois idiomas; hover troca o preview; `prefers-reduced-motion` sem erro de console; `html-lang.spec.ts` ampliado
+- ✅ **Limpeza:** chaves órfãs (E6) e as sobras de `create-next-app` em `public/` (`file.svg`, `globe.svg`, `next.svg`, `vercel.svg`, `window.svg`), pendência aberta desde a v2
 - Atualizar [README.md](README.md): árvore nova, **a montagem de camadas de F1 com o porquê**, como ajustar paleta, como adicionar projeto ao showcase, e corrigir a seção "4. Projetos de clientes" que ainda documenta o modelo antigo
 - Marcar este documento como concluído e registrar o Lighthouse pós-deploy
+
+---
+
+#### Notas de execução da Fase 7 (27/08/2026)
+
+**Limpeza.** Saíram `ui/button.tsx`, `ui/tooltip.tsx` e `icons.tsx`, todos sem consumidor depois da Fase 5, mais as cinco sobras do `create-next-app` em `public/`. O botão de fechar do Sheet, único consumidor do `<Button>`, virou um `<button>` próprio, o que permitiu remover também as dependências **class-variance-authority** e **tw-animate-css**. Da camada de tokens shadcn sobraram apenas `--popover`, `--popover-foreground`, `--border`, `--ring`, `--muted-foreground` e `--primary`: nove tokens mortos foram removidos do `globals.css`.
+
+**Somando com a Fase 5, a v3 cortou três dependências inteiras** (framer-motion, class-variance-authority, tw-animate-css) e acrescentou duas (ogl, lenis).
+
+**Testes.** O teste do manifesto contra os arquivos em disco, adiado desde a Fase 0, finalmente entrou: ele pega a única falha que o manifesto sozinho não pega, que é acrescentar uma rota e esquecer o arquivo de um dos idiomas. A nav mostraria o link, o sitemap anunciaria a URL, o hreflang apontaria para ela, e a rota daria 404, sem nada quebrar em compilação. O `html-lang.spec.ts` foi ampliado das 2 rotas originais para as 10 do manifesto mais os cases.
+
+**README reescrito.** A montagem de camadas está lá com o porquê, junto das três consequências descobertas na prática (fundo no `:root`, Lenis sem transform, nada de fundo opaco em `sticky`), da regra de opacidade em texto, e dos guias de acrescentar rota, projeto, cliente e paleta. A seção de clientes, que ainda documentava campos que nunca existiram (`client`, `type`, `tech`, `outcome`), foi corrigida para os campos reais.
+
+**Confirmado pelo Pedro em 27/08/2026:** só o Repertório Progressivo é de 2025; os outros três são de 2026. Clientes, por ora, é só o Dandarkness.
+
+**Resolvida a pendência de `responsibilities` e `status`.** Os dois campos ficaram sem tela depois do redesenho, e a decisão não foi remover ambos porque eles não dizem a mesma coisa. `status: "Publicado"` é redundante com a seta de link externo que leva ao site no ar, e saiu. `responsibilities` responde uma pergunta que a stack não responde: a stack diz **qual tecnologia**, as responsabilidades dizem **até onde foi o envolvimento**, que para trabalho de cliente é possivelmente o dado mais relevante para quem recruta. Passou a ser exibido no preview, abaixo da descrição.
+
+**Pendências que não são código, e dependem do Pedro:**
+
+- Deploy e registro do Lighthouse contra a URL de produção
+- Capturas de tela dos projetos (`pnpm capture` para os que têm URL pública; o Repertório Progressivo é app React Native e depende de export do Expo)
+- `NEXT_PUBLIC_SITE_URL` em produção e o DNS de `pedrolevi.dev`
 
 ---
 
@@ -551,6 +693,30 @@ pnpm build && pnpm test:e2e
 pnpm dev
 ```
 
+### 9.1 Ver o site sem abrir o navegador
+
+```bash
+pnpm look
+```
+
+Captura a home nos dois temas em `.captures/` (ignorada pelo git), usando o
+Playwright que já existe no projeto, com config própria em `capture/` para não
+entrar na suíte de CI. Existe porque as duas coisas centrais da v3 não são
+observáveis por DOM nem por `getComputedStyle`: o resultado de
+`mix-blend-mode` é um efeito de composição, e o shader é pixel.
+
+Parametrizada por variáveis de ambiente:
+
+| Variável | Padrão | Efeito |
+|---|---|---|
+| `LOOK_PATHS` | `/` | Lista separada por vírgula. Aceita âncora, ex.: `/#contato` |
+| `LOOK_THEMES` | `dark,light` | Temas a capturar |
+| `LOOK_FULL` | vazio | `1` captura a página inteira, não só a viewport |
+| `LOOK_SETTLE` | `1400` | Milissegundos de espera para o campo do shader assentar |
+
+No Git Bash do Windows, prefixe com `MSYS_NO_PATHCONV=1`, senão o shell
+converte `/` em caminho do Windows antes de a variável chegar ao script.
+
 Roteiro manual, nos dois temas e nos dois idiomas:
 
 1. **Seções `blend` invertem de verdade contra o canvas** (o teste de F1). Se o texto sumir ou não inverter, a montagem de camadas está errada
@@ -576,15 +742,15 @@ Roteiro manual, nos dois temas e nos dois idiomas:
 
 ## 10. Checklist de progresso
 
-- [ ] Fase 0: Fundação (deps, tokens, manifesto de rotas)
-- [ ] Fase 1: Motor WebGL
-- [ ] Fase 2: Shell, blend e moldura ⚠️ portão de saída obrigatório
-- [ ] Fase 3: Rotas, navegação e scroll
-- [ ] Fase 4: Home e showcase
-- [ ] Fase 5: Info, Contato e páginas de projeto
-- [ ] Fase 6: Performance, acessibilidade e fallbacks
-- [ ] Fase 7: Testes, documentação e deploy
-- [ ] Capturas: Newra News, Trak, Dandarkness
-- [ ] 🔄 Captura do Netsheet Engine (aguardando deploy do Pedro)
-- [ ] ⏸️ Preview do Repertório Progressivo (aguardando screenshots do Expo)
+- [x] Fase 0: Fundação (deps, tokens, manifesto de rotas), concluída em 26/08/2026
+- [x] Fase 1: Motor WebGL, concluída em 26/08/2026
+- [x] Fase 2: Shell, blend e moldura, concluída em 26/08/2026, portão de saída aprovado
+- [x] Fase 3: Rotas, navegação e scroll, concluída em 26/08/2026
+- [x] Fase 4: Home e showcase, concluída em 26/08/2026
+- [x] Fase 5: Info, Contato e páginas de projeto, concluída em 26/08/2026
+- [x] Fase 6: Performance, acessibilidade e fallbacks, concluída em 27/08/2026
+- [x] Fase 7: Testes, documentação e deploy, concluída em 27/08/2026 (deploy pendente com o Pedro)
+- [x] Capturas: Newra News, Trak, Dandarkness, geradas em 27/08/2026 por `pnpm capture`
+- [ ] 🔄 Captura do Netsheet Engine (aguardando deploy do Pedro; o preview usa o mockup em CSS enquanto isso)
+- [x] Preview do Repertório Progressivo, resolvido em 27/08/2026 com as prints da V2 no repositório do app, enquadradas como tela de celular
 - [ ] `NEXT_PUBLIC_SITE_URL` em produção e DNS de `pedrolevi.dev` (herdado da v2)

@@ -1,153 +1,99 @@
 @import "tailwindcss";
-@import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Tema premium, portfólio single-page (inspirado em kc1t.com).
- * Paleta: accent verde-água; claro (padrão) e escuro via classe .dark no <html>.
+ * V3, identidade neutra: a cor do site vive no shader de fundo, não na UI.
+ * A camada de tokens shadcn continua existindo porque ui/button, ui/sheet e
+ * ui/tooltip dependem dela, mas foi reneutralizada para acompanhar --c-bg e
+ * --c-ink. Nada aqui introduz matiz.
+ *
+ * LEI DE CAMADAS (F1 do PLANO-V3-PORTFOLIO.md, seção 6.1):
+ * o fundo da página fica no :root e NUNCA no body. O fundo do elemento raiz é
+ * propagado para o canvas do documento e pintado abaixo de tudo, inclusive do
+ * <BackgroundCanvas> em z-index -1. Se estivesse no body, seria o fundo de um
+ * bloco em fluxo e cobriria o canvas, matando o mix-blend-mode das seções.
  */
 :root {
-  --radius: 0.625rem;
+  /* Nenhum border-radius acima de 2px na v3 (seção 8 do plano). */
+  --radius: 0.125rem;
 
-  --background: #fafafa;
-  --foreground: #131316;
+  /* Tokens de shell da v3. */
+  --pad: max(20px, 4vmin);
+  --c-bg: #f0f0f0;
+  --c-ink: #0d0d0d;
+  --shell-fade: 900ms;
+  --shell-ease: cubic-bezier(0.1, 0.4, 0.2, 1);
 
-  --card: #ffffff;
-  --card-foreground: #131316;
+  /* Camada shadcn reneutralizada. */
+  --background: var(--c-bg);
+  --foreground: var(--c-ink);
 
-  --popover: #ffffff;
-  --popover-foreground: #131316;
+  /* Opaco de propósito: o painel do Sheet portaliza para o body e não pode
+     deixar o canvas aparecer através dele (F7). Junto com --popover-foreground
+     e --border, é o que sobrou da camada shadcn depois que button e tooltip
+     saíram: o Sheet do menu mobile é o único consumidor. */
+  --popover: var(--c-bg);
+  --popover-foreground: var(--c-ink);
 
-  --primary: #0d9488;
-  --primary-foreground: #f0fdfa;
+  --primary: var(--c-ink);
+  --primary-foreground: var(--c-bg);
 
-  --secondary: #ececef;
-  --secondary-foreground: #131316;
+  --muted: #e7e7e7;
+  --muted-foreground: #666668;
 
-  --muted: #f2f2f5;
-  --muted-foreground: #56565f;
+  --border: rgb(13 13 13 / 0.14);
+  --ring: var(--c-ink);
 
-  --accent: #ececef;
-  --accent-foreground: #131316;
-
-  --destructive: #dc2626;
-  --destructive-foreground: #fef2f2;
-
-  --border: #e4e4e7;
-  --input: #d4d4d8;
-  --ring: #0d9488;
-
-  --chart-1: #0d9488;
-  --chart-2: #0284c7;
-  --chart-3: #d97706;
-  --chart-4: #7c3aed;
-  --chart-5: #e11d48;
-
-  --sidebar: #ffffff;
-  --sidebar-foreground: #131316;
-  --sidebar-primary: #0d9488;
-  --sidebar-primary-foreground: #f0fdfa;
-  --sidebar-accent: #ececef;
-  --sidebar-accent-foreground: #131316;
-  --sidebar-border: #e4e4e7;
-  --sidebar-ring: #0d9488;
-
-  --grid-line: rgb(0 0 0 / 0.07);
-  --scrollbar-thumb: #c8c8cf;
-  --scrollbar-thumb-hover: #b0b0b8;
+  background: var(--c-bg);
+  transition: background-color var(--shell-fade) var(--shell-ease);
 }
 
 .dark {
-  --background: #0a0a0b;
-  --foreground: #fafafa;
+  --c-bg: #0b0b0c;
+  --c-ink: #fafafa;
 
-  --card: #111113;
-  --card-foreground: #fafafa;
+  --muted: #161618;
+  --muted-foreground: #9a9a9e;
 
-  --popover: #111113;
-  --popover-foreground: #fafafa;
-
-  --primary: #2dd4bf;
-  --primary-foreground: #042f2e;
-
-  --secondary: #1b1b1f;
-  --secondary-foreground: #fafafa;
-
-  --muted: #161619;
-  --muted-foreground: #a1a1aa;
-
-  --accent: #1b1b1f;
-  --accent-foreground: #fafafa;
-
-  --destructive: #f87171;
-  --destructive-foreground: #450a0a;
-
-  --border: #232326;
-  --input: #26262b;
-  --ring: #2dd4bf;
-
-  --chart-1: #2dd4bf;
-  --chart-2: #38bdf8;
-  --chart-3: #facc15;
-  --chart-4: #a78bfa;
-  --chart-5: #fb7185;
-
-  --sidebar: #111113;
-  --sidebar-foreground: #fafafa;
-  --sidebar-primary: #2dd4bf;
-  --sidebar-primary-foreground: #042f2e;
-  --sidebar-accent: #1b1b1f;
-  --sidebar-accent-foreground: #fafafa;
-  --sidebar-border: #232326;
-  --sidebar-ring: #2dd4bf;
-
-  --grid-line: rgb(255 255 255 / 0.06);
-  --scrollbar-thumb: #2a2a2f;
-  --scrollbar-thumb-hover: #3f3f46;
+  --border: rgb(250 250 250 / 0.16);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border);
-  --color-input: var(--input);
   --color-ring: var(--ring);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
+
   --font-sans: var(--font-fira-code);
   --font-mono: var(--font-fira-code);
   --font-body: var(--font-open-sans);
 
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
+  /*
+   * Escala tipográfica fluida da v3. Só três degraus: hierarquia se faz por
+   * tamanho e opacidade, não por cor nem por caixa (seção 8 do plano).
+   */
+  --text-display: clamp(2.75rem, 1.15rem + 6.6vw, 7rem);
+  --text-display--line-height: 0.95;
+  --text-display--letter-spacing: -0.03em;
+
+  --text-title: clamp(1.75rem, 1.1rem + 2.9vw, 3.5rem);
+  --text-title--line-height: 1.05;
+  --text-title--letter-spacing: -0.02em;
+
+  --text-lede: clamp(1.0625rem, 0.98rem + 0.55vw, 1.375rem);
+  --text-lede--line-height: 1.55;
+
+  --radius-sm: calc(var(--radius) - 1px);
+  --radius-md: var(--radius);
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  --radius-xl: var(--radius);
 }
 
 @layer base {
@@ -155,68 +101,102 @@
     @apply border-border outline-ring/50;
   }
 
-  html {
-    scroll-behavior: smooth;
-  }
-
+  /*
+   * Sem `scroll-behavior: smooth`: quem suaviza a rolagem agora é o Lenis, e as
+   * duas coisas juntas brigam, produzindo rolagem com dois ritmos ao clicar numa
+   * âncora. Sob movimento reduzido o Lenis nem liga, e a rolagem fica nativa.
+   */
+  /*
+   * Sem bg-background aqui (F1). O antialiased não é enfeite: navegadores
+   * desligam antialiasing de subpixel em camadas com blend, e sem suavização
+   * grayscale global o mesmo texto pesaria diferente em seções blend e solid
+   * (F12).
+   */
   body {
-    @apply bg-background font-sans text-foreground antialiased;
+    @apply font-sans text-foreground antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
     text-rendering: optimizeLegibility;
   }
 
   ::selection {
-    @apply bg-primary/25 text-foreground;
+    @apply bg-primary/20 text-foreground;
   }
 }
 
-/* Scrollbar discreta e premium */
-::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
-
-::-webkit-scrollbar-track {
-  background: var(--background);
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--scrollbar-thumb);
-  border-radius: 9999px;
-  border: 2px solid var(--background);
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--scrollbar-thumb-hover);
-}
-
-/* Grade sutil de fundo (usada no hero), adaptada ao tema */
-@utility bg-grid-pattern {
+/*
+ * Fallback do fundo quando não há WebGL ou o contexto se perde.
+ *
+ * As cores saem de color-mix sobre var(--c-bg), então o gradiente acompanha o
+ * tema sozinho e fica na mesma faixa de luminância que o shader produziria. As
+ * doses (8% no claro, 55% no escuro) são as mesmas de FIELD_MIX em
+ * background-config.ts, pelo mesmo motivo: manter o backdrop longe de L = 0.5,
+ * onde o texto em difference sumiria.
+ */
+@utility background-fallback {
+  background-color: var(--c-bg);
   background-image:
-    linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
-    linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
-  background-size: 72px 72px;
+    radial-gradient(
+      70% 60% at 22% 18%,
+      color-mix(in srgb, var(--c-bg) 92%, #454f6b),
+      transparent 70%
+    ),
+    radial-gradient(
+      65% 60% at 82% 85%,
+      color-mix(in srgb, var(--c-bg) 92%, #232838),
+      transparent 70%
+    );
 }
 
-/* Máscara radial para esmaecer a grade no topo */
-@utility mask-fade-hero {
-  -webkit-mask-image: radial-gradient(
-    ellipse 65% 55% at 50% 0%,
-    black,
-    transparent
-  );
-  mask-image: radial-gradient(ellipse 65% 55% at 50% 0%, black, transparent);
+.dark .background-fallback {
+  background-image:
+    radial-gradient(
+      70% 60% at 22% 18%,
+      color-mix(in srgb, var(--c-bg) 45%, #454f6b),
+      transparent 70%
+    ),
+    radial-gradient(
+      65% 60% at 82% 85%,
+      color-mix(in srgb, var(--c-bg) 45%, #232838),
+      transparent 70%
+    );
 }
 
-/* Anel de foco consistente para links e elementos interativos comuns */
+/*
+ * REGRA DE OPACIDADE EM TEXTO (achado da auditoria da Fase 6).
+ *
+ * A hierarquia da v3 é feita por tamanho e opacidade, e é fácil exagerar:
+ * `opacity-40` em texto de 12px dá contraste de 2.0 contra o fundo escuro,
+ * bem abaixo dos 4.5:1 que a WCAG AA pede para texto pequeno.
+ *
+ * Duas regras, medidas e não estimadas:
+ *   1. Texto nunca abaixo de `opacity-70`. A 0.7 o contraste passa nos dois
+ *      temas e também dentro de uma seção `blend`, contra os dois backdrops.
+ *   2. Nunca aninhar opacidade em texto. Uma linha a 60% com um filho a 40%
+ *      resulta em 24% efetivo, e foi exatamente esse o pior caso encontrado.
+ *
+ * Opacidade em elemento decorativo (moldura, máscara, ícone `aria-hidden`) não
+ * entra nesta regra, porque não carrega informação.
+ */
+
+/*
+ * Anel de foco consistente para links e elementos interativos.
+ *
+ * `currentColor` e não `var(--ring)`, e isso é acessibilidade, não estética.
+ * Dentro de uma seção `blend` o anel é pintado no grupo e depois invertido:
+ * com `--ring` (que vale `--c-ink`, ou #0d0d0d no tema claro) o resultado é
+ * |220 - 13| = 207, quase branco sobre um fundo claro, ou seja, invisível para
+ * quem navega por teclado. Com `currentColor` o anel acompanha o texto, que já
+ * é branco ali, e inverte junto com ele. Em seções `solid` os dois valores
+ * coincidem, então nada muda.
+ */
 @utility focus-ring {
   &:focus-visible {
-    outline: 2px solid var(--ring);
+    outline: 2px solid currentColor;
     outline-offset: 2px;
   }
 }
 
-/* Entrada do hero: animação CSS pura (roda no paint, sem depender de JS) */
+/* Entrada: animação CSS pura (roda no paint, sem depender de JS) */
 @keyframes fade-up {
   from {
     opacity: 0;
@@ -241,13 +221,22 @@
   animation: fade-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+/*
+ * A entrada permitida dentro de seções blend: anima só opacity. Qualquer
+ * transform num ancestral de seção blend cria contexto de empilhamento e mata
+ * o efeito (F1/E5).
+ */
 @utility animate-fade-in {
   animation: fade-in 0.8s ease-out both;
 }
 
 /* Acessibilidade: respeita preferência de movimento reduzido */
 @media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }

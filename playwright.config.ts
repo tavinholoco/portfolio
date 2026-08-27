@@ -1,9 +1,15 @@
 import { defineConfig, devices } from "@playwright/test";
 
 /**
- * E2E do portfólio: valida o <html lang> por rota (SSR) e o funcionamento
- * das rotas principais. Usa o servidor de produção (`pnpm start`), então rode
- * `pnpm build` antes de testar localmente; no CI o build é uma etapa separada.
+ * E2E do portfólio: as invariantes de shell, showcase, navegação e o <html lang>
+ * por rota. Usa o servidor de produção (`pnpm start`), então rode `pnpm build`
+ * antes de testar localmente; no CI o build é uma etapa separada.
+ *
+ * ⚠️ `reuseExistingServer` aproveita qualquer servidor já de pé na porta 3000,
+ * inclusive um iniciado **antes** do último build, que continua servindo o
+ * `.next` antigo. O sintoma é teste falhando por uma correção que já está no
+ * código. Se um teste insistir em ver o estado velho, derrube a porta 3000
+ * antes de rodar.
  */
 export default defineConfig({
   testDir: "./e2e",

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { projectMetas } from "@/data/projects";
+import { routeIds } from "@/lib/routes";
 
 import { dictionaries, resolveLocale } from "./index";
 
@@ -75,15 +76,23 @@ describe("dicionários pt-BR / en", () => {
     expect(enUrls).toEqual(ptUrls);
   });
 
-  it("as âncoras do nav existem nas duas rotas (sem duplicatas)", () => {
+  it("tem título e descrição para toda rota do manifesto", () => {
     for (const locale of ["pt", "en"] as const) {
-      const hrefs = dictionaries[locale].nav.links.map((l) => l.href);
-      expect(new Set(hrefs).size, `âncoras duplicadas em ${locale}`).toBe(
-        hrefs.length
-      );
-      for (const href of hrefs) {
-        expect(href).toMatch(/^#/);
+      for (const id of routeIds) {
+        const route = dictionaries[locale].routes[id];
+        expect(route, `rota "${id}" sem textos em ${locale}`).toBeDefined();
+        expect(route.title.length).toBeGreaterThan(0);
+        expect(route.description.length).toBeGreaterThan(0);
       }
+    }
+  });
+
+  it("não repete título entre rotas, senão o SEO por rota não serve", () => {
+    for (const locale of ["pt", "en"] as const) {
+      const titles = routeIds.map((id) => dictionaries[locale].routes[id].title);
+      expect(new Set(titles).size, `títulos repetidos em ${locale}`).toBe(
+        titles.length
+      );
     }
   });
 });

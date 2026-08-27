@@ -1,21 +1,10 @@
-"use client";
+import { ArrowUpRight, Download } from "lucide-react";
 
-import type { ComponentType, SVGProps } from "react";
-import { ArrowUpRight, Download, Mail, MessageCircle } from "lucide-react";
-
-import { GitHubIcon, LinkedInIcon } from "@/components/icons";
-import { Button } from "@/components/ui/button";
-import { FadeIn, Section } from "@/components/section";
+import { Section } from "@/components/section";
 import { profile } from "@/data/profile";
 import { dictionaries, type Locale } from "@/i18n";
 
-const cardIcons: Record<string, ComponentType<SVGProps<SVGSVGElement>>> = {
-  email: Mail,
-  whatsapp: MessageCircle,
-  linkedin: LinkedInIcon,
-  github: GitHubIcon,
-};
-
+/** Destino de cada cartão de contato. O id vem do dicionário. */
 const cardHrefs: Record<string, { href: string; external: boolean }> = {
   email: { href: `mailto:${profile.email}`, external: false },
   whatsapp: { href: profile.whatsapp, external: true },
@@ -24,122 +13,101 @@ const cardHrefs: Record<string, { href: string; external: boolean }> = {
 };
 
 /**
- * Contato com dois caminhos diretos para públicos diferentes:
- * recrutador (Ver currículo) e cliente/freela (Falar comigo).
+ * Contato: dois caminhos diretos, um para cada público.
+ *
+ * Recrutador segue por "ver currículo", cliente segue por "falar comigo". A
+ * separação existe porque as duas pessoas chegam com perguntas diferentes e
+ * um formulário genérico não serve nenhuma das duas.
+ *
+ * Em `variant="blend"`, e por isso a reescrita foi mais que estética. Saíram o
+ * glow, os cards com `rounded-2xl`, os quadradinhos de ícone e as cores
+ * explícitas: dentro de uma seção misturada, o que não herda cor inverte por
+ * conta própria e cada elemento aparece de um tom diferente. Aqui a hierarquia
+ * é só tamanho, opacidade e linhas de 1px.
+ *
+ * Esta rota também é a casa dos links sociais que saíram do footer (E13): eles
+ * já viviam em `contact.cards`, com mais contexto do que teriam numa barra.
  */
 export function Contact({ lang }: { lang: Locale }) {
   const d = dictionaries[lang].contact;
 
   return (
-    <Section id="contato">
-      <FadeIn>
-        <div className="relative overflow-hidden rounded-3xl border border-primary/20 bg-gradient-to-b from-card to-background px-6 py-14 sm:px-14 sm:py-16">
-          {/* Glow decorativo */}
-          <div
-            aria-hidden
-            className="pointer-events-none absolute -top-40 left-1/2 h-72 w-[40rem] max-w-full -translate-x-1/2 rounded-full bg-primary/10 blur-3xl"
-          />
+    <Section id="contato" variant="blend">
+      <div className="animate-fade-in motion-reduce:animate-none">
+        <p className="font-mono text-sm opacity-70">&gt;_ {d.label}</p>
+        <h2 className="mt-4 text-display font-semibold text-balance">
+          {d.title}
+        </h2>
+        <p className="font-body mt-8 max-w-2xl text-lede opacity-80 text-pretty">
+          {d.description}
+        </p>
+      </div>
 
-          <p className="font-mono text-sm text-primary">&gt;_ {d.label}</p>
-          <h2 className="mx-auto mt-3 max-w-2xl text-center text-3xl font-semibold tracking-tight text-balance sm:text-5xl">
-            {d.title}
-          </h2>
-          <p className="font-body mx-auto mt-4 max-w-xl text-center text-base leading-relaxed text-muted-foreground text-pretty">
-            {d.description}
+      {/* Os dois caminhos, em escala grande e separados só por uma linha. */}
+      <div className="mt-20 grid border-t border-current/15 sm:grid-cols-2">
+        <div className="border-b border-current/15 py-10 sm:border-r sm:border-b-0 sm:pr-12">
+          <h3 className="text-title font-semibold tracking-tight">
+            {d.hiringTitle}
+          </h3>
+          <p className="font-body mt-4 max-w-sm text-sm leading-relaxed opacity-70 text-pretty">
+            {d.hiringDescription}
           </p>
-
-          {/* Duas CTAs lado a lado, um caminho para cada público */}
-          <div className="mx-auto mt-10 grid max-w-3xl gap-4 sm:grid-cols-2">
-            <div className="flex flex-col rounded-2xl border border-border bg-card/60 p-6 sm:p-7">
-              <h3 className="text-lg font-semibold text-foreground">
-                {d.hiringTitle}
-              </h3>
-              <p className="font-body mt-1.5 flex-1 text-sm leading-relaxed text-muted-foreground text-pretty">
-                {d.hiringDescription}
-              </p>
-              <div className="mt-5">
-                <Button
-                  size="lg"
-                  render={<a href={profile.cvUrl} download />}
-                  nativeButton={false}
-                >
-                  <Download
-                    data-icon="inline-start"
-                    className="size-4"
-                    aria-hidden
-                  />
-                  {d.hiringCta}
-                </Button>
-              </div>
-            </div>
-
-            <div className="flex flex-col rounded-2xl border border-border bg-card/60 p-6 sm:p-7">
-              <h3 className="text-lg font-semibold text-foreground">
-                {d.projectTitle}
-              </h3>
-              <p className="font-body mt-1.5 flex-1 text-sm leading-relaxed text-muted-foreground text-pretty">
-                {d.projectDescription}
-              </p>
-              <div className="mt-5">
-                <Button
-                  size="lg"
-                  variant="outline"
-                  render={
-                    <a
-                      href={profile.whatsapp}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    />
-                  }
-                  nativeButton={false}
-                >
-                  <MessageCircle
-                    data-icon="inline-start"
-                    className="size-4"
-                    aria-hidden
-                  />
-                  {d.projectCta}
-                  <ArrowUpRight
-                    data-icon="inline-end"
-                    className="size-4"
-                    aria-hidden
-                  />
-                </Button>
-              </div>
-            </div>
-          </div>
-
-          {/* Cards de contato direto */}
-          <div className="mt-12 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {d.cards.map((card) => {
-              const Icon = cardIcons[card.id];
-              const target = cardHrefs[card.id];
-              return (
-                <a
-                  key={card.id}
-                  href={target.href}
-                  {...(target.external
-                    ? { target: "_blank", rel: "noopener noreferrer" }
-                    : {})}
-                  className="focus-ring group flex items-center gap-4 rounded-2xl border border-border bg-card/60 px-5 py-4 text-left transition-all duration-300 hover:-translate-y-1 hover:border-primary/40"
-                >
-                  <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors group-hover:bg-primary/20">
-                    <Icon className="size-5" aria-hidden />
-                  </span>
-                  <span className="min-w-0">
-                    <span className="block text-xs text-muted-foreground">
-                      {card.label}
-                    </span>
-                    <span className="block truncate text-sm font-medium text-foreground">
-                      {card.value}
-                    </span>
-                  </span>
-                </a>
-              );
-            })}
-          </div>
+          <a
+            href={profile.cvUrl}
+            download
+            className="focus-ring mt-8 inline-flex items-center gap-2 rounded-sm border border-current/40 px-5 py-2.5 text-sm transition-opacity hover:opacity-70"
+          >
+            <Download className="size-4" aria-hidden />
+            {d.hiringCta}
+          </a>
         </div>
-      </FadeIn>
+
+        <div className="py-10 sm:pl-12">
+          <h3 className="text-title font-semibold tracking-tight">
+            {d.projectTitle}
+          </h3>
+          <p className="font-body mt-4 max-w-sm text-sm leading-relaxed opacity-70 text-pretty">
+            {d.projectDescription}
+          </p>
+          <a
+            href={profile.whatsapp}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="focus-ring mt-8 inline-flex items-center gap-2 rounded-sm border border-current/40 px-5 py-2.5 text-sm transition-opacity hover:opacity-70"
+          >
+            {d.projectCta}
+            <ArrowUpRight className="size-4" aria-hidden />
+          </a>
+        </div>
+      </div>
+
+      {/* Contato direto, em lista. Sem cartão e sem ícone ilustrativo. */}
+      <ul className="mt-20 border-t border-current/15">
+        {d.cards.map((card) => {
+          const target = cardHrefs[card.id];
+          return (
+            <li key={card.id}>
+              <a
+                href={target.href}
+                {...(target.external
+                  ? { target: "_blank", rel: "noopener noreferrer" }
+                  : {})}
+                className="focus-ring grid grid-cols-[minmax(0,7rem)_minmax(0,1fr)_auto] items-baseline gap-4 border-b border-current/15 py-5 opacity-70 transition-opacity hover:opacity-100"
+              >
+                <span className="font-mono text-xs">
+                  {card.label}
+                </span>
+                <span className="truncate text-sm">{card.value}</span>
+                {target.external ? (
+                  <ArrowUpRight className="size-4 opacity-50" aria-hidden />
+                ) : (
+                  <span aria-hidden />
+                )}
+              </a>
+            </li>
+          );
+        })}
+      </ul>
     </Section>
   );
 }

@@ -5,7 +5,6 @@ import { Dialog as SheetPrimitive } from "@base-ui/react/dialog"
 import { X } from "lucide-react"
 
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
 
 function Sheet({ ...props }: SheetPrimitive.Root.Props) {
   return <SheetPrimitive.Root data-slot="sheet" {...props} />
@@ -62,11 +61,13 @@ function SheetContent({
         {showCloseButton && (
           <SheetPrimitive.Close
             data-slot="sheet-close"
+            /* Botão simples no lugar do <Button> da shadcn: era o único
+               consumidor daquele componente em todo o projeto, e mantê-lo
+               custava também a dependência class-variance-authority. */
             render={
-              <Button
-                variant="ghost"
-                className="absolute top-3 right-3"
-                size="icon-sm"
+              <button
+                type="button"
+                className="focus-ring absolute top-3 right-3 inline-flex size-8 items-center justify-center rounded-sm opacity-70 transition-opacity hover:opacity-100"
               />
             }
           >

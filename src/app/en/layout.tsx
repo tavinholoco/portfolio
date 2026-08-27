@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import type { Metadata, Viewport } from "next";
 import { Fira_Code, Open_Sans } from "next/font/google";
 
+import { SiteShell } from "@/components/shell/site-shell";
 import { getSiteUrl } from "@/lib/metadata";
 import "../globals.css";
 
@@ -18,7 +19,7 @@ const openSans = Open_Sans({
 });
 
 export const viewport: Viewport = {
-  themeColor: "#0a0a0b",
+  themeColor: "#0b0b0c",
 };
 
 /**
@@ -35,7 +36,7 @@ export const metadata: Metadata = {
  * theme-color do meta (o viewport exporta o padrão escuro; aqui o meta é
  * atualizado para o tema real salvo, que já existe no DOM nesta ordem).
  */
-const themeScript = `(function(){try{var t=localStorage.getItem("theme");var dark=t?t==="dark":true;document.documentElement.classList.toggle("dark",dark);var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute("content",dark?"#0a0a0b":"#fafafa");}catch(e){document.documentElement.classList.add("dark");}})();`;
+const themeScript = `(function(){try{var t=localStorage.getItem("theme");var dark=t?t==="dark":true;document.documentElement.classList.toggle("dark",dark);var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute("content",dark?"#0b0b0c":"#f0f0f0");}catch(e){document.documentElement.classList.add("dark");}})();`;
 
 /** Root layout do inglês (rota /en/): cada idioma tem o próprio <html lang>. */
 export default function EnglishLayout({ children }: { children: ReactNode }) {
@@ -48,8 +49,11 @@ export default function EnglishLayout({ children }: { children: ReactNode }) {
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
-      <body className="min-h-full bg-background font-sans text-foreground">
-        {children}
+      {/* Sem background e sem isolation no body: o fundo da página vive no
+          :root, e qualquer contexto de empilhamento aqui mataria o blend das
+          seções (F1). */}
+      <body className="min-h-full font-sans text-foreground">
+        <SiteShell lang="en">{children}</SiteShell>
       </body>
     </html>
   );
