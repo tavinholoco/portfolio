@@ -34,7 +34,7 @@ export function Contact({ lang }: { lang: Locale }) {
   return (
     <Section id="contato" variant="blend">
       <div className="animate-fade-in motion-reduce:animate-none">
-        <p className="font-mono text-sm opacity-60">&gt;_ {d.label}</p>
+        <p className="font-mono text-sm opacity-70">&gt;_ {d.label}</p>
         <h2 className="mt-4 text-display font-semibold text-balance">
           {d.title}
         </h2>
@@ -94,7 +94,7 @@ export function Contact({ lang }: { lang: Locale }) {
                   : {})}
                 className="focus-ring grid grid-cols-[minmax(0,7rem)_minmax(0,1fr)_auto] items-baseline gap-4 border-b border-current/15 py-5 opacity-70 transition-opacity hover:opacity-100"
               >
-                <span className="font-mono text-xs opacity-70">
+                <span className="font-mono text-xs">
                   {card.label}
                 </span>
                 <span className="truncate text-sm">{card.value}</span>

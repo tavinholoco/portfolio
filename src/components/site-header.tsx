@@ -56,7 +56,7 @@ export function SiteHeader({ lang }: { lang: Locale }) {
         <div className="flex shrink-0 items-center gap-1">
           <Link
             href={pathFor("home", lang)}
-            className="focus-ring font-mono text-sm font-medium tracking-tight"
+            className="focus-ring inline-flex min-h-6 items-center py-1 font-mono text-sm font-medium tracking-tight"
           >
             &gt;_ pedrolevi
           </Link>
@@ -84,7 +84,7 @@ export function SiteHeader({ lang }: { lang: Locale }) {
               <button
                 type="button"
                 aria-label={d.nav.openMenu}
-                className="focus-ring inline-flex size-9 items-center justify-center rounded-md opacity-60 transition-opacity hover:opacity-100 md:hidden"
+                className="focus-ring inline-flex size-9 items-center justify-center rounded-md opacity-70 transition-opacity hover:opacity-100 md:hidden"
               />
             }
           >
@@ -116,7 +116,7 @@ export function SiteHeader({ lang }: { lang: Locale }) {
                         "focus-ring rounded-md px-3 py-2.5 text-sm transition-opacity",
                         item.id === active
                           ? "opacity-100"
-                          : "opacity-60 hover:opacity-100"
+                          : "opacity-70 hover:opacity-100"
                       )}
                     />
                   }
@@ -147,8 +147,8 @@ function NavLink({
       href={href}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "focus-ring inline-flex items-center gap-2 text-sm whitespace-nowrap transition-opacity",
-        active ? "opacity-100" : "opacity-55 hover:opacity-100"
+        "focus-ring inline-flex min-h-6 items-center gap-2 py-1 text-sm whitespace-nowrap transition-opacity",
+        active ? "opacity-100" : "opacity-70 hover:opacity-100"
       )}
     >
       {/* Reserva o espaço mesmo inativo, para a nav não pular ao navegar. */}

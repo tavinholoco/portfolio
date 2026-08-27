@@ -19,7 +19,7 @@ export function About({ lang }: { lang: Locale }) {
   return (
     <Section id="sobre" variant="blend">
       <div className="animate-fade-in motion-reduce:animate-none">
-        <p className="font-mono text-sm opacity-60">&gt;_ {d.label}</p>
+        <p className="font-mono text-sm opacity-70">&gt;_ {d.label}</p>
         <h2 className="mt-4 text-title font-semibold tracking-tight text-balance">
           {d.title}
         </h2>
@@ -40,7 +40,7 @@ export function About({ lang }: { lang: Locale }) {
 
       {/* Métricas: grandes porque importam, não coloridas porque importam. */}
       <div className="mt-20">
-        <p className="font-mono text-sm opacity-60">
+        <p className="font-mono text-sm opacity-70">
           &gt;_ {d.metricsTitle}
         </p>
         <dl className="mt-8 grid grid-cols-2 border-t border-current/15 sm:grid-cols-4">
@@ -52,7 +52,7 @@ export function About({ lang }: { lang: Locale }) {
               <dd className="font-mono text-4xl font-semibold tabular-nums sm:text-5xl">
                 {metric.value}
               </dd>
-              <dt className="font-body mt-3 text-xs leading-relaxed opacity-60">
+              <dt className="font-body mt-3 text-xs leading-relaxed opacity-70">
                 {metric.label}
               </dt>
             </div>
@@ -62,7 +62,7 @@ export function About({ lang }: { lang: Locale }) {
 
       {/* Interesses em lista, sem cartão e sem ícone. */}
       <div className="mt-20">
-        <p className="font-mono text-sm opacity-60">
+        <p className="font-mono text-sm opacity-70">
           &gt;_ {d.interestsHeading}
         </p>
         <ul className="mt-8 border-t border-current/15">

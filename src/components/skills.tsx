@@ -18,7 +18,7 @@ export function Skills({ lang }: { lang: Locale }) {
   return (
     <Section id="habilidades" variant="blend">
       <div className="animate-fade-in motion-reduce:animate-none">
-        <p className="font-mono text-sm opacity-60">&gt;_ {d.label}</p>
+        <p className="font-mono text-sm opacity-70">&gt;_ {d.label}</p>
         <h2 className="mt-4 text-title font-semibold tracking-tight text-balance">
           {d.title}
         </h2>
@@ -37,7 +37,7 @@ export function Skills({ lang }: { lang: Locale }) {
               <h3 className="text-lg font-medium tracking-tight">
                 {block.title}
               </h3>
-              <p className="font-body mt-2 text-sm leading-relaxed opacity-60 text-pretty">
+              <p className="font-body mt-2 text-sm leading-relaxed opacity-70 text-pretty">
                 {block.description}
               </p>
             </div>

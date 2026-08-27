@@ -32,7 +32,7 @@ export function ShowcaseRow({
 
   const content = (
     <>
-      <span className="font-mono text-xs opacity-40 tabular-nums">
+      <span className="font-mono text-xs tabular-nums">
         {String(index + 1).padStart(2, "0")}
       </span>
 
@@ -51,13 +51,13 @@ export function ShowcaseRow({
         completa vive na página do case. É o que o diagrama da seção 3 mostra,
         e é o que impede a coluna de empurrar o título para duas linhas.
       */}
-      <span className="hidden gap-x-3 font-mono text-xs whitespace-nowrap opacity-50 lg:flex">
+      <span className="hidden gap-x-3 font-mono text-xs whitespace-nowrap lg:flex">
         {item.stack.slice(0, 3).map((tech) => (
           <span key={tech}>{tech}</span>
         ))}
       </span>
 
-      <span className="font-mono text-xs opacity-40 tabular-nums">
+      <span className="font-mono text-xs tabular-nums">
         {item.year}
       </span>
     </>
@@ -65,7 +65,7 @@ export function ShowcaseRow({
 
   const className = cn(
     "focus-ring grid w-full grid-cols-[auto_minmax(0,1fr)_auto] items-baseline gap-4 border-b border-current/15 py-5 transition-opacity sm:gap-6 lg:grid-cols-[auto_minmax(0,1fr)_auto_auto]",
-    active ? "opacity-100" : "opacity-60 hover:opacity-100"
+    active ? "opacity-100" : "opacity-70 hover:opacity-100"
   );
 
   const handlers = {

@@ -68,8 +68,11 @@ export function ShowcasePreview({
         componente à tese da v2: a lista deixa de ser catálogo e passa a
         argumentar (seção 3.2).
       */}
-      <p className="font-body mt-4 text-sm leading-relaxed opacity-70">
-        <span className="font-mono text-xs tracking-wide uppercase opacity-60">
+      <p
+        data-testid="showcase-problem"
+        className="font-body mt-4 text-sm leading-relaxed opacity-70"
+      >
+        <span className="font-mono text-xs tracking-wide uppercase">
           {problemLabel}{" "}
         </span>
         {active.problem}

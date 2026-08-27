@@ -29,7 +29,7 @@ export function Manifesto({ lang }: { lang: Locale }) {
   return (
     <Section id="inicio" variant="blend">
       <div className="animate-fade-in motion-reduce:animate-none">
-        <p className="font-mono text-sm opacity-60">&gt;_ {d.hero.role}</p>
+        <p className="font-mono text-sm opacity-70">&gt;_ {d.hero.role}</p>
 
         {/* Elemento de LCP da rota: sem delay de animação. */}
         <h1 className="mt-4 text-display font-semibold text-balance">
@@ -70,7 +70,7 @@ export function Manifesto({ lang }: { lang: Locale }) {
             key={step.title}
             className="grid gap-2 border-b border-current/15 py-7 sm:grid-cols-[auto_minmax(0,14rem)_minmax(0,1fr)] sm:items-baseline sm:gap-8"
           >
-            <span className="font-mono text-xs opacity-40 tabular-nums">
+            <span className="font-mono text-xs opacity-70 tabular-nums">
               {String(index + 1).padStart(2, "0")}
             </span>
             <h2 className="text-xl font-medium tracking-tight sm:text-2xl">

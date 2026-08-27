@@ -140,7 +140,7 @@ export function SectionHeading({
         className
       )}
     >
-      <p className="font-mono text-sm opacity-60">&gt;_ {label}</p>
+      <p className="font-mono text-sm opacity-70">&gt;_ {label}</p>
       <h2 className="mt-2 text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
         {title}
       </h2>

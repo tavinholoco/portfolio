@@ -192,10 +192,37 @@
     );
 }
 
-/* Anel de foco consistente para links e elementos interativos comuns */
+/*
+ * REGRA DE OPACIDADE EM TEXTO (achado da auditoria da Fase 6).
+ *
+ * A hierarquia da v3 é feita por tamanho e opacidade, e é fácil exagerar:
+ * `opacity-40` em texto de 12px dá contraste de 2.0 contra o fundo escuro,
+ * bem abaixo dos 4.5:1 que a WCAG AA pede para texto pequeno.
+ *
+ * Duas regras, medidas e não estimadas:
+ *   1. Texto nunca abaixo de `opacity-70`. A 0.7 o contraste passa nos dois
+ *      temas e também dentro de uma seção `blend`, contra os dois backdrops.
+ *   2. Nunca aninhar opacidade em texto. Uma linha a 60% com um filho a 40%
+ *      resulta em 24% efetivo, e foi exatamente esse o pior caso encontrado.
+ *
+ * Opacidade em elemento decorativo (moldura, máscara, ícone `aria-hidden`) não
+ * entra nesta regra, porque não carrega informação.
+ */
+
+/*
+ * Anel de foco consistente para links e elementos interativos.
+ *
+ * `currentColor` e não `var(--ring)`, e isso é acessibilidade, não estética.
+ * Dentro de uma seção `blend` o anel é pintado no grupo e depois invertido:
+ * com `--ring` (que vale `--c-ink`, ou #0d0d0d no tema claro) o resultado é
+ * |220 - 13| = 207, quase branco sobre um fundo claro, ou seja, invisível para
+ * quem navega por teclado. Com `currentColor` o anel acompanha o texto, que já
+ * é branco ali, e inverte junto com ele. Em seções `solid` os dois valores
+ * coincidem, então nada muda.
+ */
 @utility focus-ring {
   &:focus-visible {
-    outline: 2px solid var(--ring);
+    outline: 2px solid currentColor;
     outline-offset: 2px;
   }
 }

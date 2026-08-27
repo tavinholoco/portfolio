@@ -429,7 +429,20 @@ export class BackgroundRenderer {
   }
 
   private handleVisibility = (): void => {
+    const estavaOculto = this.documentHidden;
     this.documentHidden = document.visibilityState === "hidden";
+
+    /*
+     * Remede ao voltar a ficar visível.
+     *
+     * Uma aba aberta em segundo plano não faz layout: o contêiner mede 0 no
+     * mount e o canvas nasce em 1x1. O ResizeObserver não resolve sozinho,
+     * porque ele entrega nas etapas de renderização, que uma página oculta não
+     * executa. Sem isto, a aba voltaria pintando um único pixel esticado na
+     * tela inteira, ou seja, uma cor chapada.
+     */
+    if (estavaOculto && !this.documentHidden) this.resize();
+
     this.syncLoop();
   };
 

@@ -19,10 +19,10 @@ export function SiteFooter() {
   return (
     <footer className="pointer-events-none fixed inset-x-0 bottom-0 z-50 mix-blend-difference text-white">
       <div className="flex items-center justify-between gap-4 font-mono text-xs [padding-block:var(--pad)] [padding-inline:calc(var(--pad)*2)]">
-        <span className="opacity-60">
+        <span className="opacity-70">
           © {new Date().getFullYear()} {profile.name}
         </span>
-        <span className="opacity-60">{profile.location}</span>
+        <span className="opacity-70">{profile.location}</span>
       </div>
     </footer>
   );

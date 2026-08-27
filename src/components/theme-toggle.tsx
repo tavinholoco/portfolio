@@ -27,7 +27,7 @@ export function ThemeToggle({ label }: { label: string }) {
       /* Sem cor nem fundo próprios: vive dentro do header em mix-blend-difference,
          onde qualquer cor explícita inverteria por conta própria. Hierarquia por
          opacidade, como manda a seção 8 do plano. */
-      className="focus-ring inline-flex size-9 items-center justify-center rounded-md opacity-60 transition-opacity hover:opacity-100"
+      className="focus-ring inline-flex size-9 items-center justify-center rounded-md opacity-70 transition-opacity hover:opacity-100"
     >
       {/* Sol visível no modo escuro, lua no modo claro (mostra o tema de destino) */}
       <Sun className="hidden size-4 dark:block" aria-hidden />

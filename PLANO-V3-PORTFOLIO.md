@@ -4,7 +4,7 @@
 >
 > **Base:** v2 publicada (Next 16.3 + React 19, Tailwind v4, bilíngue com paridade testada, 36 unit + 6 E2E, Lighthouse 95/100/100/100).
 > **Referência de inspiração:** [p5aholic.me](https://p5aholic.me) (Keita Yamada). Inspiração estrutural, **não cópia**. Ver seção 0.3.
-> **Status:** 🚧 **Em desenvolvimento. Fases 0 a 5 concluídas em 26/08/2026**, com o portão de saída da Fase 2 aprovado. Duas auditorias completas realizadas (seções 5 e 6, 30 achados já incorporados às fases). Próxima: Fase 6 (performance, acessibilidade e fallbacks).
+> **Status:** 🚧 **Em desenvolvimento. Fases 0 a 6 concluídas em 27/08/2026**, com o portão de saída da Fase 2 aprovado e o Lighthouse acima da meta nas 5 rotas. Próxima e última: Fase 7 (testes finais, documentação e deploy).
 > **Versão do documento:** V3.2
 
 ---
@@ -27,9 +27,11 @@ Da Fase 3 estão em pé as 10 rotas (5 por idioma, todas estáticas), o header e
 
 Da Fase 4 estão em pé a Home como manifesto tipográfico com os 5 passos, e o showcase com preview trocando no hover, servindo Projetos e Clientes.
 
-Da Fase 5 estão em pé Info, Contato e as páginas de case redesenhadas, e o **Framer Motion foi removido do projeto** (F10 resolvido). 133 testes unitários e 6 E2E passando.
+Da Fase 5 estão em pé Info, Contato e as páginas de case redesenhadas, e o **Framer Motion foi removido do projeto** (F10 resolvido).
 
-Nenhuma tela usa mais o visual da v2. O trabalho continua na **Fase 6** (seção 7).
+Da Fase 6 está em pé a auditoria inteira, agora automatizada: **133 testes unitários e 60 E2E**, incluindo a lei F1 verificada nas 11 rotas com controle negativo. Lighthouse nas 5 rotas: **Perf 96 a 100, A11y 100, Best Practices 100, SEO 100**.
+
+O trabalho continua na **Fase 7** (seção 7).
 
 ### 0.2 As três coisas que mais quebram este plano
 
@@ -575,19 +577,49 @@ Client component, `variant="solid"`. Subcomponentes: `showcase-preview.tsx` (pil
 
 ### Fase 6: Performance, acessibilidade e fallbacks
 
-- [ ] Canvas em SSR normal, `ogl` via `await import()` no efeito. Sem `ssr: false` (E1)
-- [ ] Nenhum ancestral de seção `blend` cria contexto de empilhamento (F1). Auditar em DevTools > Layers
-- [ ] Lenis sem transform de conteúdo (F3)
-- [ ] `prefers-reduced-motion`: 1 frame e para, Lenis desligado, preview sem crossfade
-- [ ] rAF pausado com `document.hidden` e via `IntersectionObserver`
-- [ ] DPR limitado a 1.5; render target ~320px no lado maior
-- [ ] Telas < 768px: DPR 1 e render target menor
-- [ ] Fallback CSS sem WebGL e em `webglcontextlost`
-- [ ] Showcase funcional em touch e teclado
-- [ ] Contraste verificado **com o shader rodando**, nos dois temas, no pior frame. O `difference` garante inversão, mas paletas de luminância média produzem cinza sobre cinza. A paleta precisa ser restringida a faixas seguras
-- [ ] Foco visível em toda a UI em difference
-- [ ] `user-select` **não** desativado globalmente (a referência desativa; nós não, porque recrutador copia email)
-- [ ] Lighthouse Perf >= 90 e A11y 100 nas 5 rotas
+- [x] Canvas em SSR normal, `ogl` via `await import()` no efeito. Sem `ssr: false` (E1)
+- [x] Nenhum ancestral de seção `blend` cria contexto de empilhamento (F1). Auditar em DevTools > Layers
+- [x] Lenis sem transform de conteúdo (F3)
+- [x] `prefers-reduced-motion`: 1 frame e para, Lenis desligado, preview sem crossfade
+- [x] rAF pausado com `document.hidden` e via `IntersectionObserver`
+- [x] DPR limitado a 1.5; render target ~320px no lado maior
+- [x] Telas < 768px: DPR 1 e render target menor
+- [x] Fallback CSS sem WebGL e em `webglcontextlost`
+- [x] Showcase funcional em touch e teclado
+- [x] Contraste verificado **com o shader rodando**, nos dois temas, no pior frame. O `difference` garante inversão, mas paletas de luminância média produzem cinza sobre cinza. A paleta precisa ser restringida a faixas seguras
+- [x] Foco visível em toda a UI em difference
+- [x] `user-select` **não** desativado globalmente (a referência desativa; nós não, porque recrutador copia email)
+- [x] Lighthouse Perf >= 90 e A11y 100 nas 5 rotas
+
+---
+
+#### Notas de execução da Fase 6 (27/08/2026)
+
+A fase encontrou **quatro problemas reais**. Nenhum apareceria em revisão de código, e três só apareceram porque a auditoria virou medição em vez de leitura.
+
+1. **O anel de foco era invisível no tema claro dentro de seções `blend`.** `focus-ring` usava `outline: 2px solid var(--ring)`, e `--ring` vale `--c-ink`, ou `#0d0d0d` no claro. Dentro de uma seção misturada isso resulta em `|220 - 13| = 207`, quase branco sobre fundo claro. Quem navega por teclado não via onde estava. Corrigido para `currentColor`, que acompanha o texto e inverte junto com ele. Em seções `solid` os dois valores coincidem, então nada mudou lá.
+
+2. **O canvas ficava preso em 1x1 quando a aba nascia em segundo plano.** Página oculta não faz layout, então o contêiner media 0 no mount. O `ResizeObserver` não salvava, porque ele entrega nas etapas de renderização, que uma página oculta não executa. Ao voltar, o site pintaria um único pixel esticado na tela inteira, ou seja, uma cor chapada. O motor passou a remedir no `visibilitychange`, e há teste para isso.
+
+3. **Contraste real abaixo da WCAG AA, por opacidade aninhada.** O pior caso media 2.0:1 em texto de 12px. A causa não era um valor exagerado isolado: era uma linha da lista a 60% com um número a 40% dentro dela, dando **24% efetivo**. Separadamente os dois valores parecem razoáveis, e é por isso que ler o código não pega. **Regra nova, documentada no `globals.css` e verificada por teste E2E que multiplica as opacidades ao longo da árvore: texto nunca abaixo de `opacity-70`, e nunca aninhado.**
+
+4. **Alvos de toque abaixo de 24x24** nos links da nav e no logo (17px de altura). Resolvido com `min-h-6` e padding próprio.
+
+**Lighthouse, preset desktop, build de produção:**
+
+| Rota | Perf | A11y | Best Practices | SEO | LCP | CLS |
+|---|---|---|---|---|---|---|
+| `/` | 100 | 100 | 100 | 100 | 0.6s | 0 |
+| `/clientes/` | 96 | 100 | 100 | 100 | 0.9s | 0 |
+| `/projetos/` | 99 | 100 | 100 | 100 | 0.6s | 0 |
+| `/info/` | 99 | 100 | 100 | 100 | 0.6s | 0 |
+| `/contato/` | 99 | 100 | 100 | 100 | 0.6s | 0 |
+
+O baseline da v2 era 95/100/100/100 numa rota só. O Lighthouse não vem instalado: rode com `CHROME_PATH` apontando para o Chromium do Playwright, porque a máquina não tem Chrome próprio.
+
+**Armadilha que custou tempo duas vezes, agora documentada nas duas configs do Playwright:** `reuseExistingServer` aproveita qualquer servidor na porta 3000, inclusive um iniciado antes do último build. O sintoma é teste falhando por uma correção que já está no código, ou captura de tela sem CSS nenhum.
+
+**Sobra para a Fase 7:** `ui/button.tsx` e `ui/tooltip.tsx` ficaram sem nenhum consumidor depois da Fase 5. E as capturas de `/projects/dandarkness.jpg` têm proporção e resolução que o Lighthouse aponta como inadequadas para o slot 16:10 do preview, o que a recaptura já prevista resolve.
 
 ---
 
@@ -692,7 +724,7 @@ Roteiro manual, nos dois temas e nos dois idiomas:
 - [x] Fase 3: Rotas, navegação e scroll, concluída em 26/08/2026
 - [x] Fase 4: Home e showcase, concluída em 26/08/2026
 - [x] Fase 5: Info, Contato e páginas de projeto, concluída em 26/08/2026
-- [ ] Fase 6: Performance, acessibilidade e fallbacks
+- [x] Fase 6: Performance, acessibilidade e fallbacks, concluída em 27/08/2026
 - [ ] Fase 7: Testes, documentação e deploy
 - [ ] Capturas: Newra News, Trak, Dandarkness
 - [ ] 🔄 Captura do Netsheet Engine (aguardando deploy do Pedro)
