@@ -4,7 +4,7 @@
 >
 > **Base:** v2 publicada (Next 16.3 + React 19, Tailwind v4, bilíngue com paridade testada, 36 unit + 6 E2E, Lighthouse 95/100/100/100).
 > **Referência de inspiração:** [p5aholic.me](https://p5aholic.me) (Keita Yamada). Inspiração estrutural, **não cópia**. Ver seção 0.3.
-> **Status:** 🚧 **Em desenvolvimento. Fases 0 a 6 concluídas em 27/08/2026**, com o portão de saída da Fase 2 aprovado e o Lighthouse acima da meta nas 5 rotas. Próxima e última: Fase 7 (testes finais, documentação e deploy).
+> **Status:** ✅ **Concluído em 27/08/2026. As 7 fases fechadas**, com o portão de saída da Fase 2 aprovado e o Lighthouse acima da meta nas 5 rotas. Resta o deploy, que depende do Pedro, e o registro do Lighthouse pós-deploy.
 > **Versão do documento:** V3.2
 
 ---
@@ -29,9 +29,11 @@ Da Fase 4 estão em pé a Home como manifesto tipográfico com os 5 passos, e o 
 
 Da Fase 5 estão em pé Info, Contato e as páginas de case redesenhadas, e o **Framer Motion foi removido do projeto** (F10 resolvido).
 
-Da Fase 6 está em pé a auditoria inteira, agora automatizada: **133 testes unitários e 60 E2E**, incluindo a lei F1 verificada nas 11 rotas com controle negativo. Lighthouse nas 5 rotas: **Perf 96 a 100, A11y 100, Best Practices 100, SEO 100**.
+Da Fase 6 está em pé a auditoria inteira, agora automatizada, e da Fase 7 a limpeza final e a documentação.
 
-O trabalho continua na **Fase 7** (seção 7).
+**Estado final: 141 testes unitários e 68 E2E.** Lighthouse nas 5 rotas: **Perf 96 a 100, A11y 100, Best Practices 100, SEO 100**, contra o baseline de 95/100/100/100 da v2 numa rota só.
+
+O que falta não é código: é o deploy, que depende do Pedro, e o registro do Lighthouse rodado contra a URL de produção.
 
 ### 0.2 As três coisas que mais quebram este plano
 
@@ -625,13 +627,33 @@ O baseline da v2 era 95/100/100/100 numa rota só. O Lighthouse não vem instala
 
 ### Fase 7: Testes, documentação e deploy
 
-- **Testes novos:** manifesto de rotas contra arquivos em disco, `background-config` (interpolação de paleta), `createGrainBuffer` (E8), `itemListJsonLd`
-- **Reescritos:** `lang-path.test.ts`, `sitemap.test.ts` (E3)
-- **Intactos:** `utils`, `metadata`, `github`, paridade i18n
-- **E2E:** canvas com dimensões > 0; navegação pelas 5 rotas nos dois idiomas; hover troca o preview; `prefers-reduced-motion` sem erro de console; `html-lang.spec.ts` ampliado
-- **Limpeza:** chaves órfãs (E6) e as sobras de `create-next-app` em `public/` (`file.svg`, `globe.svg`, `next.svg`, `vercel.svg`, `window.svg`), pendência aberta desde a v2
+- ✅ **Testes novos:** manifesto de rotas contra arquivos em disco, `background-config` (interpolação de paleta), `createGrainBuffer` (E8), `itemListJsonLd`
+- ✅ **Reescritos:** `lang-path.test.ts`, `sitemap.test.ts` (E3)
+- ✅ **Intactos:** `utils`, `metadata`, `github`, paridade i18n
+- ✅ **E2E:** canvas com dimensões > 0; navegação pelas 5 rotas nos dois idiomas; hover troca o preview; `prefers-reduced-motion` sem erro de console; `html-lang.spec.ts` ampliado
+- ✅ **Limpeza:** chaves órfãs (E6) e as sobras de `create-next-app` em `public/` (`file.svg`, `globe.svg`, `next.svg`, `vercel.svg`, `window.svg`), pendência aberta desde a v2
 - Atualizar [README.md](README.md): árvore nova, **a montagem de camadas de F1 com o porquê**, como ajustar paleta, como adicionar projeto ao showcase, e corrigir a seção "4. Projetos de clientes" que ainda documenta o modelo antigo
 - Marcar este documento como concluído e registrar o Lighthouse pós-deploy
+
+---
+
+#### Notas de execução da Fase 7 (27/08/2026)
+
+**Limpeza.** Saíram `ui/button.tsx`, `ui/tooltip.tsx` e `icons.tsx`, todos sem consumidor depois da Fase 5, mais as cinco sobras do `create-next-app` em `public/`. O botão de fechar do Sheet, único consumidor do `<Button>`, virou um `<button>` próprio, o que permitiu remover também as dependências **class-variance-authority** e **tw-animate-css**. Da camada de tokens shadcn sobraram apenas `--popover`, `--popover-foreground`, `--border`, `--ring`, `--muted-foreground` e `--primary`: nove tokens mortos foram removidos do `globals.css`.
+
+**Somando com a Fase 5, a v3 cortou três dependências inteiras** (framer-motion, class-variance-authority, tw-animate-css) e acrescentou duas (ogl, lenis).
+
+**Testes.** O teste do manifesto contra os arquivos em disco, adiado desde a Fase 0, finalmente entrou: ele pega a única falha que o manifesto sozinho não pega, que é acrescentar uma rota e esquecer o arquivo de um dos idiomas. A nav mostraria o link, o sitemap anunciaria a URL, o hreflang apontaria para ela, e a rota daria 404, sem nada quebrar em compilação. O `html-lang.spec.ts` foi ampliado das 2 rotas originais para as 10 do manifesto mais os cases.
+
+**README reescrito.** A montagem de camadas está lá com o porquê, junto das três consequências descobertas na prática (fundo no `:root`, Lenis sem transform, nada de fundo opaco em `sticky`), da regra de opacidade em texto, e dos guias de acrescentar rota, projeto, cliente e paleta. A seção de clientes, que ainda documentava campos que nunca existiram (`client`, `type`, `tech`, `outcome`), foi corrigida para os campos reais.
+
+**Pendências que não são código, e dependem do Pedro:**
+
+- Deploy e registro do Lighthouse contra a URL de produção
+- Confirmar os anos dos projetos em `src/data/projects.ts`, que saíram do diagrama da seção 3 deste plano
+- Decidir sobre `clients.projects[].responsibilities` e `.status`, que continuam nos dicionários sem nenhuma tela renderizando
+- Capturas de tela dos projetos (`pnpm capture` para os que têm URL pública; o Repertório Progressivo é app React Native e depende de export do Expo)
+- `NEXT_PUBLIC_SITE_URL` em produção e o DNS de `pedrolevi.dev`
 
 ---
 
@@ -725,7 +747,7 @@ Roteiro manual, nos dois temas e nos dois idiomas:
 - [x] Fase 4: Home e showcase, concluída em 26/08/2026
 - [x] Fase 5: Info, Contato e páginas de projeto, concluída em 26/08/2026
 - [x] Fase 6: Performance, acessibilidade e fallbacks, concluída em 27/08/2026
-- [ ] Fase 7: Testes, documentação e deploy
+- [x] Fase 7: Testes, documentação e deploy, concluída em 27/08/2026 (deploy pendente com o Pedro)
 - [ ] Capturas: Newra News, Trak, Dandarkness
 - [ ] 🔄 Captura do Netsheet Engine (aguardando deploy do Pedro)
 - [ ] ⏸️ Preview do Repertório Progressivo (aguardando screenshots do Expo)

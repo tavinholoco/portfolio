@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -30,31 +29,20 @@
   --background: var(--c-bg);
   --foreground: var(--c-ink);
 
-  --card: var(--c-bg);
-  --card-foreground: var(--c-ink);
-
   /* Opaco de propósito: o painel do Sheet portaliza para o body e não pode
-     deixar o canvas aparecer através dele (F7). */
+     deixar o canvas aparecer através dele (F7). Junto com --popover-foreground
+     e --border, é o que sobrou da camada shadcn depois que button e tooltip
+     saíram: o Sheet do menu mobile é o único consumidor. */
   --popover: var(--c-bg);
   --popover-foreground: var(--c-ink);
 
   --primary: var(--c-ink);
   --primary-foreground: var(--c-bg);
 
-  --secondary: #e3e3e3;
-  --secondary-foreground: var(--c-ink);
-
   --muted: #e7e7e7;
   --muted-foreground: #666668;
 
-  --accent: #e3e3e3;
-  --accent-foreground: var(--c-ink);
-
-  --destructive: #b42318;
-  --destructive-foreground: #fdf3f2;
-
   --border: rgb(13 13 13 / 0.14);
-  --input: rgb(13 13 13 / 0.2);
   --ring: var(--c-ink);
 
   background: var(--c-bg);
@@ -65,41 +53,22 @@
   --c-bg: #0b0b0c;
   --c-ink: #fafafa;
 
-  --secondary: #1a1a1c;
-  --secondary-foreground: var(--c-ink);
-
   --muted: #161618;
   --muted-foreground: #9a9a9e;
 
-  --accent: #1a1a1c;
-  --accent-foreground: var(--c-ink);
-
-  --destructive: #f87171;
-  --destructive-foreground: #2b0a0a;
-
   --border: rgb(250 250 250 / 0.16);
-  --input: rgb(250 250 250 / 0.22);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border);
-  --color-input: var(--input);
   --color-ring: var(--ring);
 
   --font-sans: var(--font-fira-code);
