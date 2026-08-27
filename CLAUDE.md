@@ -22,19 +22,21 @@ Estas não geram erro no console. Se forem violadas, o site parece funcionar e o
 2. **O fundo da página vive no `:root`, nunca no `body`.**
 3. **Nada pode aplicar `transform` em `html`, `body` ou `main`.** Era a lei do Lenis, que saiu na V3.5. A lei fica: qualquer lib de rolagem suave que envolva o conteúdo num wrapper com `transform` mata o blend de todas as seções de uma vez. Teste em `e2e/shell.spec.ts`.
 4. **Não dê fundo opaco a elemento `sticky`** na mesma página de uma seção `blend`: pinta um retângulo dentro da seção misturada, longe dali.
-5. **Uma seção só pode ser `blend` se o conteúdo herdar a cor.** `text-muted-foreground` e `bg-card` não herdam e cada um inverte para um lado. Seção com imagem vai em `solid`.
+5. **Uma seção só pode ser `blend` se o conteúdo herdar a cor.** `text-muted-foreground` e `bg-card` não herdam e cada um inverte para um lado. Seção com imagem vai em **`plain`**, que não mistura e não cobre o canvas. A `solid`, que cobre, hoje não tem consumidor.
 6. **Texto nunca abaixo de `opacity-70`, e nunca com opacidade aninhada.** Uma linha a 60% com filho a 40% dá 24% efetivo e reprova a WCAG AA.
 7. **O `<SiteHeader>` precisa de `pointer-events-none`,** e cada elemento interativo dentro dele de `pointer-events-auto`. Ele é `fixed`, de largura cheia, e com a nav vertical tem umas 300px de altura: sem isso essa faixa rouba clique e hover do conteúdo que passa por baixo, inclusive o hover que troca o preview do showcase. Mesmo esquema do `<SiteFooter>`.
 8. **A coluna da nav se reserva por `--nav-col` no container do `<Section>`, nunca por padding no `<main>`.** No `<main>` o fundo das seções `solid` deixaria de alcançar a faixa e abriria uma tira do canvas na lateral esquerda. Padding é seguro para a lei 1, pois não cria contexto de empilhamento.
 9. **Crase dentro de shader quebra o build.** Os shaders são template literals em `.ts`, e uma crase num comentário GLSL fecha a string do JS. O erro aparece como parse do TypeScript no meio de um comentário. Nos comentários GLSL use aspas simples.
 10. **A direção da onda é o sinal do termo de tempo no `field.ts`.** `sin(z*k + t*w)` traz a crista para a praia; com `-` ela corre para o horizonte, e **nada acusa**: o fundo continua animado e sem erro. Rode `pnpm waves`.
-11. **O campo do shader precisa devolver `v` em `[0,1]`.** O ramp de 3 cores no fim de `field.ts` é o que garante o contraste, e o teste de `background-config.test.ts` prova isso varrendo o ramp, não o campo. Trocar o gerador é seguro; mudar o contradomínio ou o ramp não é.
+11. **Cada tema tem o seu conjunto de paletas.** O claro usa `palettesLight`, pálidas, porque sobre `#f0f0f0` só há 0.22 de luminância até a faixa proibida, e paleta escura ali obriga o campo a quase sumir. A paleta viaja no mesmo tween da cor de fundo, nunca num paralelo.
+12. **O campo do shader precisa devolver `v` em `[0,1]`.** O ramp de 3 cores no fim de `field.ts` é o que garante o contraste, e o teste de `background-config.test.ts` prova isso varrendo o ramp, não o campo. Trocar o gerador é seguro; mudar o contradomínio ou o ramp não é.
 
 ## Ferramentas do projeto
 
 - **`pnpm look`** captura telas do site em `.captures/`, para inspecionar o resultado visual. Parametrizado por `LOOK_PATHS`, `LOOK_THEMES`, `LOOK_FULL`, `LOOK_SCROLL`, `LOOK_HOVER`, `LOOK_WIDTH`, `LOOK_HEIGHT`. No Git Bash do Windows, prefixe com `MSYS_NO_PATHCONV=1`.
 - **`pnpm capture`** gera os previews do showcase em `public/projects/`. Sob demanda, nunca no CI.
 - **`pnpm waves`** mede para que lado as cristas do fundo viajam, compilando o GLSL real num contexto próprio. Existe porque a direção invertida não gera erro nenhum.
+- **`e2e/responsivo.spec.ts`** varre 5 rotas × 4 larguras: rolagem horizontal, colisão com o bloco de identidade fixo e texto vazando a moldura. Roda no `pnpm test:e2e`.
 - **Lighthouse** precisa de `CHROME_PATH` apontando para o Chromium do Playwright: a máquina não tem Chrome instalado.
 
 > ⚠️ O `reuseExistingServer` do Playwright aproveita qualquer servidor na porta 3000, **inclusive um iniciado antes do último build**. O sintoma é teste falhando por uma correção que já está no código, ou captura sem CSS nenhum. Derrube a porta 3000 antes de testar ou capturar depois de um `pnpm build`.

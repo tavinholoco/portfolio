@@ -107,7 +107,7 @@ export function ShowcaseList({
   }, [apply, items]);
 
   return (
-    <Section id={id} variant="solid" wide>
+    <Section id={id} variant="plain" wide>
       {/*
         Lado a lado a partir de lg, empilhado abaixo disso.
         
@@ -118,8 +118,8 @@ export function ShowcaseList({
         pede, acompanhar a rolagem e sair ao fim da seção, e a lista inteira
         fica visível junto do preview, que é o ponto do componente.
         
-        No empilhado de telas pequenas o preview leva fundo opaco, e aí a lista
-        passar por baixo dele deixa de ser defeito e vira painel fixo.
+        Abaixo de lg o `sticky` nem liga, então preview e lista empilham em
+        fluxo normal, sem sobreposição possível.
       */}
       <div className="grid gap-8 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:items-start lg:gap-12">
         <ShowcasePreview

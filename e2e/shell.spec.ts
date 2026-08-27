@@ -90,8 +90,12 @@ test.describe("F1: o blend precisa alcançar o canvas", () => {
      * Sem este caso, o conjunto acima passaria igual se a função de auditoria
      * estivesse quebrada e sempre devolvesse lista vazia. Aqui a quebra é
      * introduzida de propósito no <main> e o teste precisa vê-la.
+     *
+     * A rota é `/info/` e não `/`: a home ficou sem conteúdo na V3.5, então lá
+     * não existe seção `blend` para confinar, e o controle passaria a provar
+     * nada.
      */
-    await page.goto("/");
+    await page.goto("/info/");
     await page.evaluate(() => {
       document.querySelector("main")?.setAttribute("style", "isolation: isolate");
     });
@@ -335,7 +339,7 @@ test.describe("movimento reduzido", () => {
     await page.goto("/projetos/");
     const duracao = await page.evaluate(() => {
       const alvo = document.querySelector(
-        '[data-variant="solid"] .absolute'
+        '[data-variant="plain"] .absolute'
       ) as HTMLElement | null;
       return alvo ? getComputedStyle(alvo).transitionDuration : null;
     });

@@ -14,6 +14,7 @@ import {
   easeShell,
   hexToRgb,
   mixForBack,
+  isLightBack,
   paletteFor,
   vignetteTargetForBack,
   type PalettePreset,
@@ -163,6 +164,7 @@ export class BackgroundRenderer {
   private pointer: [number, number] = [0, 0];
   private pointerTarget: [number, number] = [0, 0];
 
+  private preset: PalettePreset = "graphite";
   private themeTween: Tween | null = null;
 
   private resizeObserver: ResizeObserver | null = null;
@@ -213,8 +215,11 @@ export class BackgroundRenderer {
     this.reducedMotion = this.prefersReducedMotion();
     this.documentHidden = document.visibilityState === "hidden";
 
-    const palette = paletteFor(preset);
     const back = this.readBackFromCanvas(canvas);
+    /* A paleta inicial precisa seguir o tema inicial, senão o site abre no
+       claro com as cores do escuro até a primeira troca. */
+    const palette = paletteFor(preset, isLightBack(back));
+    this.preset = preset;
     const target = fieldTargetSize(
       size.width,
       size.height,
@@ -324,12 +329,24 @@ export class BackgroundRenderer {
    * `--shell-ease`, em vez de lida do getComputedStyle a cada frame, o que
    * forçaria layout (F6). A dose de campo e o alvo da vinheta acompanham,
    * senão o shader chegaria ao tema novo antes ou depois do CSS.
+   *
+   * **A paleta viaja no mesmo tween**, e não num paralelo, porque cada tema
+   * tem o seu conjunto: o claro usa `palettesLight`, cujo ponto mais escuro é
+   * alto o bastante para o campo aparecer sem entrar na faixa proibida. Dois
+   * tweens independentes chegariam em instantes diferentes e a composição
+   * passaria por combinações que ninguém mediu.
    */
   setTheme(hex: string): void {
     if (!this.compositeMesh) return;
 
     const back = hexToRgb(hex);
-    const to = [...back, mixForBack(back), vignetteTargetForBack(back)];
+    const palette = paletteFor(this.preset, isLightBack(back));
+    const to = [
+      ...back,
+      mixForBack(back),
+      vignetteTargetForBack(back),
+      ...palette.flatMap((color) => [...color]),
+    ];
 
     if (this.reducedMotion) {
       this.themeTween = null;
@@ -491,13 +508,15 @@ export class BackgroundRenderer {
     ];
   }
 
+  /** Os 5 do composite mais os 9 da paleta, num vetor só. */
   private currentThemeFlat(): number[] {
     const uniforms = this.compositeMesh?.program.uniforms;
-    if (!uniforms) return new Array<number>(5).fill(0);
+    if (!uniforms) return new Array<number>(14).fill(0);
     return [
       ...(uniforms.uBack.value as number[]),
       uniforms.uMix.value as number,
       uniforms.uVignetteTarget.value as number,
+      ...this.currentPaletteFlat(),
     ];
   }
 
@@ -507,6 +526,7 @@ export class BackgroundRenderer {
     uniforms.uBack.value = flat.slice(0, 3);
     uniforms.uMix.value = flat[3];
     uniforms.uVignetteTarget.value = flat[4];
+    this.applyPaletteFlat(flat.slice(5, 14));
   }
 
   /**

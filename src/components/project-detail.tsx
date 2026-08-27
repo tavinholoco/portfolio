@@ -123,7 +123,7 @@ export async function ProjectDetailPage({
         </div>
       </Section>
 
-      <Section id="case" variant="solid">
+      <Section id="case" variant="plain">
         {/* O argumento do projeto, em três blocos separados só por linha. */}
         <dl className="border-t border-border">
           {[

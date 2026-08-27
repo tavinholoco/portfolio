@@ -37,7 +37,8 @@ A montagem correta, em `src/components/shell/site-shell.tsx`:
 | `<BackgroundCanvas>` | `fixed`, `inset: var(--pad)` | **-1** | Canvas WebGL, recuado, sem eventos de ponteiro |
 | `<main>` | **estático, sem z-index** | auto | **Não pode** criar contexto de empilhamento |
 | `Section variant="blend"` | em fluxo | auto | `mix-blend-difference`, mistura contra o canvas |
-| `Section variant="solid"` | em fluxo | auto | Fundo opaco, cobre o canvas |
+| `Section variant="plain"` | em fluxo | auto | Sem fundo e sem blend: para seção com imagem |
+| `Section variant="solid"` | em fluxo | auto | Fundo opaco, cobre o canvas. Sem consumidor hoje |
 | `<ViewportMask>` | `fixed` | 30 | Cobre as faixas de `var(--pad)` no topo e na base |
 | `<Frame>` | `fixed` | 40 | Moldura de 1px, em `difference` |
 | `<SiteHeader>` / `<SiteFooter>` | `fixed` | 50 | Em `difference`, acima da máscara. Ambos em `pointer-events-none` |

@@ -955,3 +955,36 @@ O efeito cascata foi maior que o pedido e vale registrar, porque o que sumiu era
 **6. Duas paletas do vocabulário continuam sem uso.** As seis seguem definidas e cobertas pelo teste de contraste, para trocar a do site inteiro numa linha. Trocar `DEFAULT_PALETTE` para `sand` é o caminho se um dia a praia pedir cor de areia.
 
 Verificação desta rodada: lint e typecheck limpos, **139 unitários** (dois a menos, os que provavam a paleta por rota e por item), **68 E2E**, `pnpm waves` passando com controle negativo conferido, e captura em 1440 e 390 nos dois casos.
+
+### 12.5 Terceira rodada: fora o bloco opaco, a home vazia e o tema claro
+
+**1. As seções `solid` pintavam um retângulo que cobria o site.** Era a variante de qualquer seção com imagem, porque foto em `difference` aparece em negativo. O efeito colateral só ficou óbvio no site rodando: em `/projetos/` a 768px o bloco preto ocupava a viewport inteira e o campo de ondas simplesmente não existia, com emenda dura onde a seção acabava.
+
+Entrou a variante **`plain`**: sem fundo e sem blend, com a cor de texto normal. Resolve o mesmo problema que a `solid` resolvia, imagem em cores certas, sem cobrir nada. O contraste não vem do blend, vem da distância entre `--c-ink` e o campo, e o teste desta pasta já mantém a composição fora da faixa de 0.35 a 0.65: no escuro ela fica bem abaixo, no claro bem acima, e texto normal contrasta com folga nos dois. As quatro seções que eram `solid` (showcase, identidade, trajetória e o case) viraram `plain`. A `solid` continua existindo e **hoje não tem consumidor**.
+
+**2. A home ficou sem conteúdo.** Saiu tudo: tese, bio e os dois CTAs. A rota é só o campo de ondas, com a identidade fixa no header e o copyright no rodapé. Isso **revoga em definitivo a §2.3**, que exigia a tese como corpo da home; ela sobrevive em `/info/`, na seção de processo. O `h1` continua, em `sr-only`: rota sem `h1` é falha de acessibilidade e de SEO, e a home é a raiz do site.
+
+O "Baixar CV" era o único CTA que precisava sobreviver, e foi para o canto direito do header, junto de idioma e tema.
+
+**3. O tema claro era um cinza chapado, e a causa era aritmética.** O fundo claro é `#f0f0f0`, luminância 0.87, e a faixa proibida começa em 0.65: são 0.22 de curso, contra a faixa inteira que o escuro tem. Com as paletas escuras, cujo ponto mais baixo é quase preto, esse orçamento acabava em `FIELD_MIX.light` de 0.12, e por isso a dose era 0.08 e as ondas não apareciam.
+
+A saída foi dar ao tema claro **o seu próprio conjunto de paletas**, `palettesLight`, pálidas o bastante para o ponto mais escuro do ramp não afundar a composição. Medido pelo mesmo método do teste: com elas o teto sobe para 0.25. Ficou em **0.20**, que deixa 0.046 de margem contra o limite em vez dos 0.014 de 0.25. É 2.5x mais campo que antes, e as ondas passam a ser visíveis no claro.
+
+**A paleta viaja no tween de tema**, não num paralelo: cada tema tem o seu conjunto, e dois tweens independentes chegariam em instantes diferentes, passando por combinações que ninguém mediu. O teste de contraste passou a varrer **cada tema contra o seu próprio set**, porque varrer o escuro contra o fundo claro provaria uma composição que o site nunca faz.
+
+**4. Auditoria de responsividade, agora automatizada.** Entrou `e2e/responsivo.spec.ts`: 5 rotas × 4 larguras (390, 768, 1024, 1440) × 3 asserções. Ela encontrou e trava um defeito real: **em 768px o `h1` encostava no cargo**. A causa é que `--pad` cresce com a viewport, então o recuo do header cresce junto, enquanto o padding da seção era fixo. A folga passou a ser calculada, `calc(var(--pad) * 1.5 + 6rem)`, e vai **só na primeira seção** de cada rota, via `[&>section:first-of-type]` no `<main>`; no padding de todas, o espaço entre seções dobraria no mobile.
+
+> ⚠️ Escrever a auditoria rendeu uma lição sobre auditoria. A primeira versão media o **container** da seção em vez do texto, e acusava colisão em todo desktop: falso positivo. A segunda usava `getPropertyValue("--pad")`, que devolve a expressão literal `max(20px, 4vmin)` e não o valor resolvido, então `parseFloat` dava `NaN`, toda comparação virava falsa e **o teste passava sem testar nada**. A régua tem que ser medida num elemento de verdade.
+
+**5. Efeito cascata nos testes existentes.** O controle negativo da F1 rodava na home, que agora não tem seção `blend` nenhuma: passou a rodar em `/info/`, senão provaria vazio. E três seletores de E2E travavam `[data-variant="solid"]`.
+
+Verificação: lint e typecheck limpos, **140 unitários**, **124 E2E** (4 pulados, o teste de colisão na home, que não tem seção), `pnpm waves` passando.
+
+### 12.6 O que a terceira rodada deixou aberto
+
+| Item | Situação |
+|---|---|
+| Lighthouse | Continua sem remedir. Três rodadas de mudança desde a última medição |
+| Fantasma atrás do copyright | A `<ViewportMask>` cobre a faixa de baixo a `opacity: .9`, por decisão da E15, e o conteúdo que rola por baixo transparece atrás do copyright. Ficou visível agora que o rodapé mora nessa faixa. Subir a barra de baixo para opacidade 1 resolve, ao custo de uma faixa chapada |
+| Variante `solid` sem consumidor | Continua no `Section`, para o caso de alguma seção futura precisar mesmo esconder o fundo. Se não aparecer, é código morto para remover |
+| Chaves órfãs | `hero.bio` e `hero.viewProjects` perderam o consumidor quando a home esvaziou, e somam-se aos `label` já órfãos |

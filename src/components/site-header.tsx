@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu } from "lucide-react";
+import { Download, Menu } from "lucide-react";
 
 import { LangToggle } from "@/components/lang-toggle";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -16,6 +16,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { profile } from "@/data/profile";
 import { dictionaries, type Locale } from "@/i18n";
 import { activeRouteId, navRoutes, pathFor } from "@/lib/routes";
 import { cn } from "@/lib/utils";
@@ -85,6 +86,20 @@ export function SiteHeader({ lang }: { lang: Locale }) {
         </div>
 
         <div className="pointer-events-auto flex shrink-0 items-center gap-1">
+          {/*
+            O CV mora aqui desde a V3.5, junto de idioma e tema, porque a home
+            ficou sem conteúdo e ele era o único CTA que precisava sobreviver.
+            Sem fundo próprio, como todo o resto do header em `difference`.
+          */}
+          <a
+            href={profile.cvUrl}
+            download
+            className="focus-ring inline-flex h-9 items-center gap-1.5 rounded-md px-2 text-sm opacity-70 transition-opacity hover:opacity-100"
+          >
+            <Download className="size-4" aria-hidden />
+            <span className="hidden sm:inline">{d.hero.downloadCv}</span>
+            <span className="sr-only sm:hidden">{d.hero.downloadCv}</span>
+          </a>
           <LangToggle lang={lang} labels={d.controls} />
           <ThemeToggle label={d.controls.theme} />
 

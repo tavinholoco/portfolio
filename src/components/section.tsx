@@ -39,7 +39,7 @@ import { cn } from "@/lib/utils";
  * (F10), não sobrou nada aqui que precise rodar no cliente.
  */
 
-export type SectionVariant = "blend" | "solid";
+export type SectionVariant = "blend" | "plain" | "solid";
 
 type SectionProps = {
   id: string;
@@ -64,11 +64,21 @@ type SectionProps = {
  * canvas e o contraste sai de graça, porque o resultado do difference com
  * branco é a inversão do que estiver embaixo.
  *
- * `solid`: fundo opaco em `--c-bg`, que cobre o canvas. É a variante para
- * qualquer seção com imagem ou avatar, que em `difference` apareceria em
- * negativo. Carrega a própria transição de cor porque a transição do `:root`
- * não cascateia para o fundo de outro elemento (F5): sem ela, a seção saltaria
- * enquanto o resto da página faz crossfade de 900ms.
+ * `plain`: sem fundo e sem blend, com a cor de texto normal. É a variante para
+ * seção com imagem ou avatar, que em `difference` apareceria em negativo. O
+ * canvas continua visível atrás dela, e é isso que a separa da `solid`.
+ *
+ * O contraste aqui não vem do blend, vem da distância entre `--c-ink` e o
+ * campo: a composição do fundo é mantida fora da faixa de 0.35 a 0.65 pelo
+ * teste de `background-config`, então no tema escuro ela fica bem abaixo e no
+ * claro bem acima, e o texto normal contrasta nos dois casos com folga.
+ *
+ * `solid`: fundo opaco em `--c-bg`, que **cobre** o canvas. Era a variante das
+ * seções com imagem até a V3.5, e o efeito colateral era um retângulo chapado
+ * ocupando a página inteira, com emenda dura onde a seção acabava. Hoje não
+ * tem consumidor, e existe só para o caso de alguma seção futura precisar
+ * mesmo esconder o fundo. Carrega a própria transição de cor porque a do
+ * `:root` não cascateia para o fundo de outro elemento (F5).
  *
  * O padding do container é `calc(var(--pad) * 2)` como piso (E9), para o texto
  * nunca passar por baixo das linhas da moldura, que ficam em `var(--pad)`.
@@ -85,12 +95,12 @@ export function Section({
       id={id}
       data-variant={variant}
       className={cn(
-        /* Topo maior que a base no mobile: la o bloco de identidade do header
-           fica logo acima do conteudo, sem a coluna da nav para afastar. */
-        "scroll-mt-24 pt-28 pb-24 sm:py-28",
+        "scroll-mt-24 py-24 sm:py-28",
         variant === "blend"
           ? "mix-blend-difference text-white"
-          : "bg-[var(--c-bg)] [transition:background-color_var(--shell-fade)_var(--shell-ease)]",
+          : variant === "plain"
+            ? ""
+            : "bg-[var(--c-bg)] [transition:background-color_var(--shell-fade)_var(--shell-ease)]",
         className
       )}
     >

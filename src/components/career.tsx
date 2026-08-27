@@ -4,8 +4,10 @@ import { dictionaries, type Locale } from "@/i18n";
 /**
  * Trajetória em storytelling: um capítulo por etapa, cada um com o que aprendi.
  *
- * Em `variant="solid"` porque fica entre dois blocos misturados e serve de
- * respiro: uma página inteira em `difference` cansa, e alternar dá ritmo.
+ * Em `variant="plain"`: fica entre dois blocos misturados e serve de respiro,
+ * porque uma página inteira em `difference` cansa. Era `solid` até a V3.5, e
+ * o respiro vinha de um retângulo chapado cobrindo o canvas; agora vem só de
+ * o texto parar de inverter, e o fundo continua à vista.
  *
  * Da v2 sobreviveu a estrutura; saíram o card com `rounded-2xl` em volta dos
  * aprendizados, as tags em caixinha e o dot colorido. O trilho vertical é uma
@@ -15,7 +17,7 @@ export function Career({ lang }: { lang: Locale }) {
   const d = dictionaries[lang].career;
 
   return (
-    <Section id="trajetoria" variant="solid">
+    <Section id="trajetoria" variant="plain">
       <h2 className="text-title font-semibold tracking-tight text-balance">
         {d.title}
       </h2>

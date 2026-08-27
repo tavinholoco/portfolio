@@ -18,14 +18,19 @@ export const UNSAFE_LUMINANCE = { min: 0.35, max: 0.65 } as const;
 /**
  * Quanto do campo entra na composição, por tema.
  *
- * Assimétrico de propósito, e a razão é aritmética, não gosto. Partindo de um
- * fundo claro (#f0f0f0, L de cerca de 0.87), puxar para qualquer cor mais
- * escura atravessa a faixa proibida; só uma dose pequena mantém o resultado
- * acima dela. Partindo do fundo escuro (#0b0b0c) sobra folga para o campo
- * inteiro, porque mesmo o branco puro a 0.55 aterrissa em L de cerca de 0.29.
- * Na prática: tinta no tema claro, campo cheio no tema escuro.
+ * Assimétrico de propósito, e a razão é aritmética, não gosto. Partindo do
+ * fundo escuro (#0b0b0c) sobra folga para o campo inteiro, porque mesmo o
+ * branco puro a 0.55 aterrissa em L de cerca de 0.29. Partindo do claro
+ * (#f0f0f0, L de cerca de 0.87) só há 0.22 de curso até a faixa proibida.
+ *
+ * O claro era 0.08 até a V3.5, e com as paletas escuras esse era o teto: em
+ * 0.12 a composição já entrava na faixa. O resultado era um cinza chapado, com
+ * as ondas invisíveis. Com `palettesLight` a conta muda, porque o ponto mais
+ * escuro do campo deixa de ser quase preto, e **0.25 passa a ser o teto**.
+ * Ficou em 0.20, que deixa 0.046 de margem contra o limite de 0.65 em vez dos
+ * 0.014 que 0.25 deixaria. Medido pelo teste desta pasta, não estimado.
  */
-export const FIELD_MIX = { light: 0.08, dark: 0.55 } as const;
+export const FIELD_MIX = { light: 0.2, dark: 0.55 } as const;
 
 /**
  * Força da vinheta e amplitude do grain.
@@ -55,6 +60,29 @@ export const palettes = {
   plum: ["#150a1c", "#3d1560", "#7541a8"],
   sand: ["#1a1409", "#54401a", "#9c7a3c"],
 } as const satisfies Record<string, readonly [string, string, string]>;
+
+/**
+ * As mesmas seis, claras, para o tema claro.
+ *
+ * Não são as escuras clareadas por acaso: o que importa é que o **ponto mais
+ * escuro** de cada ramp fique alto o bastante para a composição sobre
+ * `#f0f0f0` não cair na faixa proibida. É isso que compra a dose de campo que
+ * torna as ondas visíveis no claro, em vez do cinza chapado da v3.
+ *
+ * A ordem continua do escuro para o claro, como no set escuro, senão o campo
+ * inverte: a espuma (v perto de 1) tem que ser o extremo claro dos dois lados.
+ */
+export const palettesLight = {
+  graphite: ["#8f98b4", "#aeb5c9", "#ccd1de"],
+  cobalt: ["#7d9bc4", "#a3bad8", "#c6d6e8"],
+  ember: ["#c49a7d", "#d8b8a3", "#e8d4c6"],
+  moss: ["#86b092", "#aac9b3", "#cbdfd1"],
+  plum: ["#a68fc4", "#c1b0d8", "#d9d0e8"],
+  sand: ["#c4b184", "#d8cba8", "#e8dfca"],
+} as const satisfies Record<
+  keyof typeof palettes,
+  readonly [string, string, string]
+>;
 
 /** Nome de paleta aceito pelo motor do fundo. */
 export type PalettePreset = keyof typeof palettes;
@@ -92,9 +120,9 @@ export function hexToRgb(hex: string): Rgb {
 }
 
 /** A paleta nomeada, já normalizada para o uniform. */
-export function paletteFor(preset: PalettePreset): Palette {
-  const [a, b, c] = palettes[preset];
-  return [hexToRgb(a), hexToRgb(b), hexToRgb(c)];
+export function paletteFor(preset: PalettePreset, light = false): Palette {
+  const fonte = light ? palettesLight[preset] : palettes[preset];
+  return fonte.map(hexToRgb) as unknown as Palette;
 }
 
 /** Luminância relativa (WCAG), usada para decidir tema e checar contraste. */

@@ -7,9 +7,10 @@ import { dictionaries, type Locale } from "@/i18n";
 /**
  * O bloco de identidade: foto e fatos rápidos.
  *
- * Em `variant="solid"` porque contém foto, e foto em `mix-blend-difference`
+ * Em `variant="plain"` porque contém foto, e foto em `mix-blend-difference`
  * apareceria em negativo. É a mesma razão pela qual as rotas com screenshot
- * usam `solid`.
+ * usam `plain`. Sem fundo próprio: o canvas aparece atrás, e a foto continua
+ * nas cores certas porque a seção não mistura.
  *
  * A foto é pequena e quadrada, sem borda arredondada, sem glow e sem gradiente
  * (E12 mais a seção 8 do plano). O avatar circular com halo era o visual da v2.
@@ -18,7 +19,7 @@ export function Identity({ lang }: { lang: Locale }) {
   const d = dictionaries[lang].about;
 
   return (
-    <Section id="identidade" variant="solid">
+    <Section id="identidade" variant="plain">
       <div className="grid gap-10 sm:grid-cols-[auto_minmax(0,1fr)] sm:items-start sm:gap-14">
         <Image
           src={profile.avatarUrl}
