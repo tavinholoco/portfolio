@@ -13,6 +13,9 @@
 # capturas de tela de desenvolvimento (pnpm look)
 /.captures/
 
+# ajustes locais do Claude Code (contém caminhos da máquina)
+/.claude/settings.local.json
+
 # testing
 /coverage
 /test-results/
