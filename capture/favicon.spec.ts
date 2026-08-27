@@ -17,8 +17,8 @@ import { expect, test } from "@playwright/test";
  */
 
 const TAMANHOS = [16, 32, 48, 64, 128, 256];
-const SVG = "src/app/(home)/icon.svg";
-const ICO = "src/app/(home)/favicon.ico";
+const SVG = "src/app/icon.svg";
+const ICO = "src/app/favicon.ico";
 
 /** Monta o container ICO em volta dos PNGs já renderizados. */
 function montarIco(imagens: { size: number; png: Buffer }[]): Buffer {

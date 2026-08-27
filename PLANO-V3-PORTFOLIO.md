@@ -1021,3 +1021,22 @@ Verificação: lint e typecheck limpos, **144 unitários**, **124 E2E**, `pnpm w
 Ela achou na primeira execução um segundo caso, mais grave: em 390px o `<dd>` do email tinha `truncate`, e **"pedrolevidiass@gmail.com" aparecia cortado com reticências**. Email cortado não serve para nada. A lista de fatos passou a empilhar rótulo e valor abaixo de `sm`, e o `truncate` virou `break-words`.
 
 Verificação: lint e typecheck limpos, **144 unitários**, **144 E2E**, `pnpm waves` passando.
+
+### 12.9 O ícone que existia só em metade do site
+
+Trocando o idioma, a aba do navegador voltava ao ícone padrão. A causa é que `icon.svg` e `favicon.ico` moravam em `src/app/(home)/`, e **convenção de metadado do App Router vale para o segmento e os descendentes dele**. Como `(home)` e `en` são grupos irmãos, nada em `(home)` alcança `/en/`.
+
+Medido antes de mexer, e era pior do que parecia:
+
+| | `/` | `/en/` | `/favicon.ico` |
+|---|---|---|---|
+| Antes | 1 link | **0 links** | **404** |
+| Depois | 2 links | 2 links | 200 |
+
+O `.ico` nunca chegou a ser servido: o Next só trata `favicon.ico` como especial na **raiz** de `app/`, e dentro de um grupo ele não vira rota. Ou seja, a regravação do ícone da rodada anterior estava correta e simplesmente não chegava ao navegador.
+
+Os dois arquivos subiram para `src/app/`, que é pai dos dois grupos, e passaram a valer nas 12 rotas.
+
+Entrou `e2e/marca.spec.ts`, que exige `link[rel="icon"]` em toda rota dos dois idiomas e confere que os dois arquivos respondem 200, checando o cabeçalho ICONDIR do `.ico` para não passar com um HTML de 404 no lugar. Ele faz par com o `brand-assets.test.ts`: um cuida da cor, o outro da entrega, e de nada adianta a cor certa num ícone que a rota não declara.
+
+Verificação: lint e typecheck limpos, **144 unitários**, **157 E2E**, `pnpm waves` passando.

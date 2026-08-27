@@ -39,7 +39,7 @@ const PERMITIDAS = new Set(
 );
 
 const ARQUIVOS = [
-  "src/app/(home)/icon.svg",
+  "src/app/icon.svg",
   "src/app/(home)/opengraph-image.tsx",
   "src/app/en/opengraph-image.tsx",
 ];
@@ -62,7 +62,7 @@ describe("ativos de marca fora do site", () => {
   }
 
   it("o favicon.ico existe e é um ícone de verdade", () => {
-    const ico = readFileSync("src/app/(home)/favicon.ico");
+    const ico = readFileSync("src/app/favicon.ico");
     /* Cabeçalho ICONDIR: reservado 0, tipo 1, e pelo menos um tamanho. */
     expect(ico.readUInt16LE(0)).toBe(0);
     expect(ico.readUInt16LE(2)).toBe(1);

@@ -29,8 +29,9 @@ Estas não geram erro no console. Se forem violadas, o site parece funcionar e o
 9. **Crase dentro de shader quebra o build.** Os shaders são template literals em `.ts`, e uma crase num comentário GLSL fecha a string do JS. O erro aparece como parse do TypeScript no meio de um comentário. Nos comentários GLSL use aspas simples.
 10. **A direção da onda é o sinal do termo de tempo no `field.ts`.** `sin(z*k + t*w)` traz a crista para a praia; com `-` ela corre para o horizonte, e **nada acusa**: o fundo continua animado e sem erro. Rode `pnpm waves`.
 11. **Cada tema tem o seu conjunto de paletas.** O claro usa `palettesLight`, pálidas, porque sobre `#f0f0f0` só há 0.22 de luminância até a faixa proibida, e paleta escura ali obriga o campo a quase sumir. A paleta viaja no mesmo tween da cor de fundo, nunca num paralelo.
-12. **Ícone de aba e imagem de link envelhecem sem ninguém ver.** Não aparecem em captura, em teste de DOM nem no Lighthouse. `src/app/brand-assets.test.ts` exige que as cores deles saiam da paleta; se você acrescentar uma cor de propósito, ela entra na lista de permitidas junto.
-13. **O campo do shader precisa devolver `v` em `[0,1]`.** O ramp de 3 cores no fim de `field.ts` é o que garante o contraste, e o teste de `background-config.test.ts` prova isso varrendo o ramp, não o campo. Trocar o gerador é seguro; mudar o contradomínio ou o ramp não é.
+12. **`icon.svg` e `favicon.ico` vivem em `src/app/`, nunca dentro de um grupo de rota.** Convenção de metadado vale para o segmento e os descendentes: em `(home)/` o ícone não alcança `/en/`, e o `favicon.ico` nem chega a ser servido. Teste em `e2e/marca.spec.ts`.
+13. **Ícone de aba e imagem de link envelhecem sem ninguém ver.** Não aparecem em captura, em teste de DOM nem no Lighthouse. `src/app/brand-assets.test.ts` exige que as cores deles saiam da paleta; se você acrescentar uma cor de propósito, ela entra na lista de permitidas junto.
+14. **O campo do shader precisa devolver `v` em `[0,1]`.** O ramp de 3 cores no fim de `field.ts` é o que garante o contraste, e o teste de `background-config.test.ts` prova isso varrendo o ramp, não o campo. Trocar o gerador é seguro; mudar o contradomínio ou o ramp não é.
 
 ## Ferramentas do projeto
 
