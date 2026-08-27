@@ -36,12 +36,18 @@ export function Identity({ lang }: { lang: Locale }) {
           {d.facts.map((fact) => (
             <div
               key={fact.id}
-              className="grid grid-cols-[minmax(0,7rem)_minmax(0,1fr)] items-baseline gap-4 border-b border-border py-4"
+              /*
+                Empilhado no mobile, em duas colunas a partir de sm. Em 390px a
+                coluna do valor fica com 182px e o email pede 202: com as duas
+                colunas fixas ele era cortado com reticências, e email cortado
+                não serve para nada.
+              */
+              className="grid gap-1 border-b border-border py-4 sm:grid-cols-[minmax(0,7rem)_minmax(0,1fr)] sm:items-baseline sm:gap-4"
             >
               <dt className="font-mono text-xs text-muted-foreground">
                 {fact.label}
               </dt>
-              <dd className="truncate text-sm">{fact.value}</dd>
+              <dd className="text-sm break-words">{fact.value}</dd>
             </div>
           ))}
         </dl>

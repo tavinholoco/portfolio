@@ -28,7 +28,6 @@ export function ClientsPage({ lang }: { lang: Locale }) {
         id="clientes"
         items={clientShowcaseItems(lang)}
         previewAlt={d.previewAlt}
-        problemLabel={d.projectKind}
         rolesLabel={d.responsibilitiesLabel}
       />
     </>

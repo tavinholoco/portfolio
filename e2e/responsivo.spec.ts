@@ -14,6 +14,12 @@ import { expect, test } from "@playwright/test";
  *    viewport e o recuo do header cresce junto.
  * 3. **Texto estourando a moldura.** O padding do container é `2 * --pad` para o
  *    texto nunca passar por baixo das linhas de 1px, que ficam em `--pad`.
+ * 4. **Palavra estourando a própria caixa.** Item de grid nasce com
+ *    `min-width: auto`, então uma palavra longa não encolhe a trilha: ela
+ *    transborda por cima da coluna vizinha. Aconteceu com "contratando" em
+ *    `/contato/`, e as três asserções acima passaram, porque o texto continuava
+ *    dentro da moldura e a página não rolava de lado. Só a caixa do elemento
+ *    denuncia: `scrollWidth` maior que `clientWidth`.
  */
 
 const rotas = ["/", "/clientes/", "/projetos/", "/info/", "/contato/"] as const;
@@ -89,6 +95,34 @@ for (const largura of larguras) {
           colisao!.sobrepoe,
           `folga vertical de ${colisao!.folga}px entre a identidade e o conteúdo`
         ).toBe(false);
+      });
+
+      test(`${rota} não deixa palavra estourar a própria caixa`, async ({
+        page,
+      }) => {
+        await page.goto(rota);
+        await page.waitForTimeout(300);
+
+        const estourando = await page.evaluate(() => {
+          const fora: string[] = [];
+          for (const el of document.querySelectorAll(
+            "main h1, main h2, main h3, main p, main dt, main dd"
+          )) {
+            if (!el.textContent?.trim()) continue;
+            if (el.closest(".sr-only")) continue;
+            /* clientWidth é 0 em elemento inline: só bloco tem caixa medível. */
+            if (el.clientWidth === 0) continue;
+            if (el.scrollWidth > el.clientWidth + 1) {
+              fora.push(
+                `${el.tagName} "${el.textContent.trim().slice(0, 24)}" ` +
+                  `${el.scrollWidth}px numa caixa de ${el.clientWidth}px`
+              );
+            }
+          }
+          return fora;
+        });
+
+        expect(estourando, estourando.join(" | ")).toHaveLength(0);
       });
 
       test(`${rota} mantém o texto dentro da moldura`, async ({ page }) => {

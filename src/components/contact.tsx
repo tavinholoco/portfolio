@@ -34,7 +34,6 @@ export function Contact({ lang }: { lang: Locale }) {
   return (
     <Section id="contato" variant="blend">
       <div className="animate-fade-in motion-reduce:animate-none">
-        <p className="font-mono text-sm opacity-70">{d.label}</p>
         <h1 className="mt-4 text-display font-semibold text-balance">
           {d.title}
         </h1>
@@ -44,9 +43,19 @@ export function Contact({ lang }: { lang: Locale }) {
       </div>
 
       {/* Os dois caminhos, em escala grande e separados só por uma linha. */}
-      <div className="mt-20 grid border-t border-current/15 sm:grid-cols-2">
-        <div className="border-b border-current/15 py-10 sm:border-r sm:border-b-0 sm:pr-12">
-          <h3 className="text-title font-semibold tracking-tight">
+      {/*
+        Duas colunas só a partir de `md`, e não de `sm`.
+
+        Em 640px cada coluna fica com uns 250px úteis, e "contratando" em
+        `text-title` pede mais de 300: o item de grid nasce com
+        `min-width: auto`, então a trilha não encolhe e a palavra vaza por
+        cima da coluna vizinha. O `min-w-0` faz a trilha ser respeitada e o
+        `hyphens`/`break-words` dá à palavra onde quebrar; sem os dois juntos
+        um deles sozinho não resolve.
+      */}
+      <div className="mt-20 grid border-t border-current/15 md:grid-cols-2">
+        <div className="min-w-0 border-b border-current/15 py-10 md:border-r md:border-b-0 md:pr-12">
+          <h3 className="text-title font-semibold tracking-tight break-words hyphens-auto">
             {d.hiringTitle}
           </h3>
           <p className="font-body mt-4 max-w-sm text-sm leading-relaxed opacity-70 text-pretty">
@@ -62,8 +71,8 @@ export function Contact({ lang }: { lang: Locale }) {
           </a>
         </div>
 
-        <div className="py-10 sm:pl-12">
-          <h3 className="text-title font-semibold tracking-tight">
+        <div className="min-w-0 py-10 md:pl-12">
+          <h3 className="text-title font-semibold tracking-tight break-words hyphens-auto">
             {d.projectTitle}
           </h3>
           <p className="font-body mt-4 max-w-sm text-sm leading-relaxed opacity-70 text-pretty">

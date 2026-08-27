@@ -44,7 +44,7 @@ export function ShowcaseList({
   id: string;
   items: ShowcaseItem[];
   previewAlt: string;
-  problemLabel: string;
+  problemLabel?: string;
   /** Rótulo do que foi feito. Só a rota de clientes passa. */
   rolesLabel?: string;
 }) {

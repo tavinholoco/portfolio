@@ -1007,3 +1007,17 @@ Duas ferramentas novas fecham o buraco:
 - **`src/app/brand-assets.test.ts`** exige que todo hexadecimal do ícone e das OG saia da paleta do site. Controle negativo conferido: injetando `#2dd4bf` de volta, reprova apontando a cor.
 
 Verificação: lint e typecheck limpos, **144 unitários**, **124 E2E**, `pnpm waves` passando.
+
+### 12.8 Quinta rodada: o estouro que passou por três asserções
+
+**1. Saiu o rótulo "contato" acima de "Vamos conversar?".** Era o último sobrevivente dos rótulos que o `>_` sustentava. Sem o prefixo, ele não estava duplicando o título, mas também não estava dizendo nada que a nav já não diga.
+
+**2. "PROJETO PROFISSIONAL" saiu da legenda de `/clientes/`.** Dizer "projeto profissional" numa rota chamada Clientes é redundância. O `problemLabel` virou opcional e a rota de clientes deixou de passá-lo; `/projetos/` continua com "PROBLEMA", que informa. `clients.projectKind` ficou órfão.
+
+**3. Duas palavras estouravam a própria caixa, e a auditoria não via.** Em `/contato/`, "contratando" em `text-title` passava por cima da coluna vizinha. A causa é que item de grid nasce com `min-width: auto`: a trilha não encolhe, e sem oportunidade de quebra a palavra transborda. **`min-w-0` e `break-words` sozinhos não resolvem, precisam dos dois**, e a divisão em duas colunas subiu de `sm` para `md`, onde a largura comporta.
+
+> ⚠️ As três asserções de responsividade **passavam** com esse defeito na tela. A página não rolava de lado, o texto continuava dentro da moldura e nada colidia com o bloco de identidade: o estouro era de um elemento sobre o irmão, e nenhuma das três olhava para isso. Entrou a quarta, `scrollWidth > clientWidth`, que é a única que enxerga.
+
+Ela achou na primeira execução um segundo caso, mais grave: em 390px o `<dd>` do email tinha `truncate`, e **"pedrolevidiass@gmail.com" aparecia cortado com reticências**. Email cortado não serve para nada. A lista de fatos passou a empilhar rótulo e valor abaixo de `sm`, e o `truncate` virou `break-words`.
+
+Verificação: lint e typecheck limpos, **144 unitários**, **144 E2E**, `pnpm waves` passando.

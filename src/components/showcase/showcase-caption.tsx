@@ -18,7 +18,11 @@ export function ShowcaseCaption({
   rolesLabel,
 }: {
   item: ShowcaseItem;
-  problemLabel: string;
+  /**
+   * Rótulo antes do problema. Opcional: em `/clientes/` ele dizia
+   * "Projeto profissional" numa rota chamada Clientes, e era redundante.
+   */
+  problemLabel?: string;
   /** Rótulo do que foi feito. Só as rotas com itens de cliente passam. */
   rolesLabel?: string;
 }) {
@@ -32,9 +36,11 @@ export function ShowcaseCaption({
         data-testid="showcase-problem"
         className="font-body max-w-3xl text-sm leading-relaxed opacity-70"
       >
-        <span className="font-mono text-xs tracking-wide uppercase">
-          {problemLabel}{" "}
-        </span>
+        {problemLabel ? (
+          <span className="font-mono text-xs tracking-wide uppercase">
+            {problemLabel}{" "}
+          </span>
+        ) : null}
         {item.problem}
       </p>
 
