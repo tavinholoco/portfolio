@@ -800,13 +800,12 @@ Acessibilidade, Best Practices e SEO em **100 em todas**, nos dois presets. CLS 
 
 O `/projetos/` em mobile ficou logo abaixo de 90, e o Lighthouse apontou excesso de bytes na imagem de LCP. O `sizes` do preview dizia `60vw` no desktop quando o real é **31vw**, e `100vw` no mobile quando o real é **90vw**.
 
-Corrigido e **medido**, não estimado: a variante servida no desktop caiu de `w=1080` para `w=640`. Em mobile o ganho foi de 1 ponto, dentro do ruído, porque o DPR emulado já pedia variante pequena; o ganho real está no desktop, que é onde o Lighthouse mobile não olha. Está no **PR [#2](https://github.com/tavinholoco/portfolio/pull/2)**, aberto e aguardando revisão.
+Corrigido e **medido**, não estimado: a variante servida no desktop caiu de `w=1080` para `w=640`. Em mobile o ganho foi de 1 ponto, dentro do ruído, porque o DPR emulado já pedia variante pequena; o ganho real está no desktop, que é onde o Lighthouse mobile não olha. Foi no **PR [#2](https://github.com/tavinholoco/portfolio/pull/2)**, já mergeado.
 
 ### O que continua aberto
 
 | Item | Situação |
 |---|---|
-| **PR #2** | Aberto, com a correção do `sizes`. Não é urgente |
 | Netsheet Engine | Sem deploy público. O preview usa o mockup em CSS, por decisão. Quando a URL existir: alvo em `capture/previews.spec.ts`, `pnpm capture`, e preencher `image` em `src/data/projects.ts` |
 | Domínio próprio | `pedrolevi.dev` ainda não responde. **Nada a fazer hoje.** No dia em que responder: `vercel env add NEXT_PUBLIC_SITE_URL production`, redeploy, e marcar o domínio como primário na Vercel para o `.vercel.app` redirecionar em vez de duplicar conteúdo |
 
@@ -933,7 +932,7 @@ CLS **zero** em todas.
 | Paleta da Home | Continua `graphite`. A `sand` já existe e combinaria com o tema de praia. É uma linha em `paletteForRoute` |
 | Chaves `label` órfãs | `about`, `skills`, `career`, `process`, `clients` e `projects` têm `label` sem consumidor. Limpeza para outro dia, nos dois dicionários no mesmo commit |
 | **Lighthouse depois da 12.4** | Os números da 12.2 são de antes de tirar o Lenis e as trocas de paleta. Devem ter melhorado, mas não foram remedidos |
-| Herdados da v3 | PR #2, Netsheet Engine sem deploy, domínio próprio. Ver §11 |
+| Herdados da v3 | Netsheet Engine sem deploy e domínio próprio. Ver §11 |
 
 ### 12.4 Segunda rodada, depois de ver o site rodando
 
