@@ -53,14 +53,24 @@ export const MAX_DPR = 1.5;
  * bilinear do hardware faz o papel do blur de graça. É o que dispensa o passe
  * de blur da referência e derruba o fill rate.
  *
- * Subiu de 320 e 200 na v3.5, junto com a troca do campo de noise pelo campo
+ * Subiram de 320 e 200 na v3.5, junto com a troca do campo de noise pelo campo
  * de ondas. O borrão de graça era virtude enquanto o campo era suave: ele
- * derretia justamente a aresta de espuma que dá forma sólida às ondas. Este é
- * o único custo de performance da v3.5, e sai medido no Lighthouse, não
- * estimado. Se o mobile cair abaixo de 90, o degrau intermediário é 512.
+ * derretia justamente a aresta de espuma que dá forma sólida às ondas.
+ *
+ * **Os dois valores são medidos, não escolhidos.** A primeira tentativa foi
+ * 640 e 384, e o Lighthouse mobile da home caiu de 93 para 85. Um controle com
+ * o shader novo e a resolução antiga deu 93 de novo, com LCP e TBT iguais aos
+ * do baseline: o campo de ondas em si não custa nada, o custo é só resolução.
+ * Como o desktop lê o teto grande e o mobile lê o pequeno, só o pequeno
+ * precisava baixar. Em 256 o mobile empata com o baseline e o desktop vai a
+ * 100; em 288 o mobile já cai para 91.
+ *
+ * Ou seja: **mexer em `FIELD_TARGET_MAX_SMALL` custa Lighthouse mobile, mexer
+ * em `FIELD_TARGET_MAX` não.** Se um dia precisar de mais nitidez, é o grande
+ * que tem folga.
  */
 export const FIELD_TARGET_MAX = 640;
-export const FIELD_TARGET_MAX_SMALL = 384;
+export const FIELD_TARGET_MAX_SMALL = 256;
 
 /** Abaixo desta largura de viewport, DPR 1 e alvo menor (checklist da Fase 6). */
 export const SMALL_SCREEN_WIDTH = 768;

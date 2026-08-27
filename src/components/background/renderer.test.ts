@@ -23,9 +23,9 @@ describe("fieldTargetSize", () => {
 
   it("põe o lado maior no teto em tela retrato", () => {
     const size = fieldTargetSize(390, 844, FIELD_TARGET_MAX_SMALL);
-    /* 384 * 390/844, arredondado. */
+    /* 256 * 390/844, arredondado. */
     expect(size.height).toBe(FIELD_TARGET_MAX_SMALL);
-    expect(size.width).toBe(177);
+    expect(size.width).toBe(118);
   });
 
   it("preserva a proporção da tela dentro de um pixel", () => {

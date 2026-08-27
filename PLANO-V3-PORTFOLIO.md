@@ -764,7 +764,7 @@ Roteiro manual, nos dois temas e nos dois idiomas:
 - [x] Fase 11: Textos do showcase fora da moldura, V3.5
 - [x] Fase 12: Fundo em ondas de praia, V3.5
 - [x] Fase 13: Testes e documentação da V3.5
-- [ ] Lighthouse da V3.5 medido contra o baseline da seção 11
+- [x] Lighthouse da V3.5 medido em A/B local contra a `main`, seção 12.2
 
 ---
 
@@ -882,7 +882,9 @@ O campo novo tem quatro camadas: céu com gradiente e halo do sol, mar em perspe
 
 **Detalhe que custa caro se esquecido:** perto do horizonte um período inteiro de onda cabe em menos de um pixel e o resultado cintila. O `w *= 1.0 - smoothstep(7.0, 22.0, z)` é o que troca esse moiré por uma faixa calma de mar distante.
 
-**A única mudança fora do shader** foi a resolução: `FIELD_TARGET_MAX` de 320 para 640 e `FIELD_TARGET_MAX_SMALL` de 200 para 384. O borrão bilinear de graça era virtude enquanto o campo era suave; ele derretia justamente a aresta de espuma que dá a forma sólida. O guarda de `renderer.test.ts` acompanhou, e os dois valores esperados de `fieldTargetSize` eram derivados dos tetos antigos e viraram 360 e 177.
+**A única mudança fora do shader** foi a resolução: `FIELD_TARGET_MAX` de 320 para **640** e `FIELD_TARGET_MAX_SMALL` de 200 para **256**. O borrão bilinear de graça era virtude enquanto o campo era suave; ele derretia justamente a aresta de espuma que dá a forma sólida. O guarda de `renderer.test.ts` acompanhou, e os dois valores esperados de `fieldTargetSize` eram derivados dos tetos antigos e viraram 360 e 118.
+
+**Os dois tetos saíram de medição, e a medição rendeu a descoberta mais útil da fase.** A primeira tentativa foi 640 e 384, e o Lighthouse mobile de `/` caiu de 93 para 85. Um teste de controle, com o shader novo e a resolução antiga, deu 93 de novo, com LCP e TBT idênticos ao baseline: **o campo de ondas custa praticamente nada, e a regressão inteira era resolução.** Como o desktop usa `FIELD_TARGET_MAX` e o mobile usa `FIELD_TARGET_MAX_SMALL`, só o teto pequeno precisava baixar. Em 256 o mobile volta ao baseline exato, e ainda são 28% mais campo do que os 200 da v3. Em 288 já cai para 91.
 
 O que sai é contínuo e sem emenda, como o fundo da referência, não um loop de N segundos. Loop estrito exigiria noise 4D amostrado num círculo no eixo do tempo, e não paga o custo.
 
@@ -907,7 +909,18 @@ O `capture/playwright.config.ts` ganhou `LOOK_WIDTH` e `LOOK_HEIGHT`, porque o r
 | `h1` por rota | Exatamente 1 nas 5 rotas, nos dois idiomas |
 | Nenhum `>_` restante em `src/` | Confirmado |
 | Shader em runtime | Canvas dimensionado, fallback não acionado, zero erros de console |
-| Visual, 1440 e 375, tema escuro | Conferido por `pnpm look` |
+| Visual, 1440 e 390, tema escuro | Conferido por `pnpm look` |
+| **Lighthouse** | Medido, ver abaixo |
+
+Lighthouse com o Chromium do Playwright, comparando **na mesma máquina** a `main` (v3) e a V3.5. Os números da §11 vieram de outro ambiente e não são comparáveis linha a linha; o que vale é o A/B local.
+
+| Rota e preset | v3 (`main`) | V3.5 | |
+|---|---|---|---|
+| `/` desktop | 96 (§11) | **100** | Acima |
+| `/` mobile | 93 | **93** | Empate exato, LCP 2.8s e TBT 180ms nos dois |
+| `/projetos/` mobile | 75 | **82** | Acima, a rota perdeu o cabeçalho |
+
+CLS **zero** em todas.
 
 > ⚠️ Durante a execução, 8 E2E falharam por servidor velho na porta 3000, exatamente a armadilha do topo do `playwright.config.ts`. Nenhuma das 8 era defeito de código. **Derrube a porta 3000 depois de todo build, antes de testar.**
 
@@ -915,7 +928,7 @@ O `capture/playwright.config.ts` ganhou `LOOK_WIDTH` e `LOOK_HEIGHT`, porque o r
 
 | Item | Situação |
 |---|---|
-| **Lighthouse** | Não medido depois da V3.5. O ganho de 4x no fill rate do passe 1 é o risco real, contra o baseline de 96 desktop e 92 mobile em `/`. Se o mobile cair abaixo de 90, o degrau intermediário é `FIELD_TARGET_MAX` 512 |
+| **Lighthouse das outras 3 rotas** | Só `/` e `/projetos/` foram medidas. `/clientes/`, `/info/` e `/contato/` ficaram de fora, e `/info/` é a que mais cresceu nesta versão, porque recebeu os 5 passos |
 | Tema claro | O campo entra a `FIELD_MIX.light` de 0.08 e as ondas ficam quase invisíveis. É o comportamento de projeto desde a v3, não regressão, mas vale decidir se a praia merece exceção |
 | Paleta da Home | Continua `graphite`. A `sand` já existe e combinaria com o tema de praia. É uma linha em `paletteForRoute` |
 | Chaves `label` órfãs | `about`, `skills`, `career`, `process`, `clients` e `projects` têm `label` sem consumidor. Limpeza para outro dia, nos dois dicionários no mesmo commit |
