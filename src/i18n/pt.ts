@@ -204,6 +204,7 @@ export const pt: Dict = {
     description:
       "Trabalhos entregues e publicados para clientes, da ideia ao site no ar.",
     projectKind: "Projeto profissional",
+    responsibilitiesLabel: "Responsabilidades",
     previewAlt: "Prévia do site",
     projects: [
       {
@@ -215,7 +216,6 @@ export const pt: Dict = {
            utilitárias do Tailwind. O ano vem do copyright do próprio site. */
         stack: ["Next.js", "Tailwind CSS", "Vercel"],
         year: "2026",
-        status: "Publicado",
         url: "https://dandarkness.vercel.app/",
         image: "/projects/dandarkness.webp",
       },

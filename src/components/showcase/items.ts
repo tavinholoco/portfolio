@@ -76,6 +76,7 @@ export function clientShowcaseItems(lang: Locale): ShowcaseItem[] {
     title: project.name,
     problem: project.description,
     stack: project.stack,
+    responsibilities: project.responsibilities,
     category: d.clients.projectKind,
     year: project.year,
     image: project.image,

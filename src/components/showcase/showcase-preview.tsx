@@ -24,11 +24,14 @@ export function ShowcasePreview({
   activeIndex,
   alt,
   problemLabel,
+  rolesLabel,
 }: {
   items: ShowcaseItem[];
   activeIndex: number;
   alt: string;
   problemLabel: string;
+  /** Rótulo do que foi feito. Só as rotas com itens de cliente passam. */
+  rolesLabel?: string;
 }) {
   const active = items[activeIndex];
 
@@ -94,6 +97,18 @@ export function ShowcasePreview({
         </span>
         {active.problem}
       </p>
+
+      {/*
+        O que foi feito, quando o item traz. É a pergunta que trabalho de
+        cliente levanta e a stack não responde: se o envolvimento foi só a tela
+        ou foi até o deploy.
+      */}
+      {rolesLabel && active.responsibilities?.length ? (
+        <p className="mt-2 font-mono text-xs opacity-70">
+          <span className="tracking-wide uppercase">{rolesLabel} </span>
+          {active.responsibilities.join("  ·  ")}
+        </p>
+      ) : null}
     </div>
   );
 }

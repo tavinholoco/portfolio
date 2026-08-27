@@ -15,6 +15,14 @@ export type ShowcaseItem = {
   /** O problema que o trabalho resolveu. Aparece junto do preview. */
   problem: string;
   stack: string[];
+  /**
+   * O que foi feito no trabalho. Só os itens de cliente preenchem.
+   *
+   * Para projeto próprio a resposta é "tudo", e a linha ficaria ruído. Para
+   * trabalho de cliente é informação distinta da stack: uma diz qual
+   * tecnologia, a outra diz até onde foi o envolvimento.
+   */
+  responsibilities?: string[];
   /** Rótulo do tipo do item, ex.: "Full Stack" ou "Projeto profissional". */
   category: string;
   year: string;

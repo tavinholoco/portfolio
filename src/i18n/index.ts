@@ -45,12 +45,18 @@ export type FeaturedProject = {
 export type ClientProject = {
   name: string;
   description: string;
+  /**
+   * O que foi feito no projeto, exibido junto do preview.
+   *
+   * Para trabalho de cliente isso responde uma pergunta diferente da stack:
+   * a stack diz qual tecnologia, isto diz até onde foi o envolvimento. Um
+   * recrutador quer saber se a pessoa fez só a tela ou levou até o deploy.
+   */
   responsibilities: string[];
   /** Tecnologias, exibidas como coluna na linha do showcase. */
   stack: string[];
   /** Ano de entrega, exibido como coluna na linha do showcase. */
   year: string;
-  status: string;
   url: string;
   image: string;
 };
@@ -133,6 +139,7 @@ export type Dict = {
     title: string;
     description: string;
     projectKind: string;
+    responsibilitiesLabel: string;
     previewAlt: string;
     projects: ClientProject[];
   };

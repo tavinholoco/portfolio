@@ -182,12 +182,11 @@ Em `src/i18n/*.ts` → `clients.projects`. Mesmo componente de lista dos projeto
 {
   name: "Dandarkness",
   description: "…",                 // aparece junto do preview
-  responsibilities: ["Frontend", "UI"],
+  responsibilities: ["Frontend", "UI", "Responsividade", "Deploy"],  // exibido no preview
   stack: ["Next.js", "Tailwind CSS", "Vercel"],  // colunas da linha
   year: "2026",
-  status: "Publicado",
   url: "https://dandarkness.vercel.app/",
-  image: "/projects/dandarkness.jpg",
+  image: "/projects/dandarkness.webp",
 }
 ```
 

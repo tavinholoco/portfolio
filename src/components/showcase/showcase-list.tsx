@@ -39,11 +39,14 @@ export function ShowcaseList({
   items,
   previewAlt,
   problemLabel,
+  rolesLabel,
 }: {
   id: string;
   items: ShowcaseItem[];
   previewAlt: string;
   problemLabel: string;
+  /** Rótulo do que foi feito. Só a rota de clientes passa. */
+  rolesLabel?: string;
 }) {
   const [activeIndex, setActiveIndex] = useState(0);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -135,6 +138,7 @@ export function ShowcaseList({
           activeIndex={activeIndex}
           alt={previewAlt}
           problemLabel={problemLabel}
+          rolesLabel={rolesLabel}
         />
 
         <ol ref={listRef} className="border-t border-current/15">

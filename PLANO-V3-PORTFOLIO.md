@@ -647,12 +647,13 @@ O baseline da v2 era 95/100/100/100 numa rota só. O Lighthouse não vem instala
 
 **README reescrito.** A montagem de camadas está lá com o porquê, junto das três consequências descobertas na prática (fundo no `:root`, Lenis sem transform, nada de fundo opaco em `sticky`), da regra de opacidade em texto, e dos guias de acrescentar rota, projeto, cliente e paleta. A seção de clientes, que ainda documentava campos que nunca existiram (`client`, `type`, `tech`, `outcome`), foi corrigida para os campos reais.
 
-**Confirmado pelo Pedro em 27/08/2026:** só o Repertório Progressivo é de 2025; os outros três são de 2026. Clientes, por ora, é só o Dandarkness, com o projeto concluído.
+**Confirmado pelo Pedro em 27/08/2026:** só o Repertório Progressivo é de 2025; os outros três são de 2026. Clientes, por ora, é só o Dandarkness.
+
+**Resolvida a pendência de `responsibilities` e `status`.** Os dois campos ficaram sem tela depois do redesenho, e a decisão não foi remover ambos porque eles não dizem a mesma coisa. `status: "Publicado"` é redundante com a seta de link externo que leva ao site no ar, e saiu. `responsibilities` responde uma pergunta que a stack não responde: a stack diz **qual tecnologia**, as responsabilidades dizem **até onde foi o envolvimento**, que para trabalho de cliente é possivelmente o dado mais relevante para quem recruta. Passou a ser exibido no preview, abaixo da descrição.
 
 **Pendências que não são código, e dependem do Pedro:**
 
 - Deploy e registro do Lighthouse contra a URL de produção
-- Decidir sobre `clients.projects[].responsibilities` e `.status`, que continuam nos dicionários sem nenhuma tela renderizando
 - Capturas de tela dos projetos (`pnpm capture` para os que têm URL pública; o Repertório Progressivo é app React Native e depende de export do Expo)
 - `NEXT_PUBLIC_SITE_URL` em produção e o DNS de `pedrolevi.dev`
 
