@@ -20,6 +20,14 @@ export type ShowcaseItem = {
   year: string;
   /** Ausente cai no mockup CSS de janela de browser (seção 4.4). */
   image?: string;
+  /**
+   * Como enquadrar a imagem no slot 16:10.
+   *
+   * `browser` preenche o slot (screenshot de site, também 16:10). `phone` é
+   * uma print de celular, em retrato: preencher cortaria quase tudo, então ela
+   * fica contida e centrada, com moldura de aparelho em volta.
+   */
+  imageKind?: "browser" | "phone";
   href: string;
   /** Destino externo abre em aba nova, com rel de segurança. */
   external?: boolean;

@@ -647,10 +647,11 @@ O baseline da v2 era 95/100/100/100 numa rota só. O Lighthouse não vem instala
 
 **README reescrito.** A montagem de camadas está lá com o porquê, junto das três consequências descobertas na prática (fundo no `:root`, Lenis sem transform, nada de fundo opaco em `sticky`), da regra de opacidade em texto, e dos guias de acrescentar rota, projeto, cliente e paleta. A seção de clientes, que ainda documentava campos que nunca existiram (`client`, `type`, `tech`, `outcome`), foi corrigida para os campos reais.
 
+**Confirmado pelo Pedro em 27/08/2026:** só o Repertório Progressivo é de 2025; os outros três são de 2026. Clientes, por ora, é só o Dandarkness, com o projeto concluído.
+
 **Pendências que não são código, e dependem do Pedro:**
 
 - Deploy e registro do Lighthouse contra a URL de produção
-- Confirmar os anos dos projetos em `src/data/projects.ts`, que saíram do diagrama da seção 3 deste plano
 - Decidir sobre `clients.projects[].responsibilities` e `.status`, que continuam nos dicionários sem nenhuma tela renderizando
 - Capturas de tela dos projetos (`pnpm capture` para os que têm URL pública; o Repertório Progressivo é app React Native e depende de export do Expo)
 - `NEXT_PUBLIC_SITE_URL` em produção e o DNS de `pedrolevi.dev`
@@ -748,7 +749,7 @@ Roteiro manual, nos dois temas e nos dois idiomas:
 - [x] Fase 5: Info, Contato e páginas de projeto, concluída em 26/08/2026
 - [x] Fase 6: Performance, acessibilidade e fallbacks, concluída em 27/08/2026
 - [x] Fase 7: Testes, documentação e deploy, concluída em 27/08/2026 (deploy pendente com o Pedro)
-- [ ] Capturas: Newra News, Trak, Dandarkness
-- [ ] 🔄 Captura do Netsheet Engine (aguardando deploy do Pedro)
-- [ ] ⏸️ Preview do Repertório Progressivo (aguardando screenshots do Expo)
+- [x] Capturas: Newra News, Trak, Dandarkness, geradas em 27/08/2026 por `pnpm capture`
+- [ ] 🔄 Captura do Netsheet Engine (aguardando deploy do Pedro; o preview usa o mockup em CSS enquanto isso)
+- [x] Preview do Repertório Progressivo, resolvido em 27/08/2026 com as prints da V2 no repositório do app, enquadradas como tela de celular
 - [ ] `NEXT_PUBLIC_SITE_URL` em produção e DNS de `pedrolevi.dev` (herdado da v2)

@@ -51,6 +51,9 @@ export function projectShowcaseItems(lang: Locale): ShowcaseItem[] {
         category: d.projects.categories[project.category],
         year: meta.year,
         image: meta.image,
+        /* O `category` do item já é o rótulo traduzido; a chave crua só existe
+           aqui, e é ela que diz se a print é de celular. */
+        imageKind: project.category === "mobile" ? "phone" : "browser",
         href: `${pathFor("projects", lang)}${meta.slug}/`,
         palette: PROJECT_PALETTES[index % PROJECT_PALETTES.length],
       },

@@ -29,6 +29,11 @@ export default defineConfig({
     viewport: { width: 1440, height: 900 },
     deviceScaleFactor: 1,
   },
+  /*
+   * O servidor local sobe só para o `pnpm look`. O `pnpm capture` fotografa
+   * sites de terceiros e não precisa dele, mas subir junto é inofensivo e
+   * evita duas configs quase idênticas.
+   */
   webServer: {
     command: "pnpm start",
     url: "http://localhost:3000",

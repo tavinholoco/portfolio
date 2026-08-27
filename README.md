@@ -171,6 +171,7 @@ Dois lugares, nesta ordem:
 - A **ordem** de `projectMetas` é curadoria, não cronologia: o ano é apenas mais uma coluna.
 - O `problem` aparece junto do preview: é ele que faz a lista argumentar em vez de só catalogar.
 - Sem `image`, o preview cai no **mockup de janela em CSS**, que é o placeholder oficial. Preencher `image` depois não exige mudar componente nenhum.
+- Para gerar a imagem: acrescente o alvo em `capture/previews.spec.ts` e rode `pnpm capture`. O script fotografa o site publicado em 16:10, converte para WebP pelo próprio Chromium (sem dependência de processamento de imagem) e salva em `public/projects/`. Projeto **mobile** não tem página web: aponte para uma print já existente na lista `imagens` do mesmo arquivo, e o preview a enquadra como tela de celular.
 - A linha mostra as **3 primeiras** tecnologias da stack; a lista completa fica na página do case.
 
 ### 3. Acrescentar um trabalho de cliente
@@ -221,10 +222,10 @@ Lighthouse no build de produção, preset desktop:
 
 | Rota | Perf | A11y | Best Practices | SEO |
 |---|---|---|---|---|
-| `/` | 100 | 100 | 100 | 100 |
-| `/clientes/` | 96 | 100 | 100 | 100 |
-| `/projetos/` | 99 | 100 | 100 | 100 |
-| `/info/` | 99 | 100 | 100 | 100 |
+| `/` | 99 | 100 | 100 | 100 |
+| `/clientes/` | 98 | 100 | 100 | 100 |
+| `/projetos/` | 98 | 100 | 100 | 100 |
+| `/info/` | 100 | 100 | 100 | 100 |
 | `/contato/` | 99 | 100 | 100 | 100 |
 
 Como rodar: a máquina de desenvolvimento não tem Chrome próprio, então aponte o `CHROME_PATH` para o Chromium do Playwright.
@@ -281,6 +282,7 @@ pnpm deploy
 | `pnpm typecheck` | `tsc --noEmit` |
 | `pnpm test` | Testes unitários (Vitest) |
 | `pnpm test:e2e` | Testes E2E (Playwright), requer `pnpm build` antes |
-| `pnpm look` | Captura telas em `.captures/`, requer `pnpm build` antes |
+| `pnpm look` | Captura telas do site em `.captures/`, requer `pnpm build` antes |
+| `pnpm capture` | Gera os previews do showcase em `public/projects/`, sob demanda |
 | `pnpm deploy` | Deploy de produção na Vercel |
 | `pnpm deploy:preview` | Deploy de preview na Vercel |

@@ -10,7 +10,8 @@
     "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
     "test:e2e": "playwright test",
-    "look": "playwright test --config capture/playwright.config.ts",
+    "look": "playwright test --config capture/playwright.config.ts look.spec.ts",
+    "capture": "playwright test --config capture/playwright.config.ts previews.spec.ts",
     "deploy": "vercel --prod",
     "deploy:preview": "vercel"
   },

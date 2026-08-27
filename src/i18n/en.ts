@@ -217,7 +217,7 @@ export const en: Dict = {
         year: "2026",
         status: "Published",
         url: "https://dandarkness.vercel.app/",
-        image: "/projects/dandarkness.jpg",
+        image: "/projects/dandarkness.webp",
       },
     ],
   },

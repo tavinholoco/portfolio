@@ -47,14 +47,28 @@ export const projectMetas: ProjectMeta[] = [
     repo: "newra-news",
     demoUrl: "https://newra-news-web.vercel.app",
     year: "2026",
+    image: "/projects/newra-news.webp",
   },
-  { slug: "netsheet-engine", repo: "NetsheetEngine", year: "2025" },
-  { slug: "repertorio-progressivo", repo: "repertorio-progressivo", year: "2025" },
+  {
+    slug: "netsheet-engine",
+    repo: "NetsheetEngine",
+    year: "2026",
+    /* Sem deploy público ainda, então o preview cai no mockup em CSS. */
+  },
+  {
+    slug: "repertorio-progressivo",
+    repo: "repertorio-progressivo",
+    year: "2025",
+    /* App React Native: a imagem vem das prints da V2 no próprio repositório,
+       e o preview a trata como tela de celular, não como janela de browser. */
+    image: "/projects/repertorio-progressivo.webp",
+  },
   {
     slug: "trak-assessoria",
     repo: "Trak-Acessoria",
     /* Estava cadastrado como homepage no GitHub mas faltava aqui (E11). */
     demoUrl: "https://trak-acessoria.vercel.app",
-    year: "2025",
+    year: "2026",
+    image: "/projects/trak-assessoria.webp",
   },
 ];

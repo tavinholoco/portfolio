@@ -46,7 +46,26 @@ export function ShowcasePreview({
               index === activeIndex ? "opacity-100" : "opacity-0"
             )}
           >
-            {item.image ? (
+            {!item.image ? (
+              <WindowMockup title={item.title} host={hostOf(item.href)} />
+            ) : item.imageKind === "phone" ? (
+              /* Print de celular: contida e centrada numa moldura de aparelho.
+                 Preencher o slot 16:10 com uma imagem em retrato cortaria
+                 quase tudo, e é por isso que o plano pede frame de celular em
+                 vez de janela de browser. */
+              <div className="flex h-full items-center justify-center py-4">
+                <div className="relative h-full max-h-full overflow-hidden rounded-lg border border-current/25 [aspect-ratio:385/814]">
+                  <Image
+                    src={item.image}
+                    alt={`${alt}: ${item.title}`}
+                    fill
+                    sizes="200px"
+                    className="object-cover object-top"
+                    priority={index === 0}
+                  />
+                </div>
+              </div>
+            ) : (
               <Image
                 src={item.image}
                 alt={`${alt}: ${item.title}`}
@@ -56,8 +75,6 @@ export function ShowcasePreview({
                 /* O primeiro é o que aparece no load e vale como LCP. */
                 priority={index === 0}
               />
-            ) : (
-              <WindowMockup title={item.title} host={hostOf(item.href)} />
             )}
           </div>
         ))}
