@@ -53,8 +53,7 @@ test.describe("troca de idioma", () => {
       await page.goto(rota.pt);
 
       const alvo = await page
-        .locator("header a", { hasText: "EN" })
-        .first()
+        .getByTestId("lang-toggle")
         .getAttribute("href");
 
       expect(alvo).toBe(rota.en);
@@ -65,8 +64,7 @@ test.describe("troca de idioma", () => {
     await page.goto("/projetos/newra-news/");
 
     const alvo = await page
-      .locator("header a", { hasText: "EN" })
-      .first()
+      .getByTestId("lang-toggle")
       .getAttribute("href");
 
     expect(alvo).toBe("/en/projects/newra-news/");
@@ -75,17 +73,22 @@ test.describe("troca de idioma", () => {
 
 test.describe("rolagem", () => {
   test("trocar de rota abre a página nova no topo (E10)", async ({ page }) => {
-    await page.goto("/projetos/");
+    /*
+     * A rota longa é /info/. Era /projetos/ até a v3.5, que ao perder o
+     * cabeçalho passou a caber inteira numa viewport de 720px e deixou de
+     * rolar. /info/ ganhou os 5 passos do processo no mesmo passe.
+     */
+    await page.goto("/info/");
     await page.waitForTimeout(600);
 
-    /* Desce até o fim de uma rota longa. */
+    /* Desce até o fim. */
     await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
     await page.waitForTimeout(600);
     expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(50);
 
-    /* Navega por link interno, que é o caminho que o Lenis intercepta. */
-    await page.locator('header nav a[href="/info/"]').click();
-    await page.waitForURL("**/info/");
+    /* Navega por link interno, que é o caminho do router do Next. */
+    await page.locator('header nav a[href="/projetos/"]').click();
+    await page.waitForURL("**/projetos/");
     await page.waitForTimeout(800);
 
     expect(await page.evaluate(() => window.scrollY)).toBeLessThan(50);

@@ -13,13 +13,16 @@ import { cn } from "@/lib/utils";
  *
  * Trocar por captura real depois não toca neste componente: basta preencher
  * `image` no item. É isso que destrava os itens sem deploy público.
+ *
+ * O título do item saiu do corpo do mockup na v3.5: era o único texto de
+ * conteúdo desenhado dentro do quadro. O host fica, porque é parte do mock da
+ * janela, não conteúdo. O componente inteiro é `aria-hidden`, então nada disso
+ * era anunciado a leitor de tela de qualquer jeito.
  */
 export function WindowMockup({
-  title,
   host,
   className,
 }: {
-  title: string;
   host?: string;
   className?: string;
 }) {
@@ -48,7 +51,6 @@ export function WindowMockup({
         minimalista.
       */}
       <div className="flex flex-1 flex-col gap-3 p-5">
-        <p className="font-mono text-xs opacity-60">{title}</p>
         <div className="flex-[3] rounded-sm border border-current/20 bg-current/[0.07]" />
         <div className="h-1.5 w-3/5 rounded-full bg-current/20" />
         <div className="h-1.5 w-2/5 rounded-full bg-current/15" />

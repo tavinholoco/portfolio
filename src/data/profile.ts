@@ -12,6 +12,5 @@ export const profile = {
   /** Foto do perfil (avatar do GitHub, salvo localmente em public/avatar.jpg). */
   avatarUrl: "/avatar.jpg",
   cvUrl: "/cv/pedro-levi-curriculo.pdf",
-  location: "Rancharia, São Paulo",
   stack: ["React", "Next.js", "Node.js", "TypeScript"],
 } as const;

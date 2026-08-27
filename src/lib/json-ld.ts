@@ -14,12 +14,6 @@ export function personJsonLd(lang: Locale) {
     url: siteUrl,
     jobTitle: d.hero.role,
     email: profile.email,
-    address: {
-      "@type": "PostalAddress",
-      addressLocality: "Rancharia",
-      addressRegion: "São Paulo",
-      addressCountry: "BR",
-    },
     sameAs: [profile.github, profile.linkedin],
     knowsAbout: d.meta.keywords,
   };

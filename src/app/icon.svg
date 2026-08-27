@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <clipPath id="quadro">
+      <rect width="64" height="64" rx="14" />
+    </clipPath>
+  </defs>
+
+  <g clip-path="url(#quadro)">
+    <rect width="64" height="64" fill="#0b0b0c" />
+    <path
+      d="M0 50 C 11 46 20 53 32 50 S 53 46 64 50 L64 64 L0 64 Z"
+      fill="#232838"
+    />
+    <path
+      d="M0 56 C 13 52 22 59 34 56 S 54 53 64 56 L64 64 L0 64 Z"
+      fill="#454f6b"
+    />
+  </g>
+
+  <text
+    x="32"
+    y="37"
+    font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
+    font-size="30"
+    font-weight="600"
+    fill="#fafafa"
+    text-anchor="middle"
+  >
+    PL
+  </text>
+
+  <rect
+    x="0.5"
+    y="0.5"
+    width="63"
+    height="63"
+    rx="13.5"
+    fill="none"
+    stroke="#454f6b"
+    stroke-opacity="0.5"
+    stroke-width="1"
+  />
+</svg>

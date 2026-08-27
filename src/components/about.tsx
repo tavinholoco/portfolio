@@ -19,10 +19,9 @@ export function About({ lang }: { lang: Locale }) {
   return (
     <Section id="sobre" variant="blend">
       <div className="animate-fade-in motion-reduce:animate-none">
-        <p className="font-mono text-sm opacity-70">&gt;_ {d.label}</p>
-        <h2 className="mt-4 text-title font-semibold tracking-tight text-balance">
+        <h1 className="text-title font-semibold tracking-tight text-balance">
           {d.title}
-        </h2>
+        </h1>
 
         {d.summary.map((paragraph, index) => (
           <p
@@ -41,7 +40,7 @@ export function About({ lang }: { lang: Locale }) {
       {/* Métricas: grandes porque importam, não coloridas porque importam. */}
       <div className="mt-20">
         <p className="font-mono text-sm opacity-70">
-          &gt;_ {d.metricsTitle}
+          {d.metricsTitle}
         </p>
         <dl className="mt-8 grid grid-cols-2 border-t border-current/15 sm:grid-cols-4">
           {d.metrics.map((metric) => (
@@ -63,7 +62,7 @@ export function About({ lang }: { lang: Locale }) {
       {/* Interesses em lista, sem cartão e sem ícone. */}
       <div className="mt-20">
         <p className="font-mono text-sm opacity-70">
-          &gt;_ {d.interestsHeading}
+          {d.interestsHeading}
         </p>
         <ul className="mt-8 border-t border-current/15">
           {d.interests.map((interest) => (

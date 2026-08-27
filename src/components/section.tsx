@@ -39,7 +39,7 @@ import { cn } from "@/lib/utils";
  * (F10), não sobrou nada aqui que precise rodar no cliente.
  */
 
-export type SectionVariant = "blend" | "solid";
+export type SectionVariant = "blend" | "plain" | "solid";
 
 type SectionProps = {
   id: string;
@@ -64,11 +64,21 @@ type SectionProps = {
  * canvas e o contraste sai de graça, porque o resultado do difference com
  * branco é a inversão do que estiver embaixo.
  *
- * `solid`: fundo opaco em `--c-bg`, que cobre o canvas. É a variante para
- * qualquer seção com imagem ou avatar, que em `difference` apareceria em
- * negativo. Carrega a própria transição de cor porque a transição do `:root`
- * não cascateia para o fundo de outro elemento (F5): sem ela, a seção saltaria
- * enquanto o resto da página faz crossfade de 900ms.
+ * `plain`: sem fundo e sem blend, com a cor de texto normal. É a variante para
+ * seção com imagem ou avatar, que em `difference` apareceria em negativo. O
+ * canvas continua visível atrás dela, e é isso que a separa da `solid`.
+ *
+ * O contraste aqui não vem do blend, vem da distância entre `--c-ink` e o
+ * campo: a composição do fundo é mantida fora da faixa de 0.35 a 0.65 pelo
+ * teste de `background-config`, então no tema escuro ela fica bem abaixo e no
+ * claro bem acima, e o texto normal contrasta nos dois casos com folga.
+ *
+ * `solid`: fundo opaco em `--c-bg`, que **cobre** o canvas. Era a variante das
+ * seções com imagem até a V3.5, e o efeito colateral era um retângulo chapado
+ * ocupando a página inteira, com emenda dura onde a seção acabava. Hoje não
+ * tem consumidor, e existe só para o caso de alguma seção futura precisar
+ * mesmo esconder o fundo. Carrega a própria transição de cor porque a do
+ * `:root` não cascateia para o fundo de outro elemento (F5).
  *
  * O padding do container é `calc(var(--pad) * 2)` como piso (E9), para o texto
  * nunca passar por baixo das linhas da moldura, que ficam em `var(--pad)`.
@@ -88,67 +98,30 @@ export function Section({
         "scroll-mt-24 py-24 sm:py-28",
         variant === "blend"
           ? "mix-blend-difference text-white"
-          : "bg-[var(--c-bg)] [transition:background-color_var(--shell-fade)_var(--shell-ease)]",
+          : variant === "plain"
+            ? ""
+            : "bg-[var(--c-bg)] [transition:background-color_var(--shell-fade)_var(--shell-ease)]",
         className
       )}
     >
       <div
         className={cn(
-          "mx-auto w-full [padding-inline:calc(var(--pad)*2)]",
+          "mx-auto w-full [padding-inline-end:calc(var(--pad)*2)]",
+          /* A coluna reservada para a nav vertical do header. O token é
+             0px abaixo de lg, onde a nav vira Sheet, então esta linha vale
+             nos dois lados sem variante de breakpoint. Padding é seguro
+             para a F1: não cria contexto de empilhamento. */
+          "[padding-inline-start:calc(var(--pad)*2+var(--nav-col))]",
+          /* Ancorado à esquerda a partir de lg, onde a coluna existe. Com
+             mx-auto o offset da nav somaria à margem do centramento e o
+             conteúdo começaria bem depois da coluna, deixando um vazio que
+             parece acidente. Medido em 1440 e 2560. */
+          "lg:[margin-inline-start:0]",
           wide ? "max-w-7xl" : "max-w-5xl"
         )}
       >
         {children}
       </div>
     </section>
-  );
-}
-
-type SectionHeadingProps = {
-  label: string;
-  title: string;
-  description?: string;
-  align?: "left" | "center";
-  className?: string;
-};
-
-/**
- * Cabeçalho padrão de seção.
- *
- * Sem `text-primary` (E4): a cor do site vive no shader, e a hierarquia aqui é
- * feita por tamanho e opacidade. O `>_` fica, monocromático, porque é a
- * identidade construída na v2 e é o que impede a v3 de virar cópia.
- *
- * A entrada anima só opacity, nas duas variantes. Isso era a regra E5, que
- * valia só para `blend` e dependia de o componente saber onde estava; com uma
- * implementação só, ela deixa de ser regra a lembrar e passa a ser verdade por
- * construção. Foi o que permitiu remover o contexto de variante e, com ele, a
- * necessidade de este arquivo rodar no cliente.
- */
-export function SectionHeading({
-  label,
-  title,
-  description,
-  align = "left",
-  className,
-}: SectionHeadingProps) {
-  return (
-    <div
-      className={cn(
-        "max-w-2xl animate-fade-in motion-reduce:animate-none",
-        align === "center" && "mx-auto text-center",
-        className
-      )}
-    >
-      <p className="font-mono text-sm opacity-70">&gt;_ {label}</p>
-      <h2 className="mt-2 text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
-        {title}
-      </h2>
-      {description && (
-        <p className="font-body mt-4 text-base leading-relaxed opacity-70 text-pretty">
-          {description}
-        </p>
-      )}
-    </div>
   );
 }

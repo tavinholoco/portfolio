@@ -1,5 +1,3 @@
-import type { RouteId } from "@/lib/routes";
-
 /** Cor normalizada para uniform GLSL: cada canal de 0 a 1. */
 export type Rgb = readonly [number, number, number];
 
@@ -20,14 +18,19 @@ export const UNSAFE_LUMINANCE = { min: 0.35, max: 0.65 } as const;
 /**
  * Quanto do campo entra na composição, por tema.
  *
- * Assimétrico de propósito, e a razão é aritmética, não gosto. Partindo de um
- * fundo claro (#f0f0f0, L de cerca de 0.87), puxar para qualquer cor mais
- * escura atravessa a faixa proibida; só uma dose pequena mantém o resultado
- * acima dela. Partindo do fundo escuro (#0b0b0c) sobra folga para o campo
- * inteiro, porque mesmo o branco puro a 0.55 aterrissa em L de cerca de 0.29.
- * Na prática: tinta no tema claro, campo cheio no tema escuro.
+ * Assimétrico de propósito, e a razão é aritmética, não gosto. Partindo do
+ * fundo escuro (#0b0b0c) sobra folga para o campo inteiro, porque mesmo o
+ * branco puro a 0.55 aterrissa em L de cerca de 0.29. Partindo do claro
+ * (#f0f0f0, L de cerca de 0.87) só há 0.22 de curso até a faixa proibida.
+ *
+ * O claro era 0.08 até a V3.5, e com as paletas escuras esse era o teto: em
+ * 0.12 a composição já entrava na faixa. O resultado era um cinza chapado, com
+ * as ondas invisíveis. Com `palettesLight` a conta muda, porque o ponto mais
+ * escuro do campo deixa de ser quase preto, e **0.25 passa a ser o teto**.
+ * Ficou em 0.20, que deixa 0.046 de margem contra o limite de 0.65 em vez dos
+ * 0.014 que 0.25 deixaria. Medido pelo teste desta pasta, não estimado.
  */
-export const FIELD_MIX = { light: 0.08, dark: 0.55 } as const;
+export const FIELD_MIX = { light: 0.2, dark: 0.55 } as const;
 
 /**
  * Força da vinheta e amplitude do grain.
@@ -45,9 +48,6 @@ export const GRAIN_AMOUNT = 0.04;
 export const SHELL_FADE_MS = 900;
 export const SHELL_EASE = [0.1, 0.4, 0.2, 1] as const;
 
-/** Troca de paleta no hover da lista: mais curta que a troca de tema. */
-export const PALETTE_FADE_MS = 600;
-
 /**
  * Vocabulário de paletas. Rotas e itens da lista escolhem daqui, em vez de cada
  * um trazer suas cores, para o site inteiro ter um humor coerente.
@@ -61,17 +61,41 @@ export const palettes = {
   sand: ["#1a1409", "#54401a", "#9c7a3c"],
 } as const satisfies Record<string, readonly [string, string, string]>;
 
-/** Nome de paleta aceito por `setPalette` e pelos itens do showcase. */
+/**
+ * As mesmas seis, claras, para o tema claro.
+ *
+ * Não são as escuras clareadas por acaso: o que importa é que o **ponto mais
+ * escuro** de cada ramp fique alto o bastante para a composição sobre
+ * `#f0f0f0` não cair na faixa proibida. É isso que compra a dose de campo que
+ * torna as ondas visíveis no claro, em vez do cinza chapado da v3.
+ *
+ * A ordem continua do escuro para o claro, como no set escuro, senão o campo
+ * inverte: a espuma (v perto de 1) tem que ser o extremo claro dos dois lados.
+ */
+export const palettesLight = {
+  graphite: ["#8f98b4", "#aeb5c9", "#ccd1de"],
+  cobalt: ["#7d9bc4", "#a3bad8", "#c6d6e8"],
+  ember: ["#c49a7d", "#d8b8a3", "#e8d4c6"],
+  moss: ["#86b092", "#aac9b3", "#cbdfd1"],
+  plum: ["#a68fc4", "#c1b0d8", "#d9d0e8"],
+  sand: ["#c4b184", "#d8cba8", "#e8dfca"],
+} as const satisfies Record<
+  keyof typeof palettes,
+  readonly [string, string, string]
+>;
+
+/** Nome de paleta aceito pelo motor do fundo. */
 export type PalettePreset = keyof typeof palettes;
 
-/** Paleta de cada rota. O humor do site muda conforme se navega. */
-export const paletteForRoute: Record<RouteId, PalettePreset> = {
-  home: "graphite",
-  clients: "ember",
-  projects: "cobalt",
-  info: "moss",
-  contact: "plum",
-};
+/**
+ * A paleta do site, uma só.
+ *
+ * A v3 trocava de paleta por rota e no hover de cada item da lista. Saiu na
+ * v3.5: o fundo passou a ser o mesmo em todo lugar, e as outras cinco ficam
+ * como vocabulário disponível, ainda cobertas pelo teste de contraste, para o
+ * dia em que alguém quiser trocar a do site inteiro numa linha.
+ */
+export const DEFAULT_PALETTE: PalettePreset = "graphite";
 
 /** Converte `#rrggbb` (ou `#rgb`) para canais de 0 a 1. */
 export function hexToRgb(hex: string): Rgb {
@@ -96,9 +120,9 @@ export function hexToRgb(hex: string): Rgb {
 }
 
 /** A paleta nomeada, já normalizada para o uniform. */
-export function paletteFor(preset: PalettePreset): Palette {
-  const [a, b, c] = palettes[preset];
-  return [hexToRgb(a), hexToRgb(b), hexToRgb(c)];
+export function paletteFor(preset: PalettePreset, light = false): Palette {
+  const fonte = light ? palettesLight[preset] : palettes[preset];
+  return fonte.map(hexToRgb) as unknown as Palette;
 }
 
 /** Luminância relativa (WCAG), usada para decidir tema e checar contraste. */
@@ -212,36 +236,3 @@ export function cubicBezier(
 
 /** A curva de --shell-ease, pronta para o tween. */
 export const easeShell = cubicBezier(...SHELL_EASE);
-
-/**
- * O que o resto do site precisa poder pedir ao fundo.
- *
- * Um handle mínimo em vez do `BackgroundRenderer` inteiro: quem chama daqui não
- * tem nada a ver com WebGL, e o tipo estreito impede que alguém saia mexendo no
- * ciclo de vida do motor de fora do componente que o criou.
- */
-export type BackgroundHandle = {
-  setProgress(progress: number): void;
-  setPalette(preset: PalettePreset, immediate?: boolean): void;
-};
-
-let activeBackground: BackgroundHandle | null = null;
-
-/**
- * Registro do fundo ativo, num singleton de módulo e não em contexto do React.
- *
- * A razão é frequência: o progresso de rolagem chega a cada frame. Passar isso
- * por estado ou contexto do React re-renderizaria a árvore 60 vezes por segundo
- * para atualizar um uniform de shader, que é justamente o trabalho que não
- * precisa passar pelo React.
- *
- * `null` é normal e esperado: acontece antes do canvas montar, e depois que ele
- * desmonta. Quem chama sempre usa encadeamento opcional.
- */
-export function setActiveBackground(handle: BackgroundHandle | null): void {
-  activeBackground = handle;
-}
-
-export function getActiveBackground(): BackgroundHandle | null {
-  return activeBackground;
-}

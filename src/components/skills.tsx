@@ -18,8 +18,7 @@ export function Skills({ lang }: { lang: Locale }) {
   return (
     <Section id="habilidades" variant="blend">
       <div className="animate-fade-in motion-reduce:animate-none">
-        <p className="font-mono text-sm opacity-70">&gt;_ {d.label}</p>
-        <h2 className="mt-4 text-title font-semibold tracking-tight text-balance">
+        <h2 className="text-title font-semibold tracking-tight text-balance">
           {d.title}
         </h2>
         <p className="font-body mt-6 max-w-2xl text-base leading-relaxed opacity-70 text-pretty">

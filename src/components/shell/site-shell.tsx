@@ -1,9 +1,7 @@
 import type { ReactNode } from "react";
 
 import { BackgroundCanvas } from "@/components/background/background-canvas";
-import type { PalettePreset } from "@/components/background/background-config";
 import { Frame } from "@/components/shell/frame";
-import { SmoothScroll } from "@/components/shell/smooth-scroll";
 import { ViewportMask } from "@/components/shell/viewport-mask";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
@@ -40,17 +38,14 @@ import type { Locale } from "@/i18n";
  */
 export function SiteShell({
   lang,
-  palette = "graphite",
   children,
 }: {
   lang: Locale;
-  palette?: PalettePreset;
   children: ReactNode;
 }) {
   return (
     <>
-      <BackgroundCanvas preset={palette} />
-      <SmoothScroll />
+      <BackgroundCanvas />
       <SiteHeader lang={lang} />
       {/*
         Sem padding vertical, de propósito. Header e footer são fixos e em
@@ -60,7 +55,23 @@ export function SiteShell({
         que parece acidente. O respiro vem do padding vertical das seções, e as
         faixas de var(--pad) no topo e na base são cobertas pela ViewportMask.
       */}
-      <main>{children}</main>
+      {/*
+        A primeira seção de cada rota precisa passar por baixo do bloco de
+        identidade, que é `fixed` e mede `1.5 * --pad` de recuo mais umas
+        4.5rem de nome e cargo. Abaixo de `lg` não existe a coluna da nav para
+        afastar o conteúdo na horizontal, então a folga tem que ser vertical:
+        sem ela, em 768px o h1 encosta no cargo. A conta acompanha o `--pad`,
+        que varia com a viewport, e por isso a folga fica igual em 390 e 768.
+
+        Vai só na primeira seção, e não no padding de todas, senão o espaço
+        entre seções dobraria no mobile. E vai como padding num descendente,
+        nunca no `<main>`: no `<main>` o fundo das seções com cor própria
+        pararia antes da faixa. Padding não cria contexto de empilhamento,
+        então a F1 continua de pé.
+      */}
+      <main className="[&>section:first-of-type]:pt-[calc(var(--pad)*1.5+6rem)] lg:[&>section:first-of-type]:pt-28">
+        {children}
+      </main>
       <SiteFooter />
       <ViewportMask />
       <Frame />

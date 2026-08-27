@@ -12,8 +12,8 @@ Portfólio minimalista com fundo WebGL próprio, tipografia fluida e navegação
 |---|---|
 | Framework | **Next.js 16** (App Router, Turbopack) + TypeScript |
 | Estilo | **Tailwind CSS v4**, tema claro/escuro via classe `.dark` |
-| Fundo | **OGL** (~20 KB gzip), simplex noise com domain warping em dois passes |
-| Rolagem | **Lenis** em modo de rolagem nativa da janela |
+| Fundo | **OGL** (~20 KB gzip), campo de ondas de praia em dois passes, paleta única |
+| Rolagem | Nativa do navegador. O Lenis saiu na V3.5 |
 | Componentes | **Base UI** (Sheet do menu mobile). Não é Radix: a API é `render={<a/>}`, não `asChild` |
 | Ícones | **Lucide React** |
 | Dados | **GitHub API** em Server Component com ISR de 1h + fallback estático |
@@ -37,16 +37,19 @@ A montagem correta, em `src/components/shell/site-shell.tsx`:
 | `<BackgroundCanvas>` | `fixed`, `inset: var(--pad)` | **-1** | Canvas WebGL, recuado, sem eventos de ponteiro |
 | `<main>` | **estático, sem z-index** | auto | **Não pode** criar contexto de empilhamento |
 | `Section variant="blend"` | em fluxo | auto | `mix-blend-difference`, mistura contra o canvas |
-| `Section variant="solid"` | em fluxo | auto | Fundo opaco, cobre o canvas |
+| `Section variant="plain"` | em fluxo | auto | Sem fundo e sem blend: para seção com imagem |
+| `Section variant="solid"` | em fluxo | auto | Fundo opaco, cobre o canvas. Sem consumidor hoje |
 | `<ViewportMask>` | `fixed` | 30 | Cobre as faixas de `var(--pad)` no topo e na base |
 | `<Frame>` | `fixed` | 40 | Moldura de 1px, em `difference` |
-| `<SiteHeader>` / `<SiteFooter>` | `fixed` | 50 | Em `difference`, acima da máscara |
+| `<SiteHeader>` / `<SiteFooter>` | `fixed` | 50 | Em `difference`, acima da máscara. Ambos em `pointer-events-none` |
 
-Três detalhes decorrentes, todos descobertos na prática:
+Cinco detalhes decorrentes, todos descobertos na prática:
 
 1. **O fundo da página vive no `:root`, nunca no `body`.** O fundo do elemento raiz é propagado para o canvas do documento e pintado abaixo de tudo, inclusive do canvas em z negativo. No `body`, ele seria o fundo de um bloco em fluxo e cobriria o canvas.
-2. **O Lenis roda em rolagem nativa da janela.** Não configure `wrapper` nem `content`: nesse outro modo ele aplica `transform` num wrapper de conteúdo, o que mataria o blend de todas as seções de uma vez.
+2. **Nada pode aplicar `transform` em `html`, `body` ou `main`.** Era a lei do Lenis, que saiu na V3.5. Vale para qualquer lib de rolagem suave que se pense em adicionar depois: as que envolvem o conteúdo num wrapper com `transform` matam o blend de todas as seções de uma vez.
 3. **Não dê fundo opaco a elemento `sticky`** na mesma página de uma seção `blend`. Sticky cria contexto de empilhamento, e a combinação pinta um retângulo da cor do fundo dentro da seção misturada, a centenas de pixels de distância.
+4. **O `<SiteHeader>` é `pointer-events-none`, e cada elemento interativo dentro dele é `pointer-events-auto`.** Ele é `fixed` e de largura cheia, e com a nav vertical passou a ter umas 300px de altura. Sem isso essa faixa rouba clique e hover de todo o conteúdo que passa por baixo, inclusive o hover que troca o preview do showcase.
+5. **A coluna da nav se reserva por `--nav-col`, no container do `<Section>`, nunca por padding no `<main>`.** Padding no `<main>` faria o fundo das seções `solid` parar antes da faixa e abriria uma tira do canvas na lateral esquerda. Padding é seguro para a lei principal, porque não cria contexto de empilhamento. O token é `0px` abaixo de `lg`, onde a nav vira `Sheet`.
 
 Há teste E2E para tudo isso em `e2e/shell.spec.ts`, inclusive com controle negativo: um caso introduz a quebra de propósito e exige que a auditoria a enxergue.
 
@@ -113,12 +116,14 @@ Captura as telas em `.captures/` (ignorada pelo git). Parametrizável por `LOOK_
 │   │   │   ├── background-canvas.tsx # componente cliente, carrega o ogl no efeito
 │   │   │   ├── background-palette.tsx # define a paleta da rota
 │   │   │   ├── grain-texture.ts  # buffer puro + wrapper de Texture
-│   │   │   └── shaders/          # vertex, campo e composição, em template literal
+│   │   │   └── shaders/          # vertex, campo de ondas e composição, em template literal
 │   │   ├── shell/                # site-shell, frame, viewport-mask, smooth-scroll
-│   │   ├── showcase/             # lista com preview trocando no hover
+│   │   ├── showcase/             # lista com preview trocando no hover, e a legenda fora da moldura
 │   │   ├── pages/                # o conteúdo de cada rota, compartilhado pelos dois idiomas
-│   │   ├── home/manifesto.tsx    # a home: a tese e os 5 passos
-│   │   ├── section.tsx           # Section e SectionHeading, com a lei F1 no topo
+│   │   ├── home/manifesto.tsx    # a home: só a tese, a bio e dois links
+│   │   ├── process.tsx           # os 5 passos, hoje em /info/
+│   │   ├── site-header.tsx       # identidade fixa no topo esquerdo + nav vertical
+│   │   ├── section.tsx           # Section, com a lei F1 no topo
 │   │   └── ui/sheet.tsx          # Base UI, usado pelo menu mobile
 │   ├── data/                     # dados neutros (não dependem do idioma)
 │   ├── i18n/                     # ⭐ TODOS os textos do site, em pt.ts e en.ts

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
-import { setActiveBackground, type PalettePreset } from "./background-config";
+import { DEFAULT_PALETTE } from "./background-config";
 import { BackgroundRenderer } from "./renderer";
 
 /**
@@ -19,14 +19,9 @@ import { BackgroundRenderer } from "./renderer";
  * `await import()` dentro do efeito. Sem `next/dynamic` e sem `ssr: false`, que
  * é inválido em Server Component no Next 16 (E1).
  */
-export function BackgroundCanvas({
-  preset = "graphite",
-}: {
-  preset?: PalettePreset;
-}) {
+export function BackgroundCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rendererRef = useRef<BackgroundRenderer | null>(null);
-  const presetRef = useRef(preset);
   const [degraded, setDegraded] = useState(false);
 
   /* Monta uma vez só: trocar de rota não pode recriar o contexto WebGL, senão
@@ -47,19 +42,11 @@ export function BackgroundCanvas({
           onContextLost: () => setDegraded(true),
         });
 
-        if (!renderer.mount(canvas, presetRef.current)) {
+        if (!renderer.mount(canvas, DEFAULT_PALETTE)) {
           setDegraded(true);
           return;
         }
         rendererRef.current = renderer;
-        /* Publica o motor para o scroll e para a lista de projetos alcançarem
-           o fundo sem passar pela árvore do React. */
-        setActiveBackground(renderer);
-
-        /* Se a rota mudou enquanto o import do ogl estava em voo, o efeito de
-           paleta abaixo rodou com o motor ainda nulo. Aplicar aqui fecha a
-           corrida, e `immediate` evita um crossfade a partir da paleta errada. */
-        renderer.setPalette(presetRef.current, true);
       } catch {
         /* Sem WebGL ou falha ao carregar o ogl: o gradiente CSS assume. */
         setDegraded(true);
@@ -68,18 +55,10 @@ export function BackgroundCanvas({
 
     return () => {
       cancelled = true;
-      setActiveBackground(null);
       renderer?.destroy();
       rendererRef.current = null;
     };
   }, []);
-
-  /* Paleta por rota, e a única escrita no presetRef, que a montagem assíncrona
-     lê para saber qual rota está no ar quando ela finalmente termina. */
-  useEffect(() => {
-    presetRef.current = preset;
-    rendererRef.current?.setPalette(preset);
-  }, [preset]);
 
   /*
    * Ponte de tema. A classe .dark no <html> muda, lemos o --c-bg já resolvido e

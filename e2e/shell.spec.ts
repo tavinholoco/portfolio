@@ -90,8 +90,12 @@ test.describe("F1: o blend precisa alcançar o canvas", () => {
      * Sem este caso, o conjunto acima passaria igual se a função de auditoria
      * estivesse quebrada e sempre devolvesse lista vazia. Aqui a quebra é
      * introduzida de propósito no <main> e o teste precisa vê-la.
+     *
+     * A rota é `/info/` e não `/`: a home ficou sem conteúdo na V3.5, então lá
+     * não existe seção `blend` para confinar, e o controle passaria a provar
+     * nada.
      */
-    await page.goto("/");
+    await page.goto("/info/");
     await page.evaluate(() => {
       document.querySelector("main")?.setAttribute("style", "isolation: isolate");
     });
@@ -145,12 +149,17 @@ test.describe("camadas do shell", () => {
     expect(cores.root).not.toBe("rgba(0, 0, 0, 0)");
   });
 
-  test("o Lenis não aplica transform em wrapper de conteúdo (F3)", async ({
+  test("nada aplica transform em html, body ou main (F1)", async ({
     page,
   }) => {
     await page.goto("/");
-    /* Dá tempo do Lenis montar antes de olhar. */
-    await page.waitForTimeout(600);
+    /*
+     * Era o teste do Lenis, que na v3.5 saiu do projeto. A invariante fica:
+     * transform em qualquer um destes cria contexto de empilhamento e mata o
+     * blend de todas as seções, venha de uma lib de rolagem ou de qualquer
+     * outra coisa que alguém acrescente depois.
+     */
+    await page.waitForTimeout(300);
 
     const transforms = await page.evaluate(() => ({
       html: getComputedStyle(document.documentElement).transform,
@@ -330,7 +339,7 @@ test.describe("movimento reduzido", () => {
     await page.goto("/projetos/");
     const duracao = await page.evaluate(() => {
       const alvo = document.querySelector(
-        '[data-variant="solid"] .absolute'
+        '[data-variant="plain"] .absolute'
       ) as HTMLElement | null;
       return alvo ? getComputedStyle(alvo).transitionDuration : null;
     });

@@ -58,6 +58,7 @@ export const en: Dict = {
   hero: {
     role: "Full Stack Developer",
     name: "Pedro Levi",
+    thesis: "I understand the problem before choosing the technology.",
     bio: "I build web and mobile applications with a focus on architecture, quality and functional experiences.",
     viewProjects: "View projects",
     downloadCv: "Download CV",
@@ -72,7 +73,6 @@ export const en: Dict = {
     title: "About me",
     facts: [
       { id: "formation", label: "Education", value: "Systems Analysis · UNOESTE" },
-      { id: "location", label: "Location", value: "Rancharia, São Paulo" },
       { id: "email", label: "Email", value: "pedrolevidiass@gmail.com" },
       { id: "languages", label: "Languages", value: "Advanced English (CCAA)" },
     ],

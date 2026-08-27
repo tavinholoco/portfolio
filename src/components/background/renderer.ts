@@ -9,12 +9,12 @@ import type {
 
 import {
   GRAIN_AMOUNT,
-  PALETTE_FADE_MS,
   SHELL_FADE_MS,
   VIGNETTE_STRENGTH,
   easeShell,
   hexToRgb,
   mixForBack,
+  isLightBack,
   paletteFor,
   vignetteTargetForBack,
   type PalettePreset,
@@ -51,10 +51,26 @@ export const MAX_DPR = 1.5;
  *
  * O campo é renderizado pequeno e esticado com filtro LINEAR: a interpolação
  * bilinear do hardware faz o papel do blur de graça. É o que dispensa o passe
- * de blur da referência e derruba o fill rate em mais de 10x.
+ * de blur da referência e derruba o fill rate.
+ *
+ * Subiram de 320 e 200 na v3.5, junto com a troca do campo de noise pelo campo
+ * de ondas. O borrão de graça era virtude enquanto o campo era suave: ele
+ * derretia justamente a aresta de espuma que dá forma sólida às ondas.
+ *
+ * **Os dois valores são medidos, não escolhidos.** A primeira tentativa foi
+ * 640 e 384, e o Lighthouse mobile da home caiu de 93 para 85. Um controle com
+ * o shader novo e a resolução antiga deu 93 de novo, com LCP e TBT iguais aos
+ * do baseline: o campo de ondas em si não custa nada, o custo é só resolução.
+ * Como o desktop lê o teto grande e o mobile lê o pequeno, só o pequeno
+ * precisava baixar. Em 256 o mobile empata com o baseline e o desktop vai a
+ * 100; em 288 o mobile já cai para 91.
+ *
+ * Ou seja: **mexer em `FIELD_TARGET_MAX_SMALL` custa Lighthouse mobile, mexer
+ * em `FIELD_TARGET_MAX` não.** Se um dia precisar de mais nitidez, é o grande
+ * que tem folga.
  */
-export const FIELD_TARGET_MAX = 320;
-export const FIELD_TARGET_MAX_SMALL = 200;
+export const FIELD_TARGET_MAX = 640;
+export const FIELD_TARGET_MAX_SMALL = 256;
 
 /** Abaixo desta largura de viewport, DPR 1 e alvo menor (checklist da Fase 6). */
 export const SMALL_SCREEN_WIDTH = 768;
@@ -148,8 +164,8 @@ export class BackgroundRenderer {
   private pointer: [number, number] = [0, 0];
   private pointerTarget: [number, number] = [0, 0];
 
+  private preset: PalettePreset = "graphite";
   private themeTween: Tween | null = null;
-  private paletteTween: Tween | null = null;
 
   private resizeObserver: ResizeObserver | null = null;
   private intersectionObserver: IntersectionObserver | null = null;
@@ -199,8 +215,11 @@ export class BackgroundRenderer {
     this.reducedMotion = this.prefersReducedMotion();
     this.documentHidden = document.visibilityState === "hidden";
 
-    const palette = paletteFor(preset);
     const back = this.readBackFromCanvas(canvas);
+    /* A paleta inicial precisa seguir o tema inicial, senão o site abre no
+       claro com as cores do escuro até a primeira troca. */
+    const palette = paletteFor(preset, isLightBack(back));
+    this.preset = preset;
     const target = fieldTargetSize(
       size.width,
       size.height,
@@ -232,7 +251,6 @@ export class BackgroundRenderer {
           /* Semente nova a cada load: dois acessos nunca abrem iguais. */
           uSeed: { value: Math.random() * 1000 },
           uResolution: { value: [target.width, target.height] },
-          uProgress: { value: 0 },
           uPointer: { value: [0, 0] },
           uPalette: { value: palette.map((color) => [...color]) },
         },
@@ -296,43 +314,12 @@ export class BackgroundRenderer {
     this.requestFrame();
   }
 
-  /** Progresso de rolagem normalizado, alimentado pelo Lenis na Fase 3. */
-  setProgress(progress: number): void {
-    if (!this.fieldMesh) return;
-    this.fieldMesh.program.uniforms.uProgress.value = Number.isFinite(progress)
-      ? progress
-      : 0;
-    this.requestFrame();
-  }
-
   /** Alvo do ponteiro, de -1 a 1. O lerp acontece a cada frame. */
   setPointer(x: number, y: number): void {
     this.pointerTarget = [
       Math.min(Math.max(x, -1), 1),
       Math.min(Math.max(y, -1), 1),
     ];
-  }
-
-  /** Troca a paleta com crossfade. Por rota e por item da lista. */
-  setPalette(preset: PalettePreset, immediate = false): void {
-    if (!this.fieldMesh) return;
-
-    const to = paletteFor(preset).flatMap((color) => [...color]);
-
-    if (immediate || this.reducedMotion) {
-      this.paletteTween = null;
-      this.applyPaletteFlat(to);
-      this.requestFrame();
-      return;
-    }
-
-    this.paletteTween = {
-      from: this.currentPaletteFlat(),
-      to,
-      start: performance.now(),
-      duration: PALETTE_FADE_MS,
-    };
-    this.syncLoop();
   }
 
   /**
@@ -342,12 +329,24 @@ export class BackgroundRenderer {
    * `--shell-ease`, em vez de lida do getComputedStyle a cada frame, o que
    * forçaria layout (F6). A dose de campo e o alvo da vinheta acompanham,
    * senão o shader chegaria ao tema novo antes ou depois do CSS.
+   *
+   * **A paleta viaja no mesmo tween**, e não num paralelo, porque cada tema
+   * tem o seu conjunto: o claro usa `palettesLight`, cujo ponto mais escuro é
+   * alto o bastante para o campo aparecer sem entrar na faixa proibida. Dois
+   * tweens independentes chegariam em instantes diferentes e a composição
+   * passaria por combinações que ninguém mediu.
    */
   setTheme(hex: string): void {
     if (!this.compositeMesh) return;
 
     const back = hexToRgb(hex);
-    const to = [...back, mixForBack(back), vignetteTargetForBack(back)];
+    const palette = paletteFor(this.preset, isLightBack(back));
+    const to = [
+      ...back,
+      mixForBack(back),
+      vignetteTargetForBack(back),
+      ...palette.flatMap((color) => [...color]),
+    ];
 
     if (this.reducedMotion) {
       this.themeTween = null;
@@ -509,13 +508,15 @@ export class BackgroundRenderer {
     ];
   }
 
+  /** Os 5 do composite mais os 9 da paleta, num vetor só. */
   private currentThemeFlat(): number[] {
     const uniforms = this.compositeMesh?.program.uniforms;
-    if (!uniforms) return new Array<number>(5).fill(0);
+    if (!uniforms) return new Array<number>(14).fill(0);
     return [
       ...(uniforms.uBack.value as number[]),
       uniforms.uMix.value as number,
       uniforms.uVignetteTarget.value as number,
+      ...this.currentPaletteFlat(),
     ];
   }
 
@@ -525,6 +526,7 @@ export class BackgroundRenderer {
     uniforms.uBack.value = flat.slice(0, 3);
     uniforms.uMix.value = flat[3];
     uniforms.uVignetteTarget.value = flat[4];
+    this.applyPaletteFlat(flat.slice(5, 14));
   }
 
   /**
@@ -564,9 +566,9 @@ export class BackgroundRenderer {
   /**
    * Renderiza um frame avulso quando o loop está parado.
    *
-   * O `framePending` importa: setProgress e setPalette podem ser chamados
-   * várias vezes antes do próximo frame, e sem a guarda cada chamada agendaria
-   * um rAF próprio, todos renderizando o mesmo estado.
+   * O `framePending` importa: o resize e a troca de tema podem chegar várias
+   * vezes antes do próximo frame, e sem a guarda cada chamada agendaria um
+   * rAF próprio, todos renderizando o mesmo estado.
    */
   private requestFrame(): void {
     if (
@@ -636,12 +638,6 @@ export class BackgroundRenderer {
       const step = this.stepTween(this.themeTween, now);
       this.applyThemeFlat(step.flat);
       if (step.done) this.themeTween = null;
-    }
-
-    if (this.paletteTween) {
-      const step = this.stepTween(this.paletteTween, now);
-      this.applyPaletteFlat(step.flat);
-      if (step.done) this.paletteTween = null;
     }
   }
 

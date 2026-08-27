@@ -21,7 +21,7 @@ function problema(page: Page) {
 
 /** As linhas da lista, na ordem de curadoria. */
 function linhas(page: Page) {
-  return page.locator('[data-variant="solid"] ol > li');
+  return page.locator('[data-variant="plain"] ol > li');
 }
 
 test.describe("showcase: ponteiro", () => {

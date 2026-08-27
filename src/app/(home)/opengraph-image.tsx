@@ -20,35 +20,43 @@ export default function OpenGraphImage() {
           flexDirection: "column",
           justifyContent: "center",
           position: "relative",
-          background: "#0a0a0b",
+          background: "#0b0b0c",
           color: "#fafafa",
           fontFamily: "sans-serif",
           padding: 72,
         }}
       >
-        {/* Brilhos decorativos (identidade visual do site) */}
+        {/*
+          Duas cristas no rodapé, ecoando o campo de ondas do site. Substituíram
+          os dois blobs borrados da v2, que a seção 8 do plano tirou do site e
+          que sobreviveram aqui porque ninguém olha imagem de link.
+
+          São divs com raio elíptico no topo, e não `<path>`: o satori renderiza
+          um subconjunto de CSS, e curva por border-radius é o caminho seguro.
+          Mais largas que a tela para a curva chegar suave nas bordas.
+        */}
         <div
           style={{
             position: "absolute",
-            top: -140,
-            right: -90,
-            width: 440,
-            height: 440,
-            borderRadius: 9999,
-            background: "#2dd4bf",
-            opacity: 0.12,
+            bottom: -60,
+            left: "-20%",
+            width: "140%",
+            height: 260,
+            borderTopLeftRadius: "50%",
+            borderTopRightRadius: "50%",
+            background: "#232838",
           }}
         />
         <div
           style={{
             position: "absolute",
-            bottom: -170,
-            left: -70,
-            width: 380,
-            height: 380,
-            borderRadius: 9999,
-            background: "#0ea5e9",
-            opacity: 0.1,
+            bottom: -80,
+            left: "-10%",
+            width: "120%",
+            height: 190,
+            borderTopLeftRadius: "50%",
+            borderTopRightRadius: "50%",
+            background: "#454f6b",
           }}
         />
 
@@ -57,11 +65,12 @@ export default function OpenGraphImage() {
             display: "flex",
             fontSize: 30,
             fontFamily: "monospace",
-            color: "#2dd4bf",
+            color: "#fafafa",
+            opacity: 0.7,
             marginBottom: 18,
           }}
         >
-          &gt;_ {d.hero.role}
+          {d.hero.role}
         </div>
         <div
           style={{
@@ -78,7 +87,7 @@ export default function OpenGraphImage() {
             display: "flex",
             marginTop: 22,
             fontSize: 27,
-            color: "#a1a1aa",
+            color: "#9a9a9e",
           }}
         >
           {profile.stack.join(" · ")}
@@ -90,7 +99,7 @@ export default function OpenGraphImage() {
             width: 72,
             height: 5,
             borderRadius: 3,
-            background: "#2dd4bf",
+            background: "#fafafa",
           }}
         />
       </div>

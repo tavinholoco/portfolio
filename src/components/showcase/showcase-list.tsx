@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { getActiveBackground } from "@/components/background/background-config";
 import { Section } from "@/components/section";
+import { ShowcaseCaption } from "@/components/showcase/showcase-caption";
 import { ShowcasePreview } from "@/components/showcase/showcase-preview";
 import { ShowcaseRow } from "@/components/showcase/showcase-row";
 import type { ShowcaseItem } from "./types";
@@ -44,7 +44,7 @@ export function ShowcaseList({
   id: string;
   items: ShowcaseItem[];
   previewAlt: string;
-  problemLabel: string;
+  problemLabel?: string;
   /** Rótulo do que foi feito. Só a rota de clientes passa. */
   rolesLabel?: string;
 }) {
@@ -52,14 +52,9 @@ export function ShowcaseList({
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const listRef = useRef<HTMLOListElement>(null);
 
-  const apply = useCallback(
-    (index: number) => {
-      setActiveIndex(index);
-      const preset = items[index]?.palette;
-      if (preset) getActiveBackground()?.setPalette(preset);
-    },
-    [items]
-  );
+  const apply = useCallback((index: number) => {
+    setActiveIndex(index);
+  }, []);
 
   const activate = useCallback(
     (index: number, immediate: boolean) => {
@@ -84,12 +79,6 @@ export function ShowcaseList({
       if (timerRef.current) clearTimeout(timerRef.current);
     };
   }, []);
-
-  /* A paleta do primeiro item já no load, para o fundo abrir coerente. */
-  useEffect(() => {
-    const preset = items[0]?.palette;
-    if (preset) getActiveBackground()?.setPalette(preset, true);
-  }, [items]);
 
   /* Regra 6: em touch, quem manda é a proximidade do centro da tela. */
   useEffect(() => {
@@ -118,7 +107,7 @@ export function ShowcaseList({
   }, [apply, items]);
 
   return (
-    <Section id={id} variant="solid" wide>
+    <Section id={id} variant="plain" wide>
       {/*
         Lado a lado a partir de lg, empilhado abaixo disso.
         
@@ -129,16 +118,14 @@ export function ShowcaseList({
         pede, acompanhar a rolagem e sair ao fim da seção, e a lista inteira
         fica visível junto do preview, que é o ponto do componente.
         
-        No empilhado de telas pequenas o preview leva fundo opaco, e aí a lista
-        passar por baixo dele deixa de ser defeito e vira painel fixo.
+        Abaixo de lg o `sticky` nem liga, então preview e lista empilham em
+        fluxo normal, sem sobreposição possível.
       */}
       <div className="grid gap-8 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:items-start lg:gap-12">
         <ShowcasePreview
           items={items}
           activeIndex={activeIndex}
           alt={previewAlt}
-          problemLabel={problemLabel}
-          rolesLabel={rolesLabel}
         />
 
         <ol ref={listRef} className="border-t border-current/15">
@@ -154,6 +141,17 @@ export function ShowcaseList({
           ))}
         </ol>
       </div>
+
+      {/*
+        Fora do grid, e portanto fora do wrapper sticky da moldura. Na v3.5 o
+        texto desceu para cá justamente para deixar de ler como conteúdo de
+        dentro do quadro.
+      */}
+      <ShowcaseCaption
+        item={items[activeIndex]}
+        problemLabel={problemLabel}
+        rolesLabel={rolesLabel}
+      />
     </Section>
   );
 }

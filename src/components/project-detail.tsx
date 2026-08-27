@@ -2,10 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowRight, ArrowUpRight } from "lucide-react";
 
-import { BackgroundPalette } from "@/components/background/background-palette";
 import { JsonLd } from "@/components/json-ld";
 import { Section } from "@/components/section";
-import { paletteForSlug } from "@/components/showcase/items";
 import { dictionaries, type Locale } from "@/i18n";
 import { getFeaturedProjects } from "@/lib/github";
 import { projectJsonLd } from "@/lib/json-ld";
@@ -58,7 +56,6 @@ export async function ProjectDetailPage({
   return (
     <>
       {jsonLd && <JsonLd data={jsonLd} />}
-      <BackgroundPalette preset={paletteForSlug(slug)} />
 
       <Section id="projeto" variant="blend">
         <div className="animate-fade-in motion-reduce:animate-none">
@@ -71,7 +68,7 @@ export async function ProjectDetailPage({
           </Link>
 
           <p className="mt-12 font-mono text-sm opacity-70">
-            &gt;_ {d.projects.categories[project.category]}
+            {d.projects.categories[project.category]}
           </p>
           <h1 className="mt-4 text-display font-semibold text-balance">
             {project.title}
@@ -126,7 +123,7 @@ export async function ProjectDetailPage({
         </div>
       </Section>
 
-      <Section id="case" variant="solid">
+      <Section id="case" variant="plain">
         {/* O argumento do projeto, em três blocos separados só por linha. */}
         <dl className="border-t border-border">
           {[

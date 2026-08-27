@@ -16,14 +16,14 @@ import {
   lerpRgb,
   mixForBack,
   paletteFor,
-  paletteForRoute,
+  DEFAULT_PALETTE,
   palettes,
+  palettesLight,
   relativeLuminance,
   vignetteTargetForBack,
   type PalettePreset,
   type Rgb,
 } from "./background-config";
-import { routeIds } from "@/lib/routes";
 
 const LIGHT_BACK = hexToRgb("#f0f0f0");
 const DARK_BACK = hexToRgb("#0b0b0c");
@@ -141,12 +141,8 @@ describe("cubicBezier", () => {
 });
 
 describe("paletas", () => {
-  it("toda rota tem paleta, e toda paleta apontada existe", () => {
-    for (const id of routeIds) {
-      const preset = paletteForRoute[id];
-      expect(preset).toBeDefined();
-      expect(palettes[preset]).toBeDefined();
-    }
+  it("a paleta padrão do site existe", () => {
+    expect(palettes[DEFAULT_PALETTE]).toBeDefined();
   });
 
   it("toda paleta tem exatamente 3 cores hexadecimais válidas", () => {
@@ -157,12 +153,20 @@ describe("paletas", () => {
     }
   });
 
-  it("o ramp vai do escuro para o claro, senão o campo inverte", () => {
+  it("o ramp vai do escuro para o claro nos dois sets, senão o campo inverte", () => {
     for (const preset of Object.keys(palettes) as PalettePreset[]) {
-      const [a, b, c] = paletteFor(preset);
-      expect(relativeLuminance(a)).toBeLessThan(relativeLuminance(b));
-      expect(relativeLuminance(b)).toBeLessThan(relativeLuminance(c));
+      for (const light of [false, true]) {
+        const [a, b, c] = paletteFor(preset, light);
+        expect(relativeLuminance(a)).toBeLessThan(relativeLuminance(b));
+        expect(relativeLuminance(b)).toBeLessThan(relativeLuminance(c));
+      }
     }
+  });
+
+  it("o set claro tem as mesmas chaves do escuro", () => {
+    expect(Object.keys(palettesLight).sort()).toEqual(
+      Object.keys(palettes).sort()
+    );
   });
 });
 
@@ -176,13 +180,18 @@ describe("paletas", () => {
  * deixaria o texto invisível sem gerar erro nenhum no navegador.
  */
 describe("contraste do backdrop em mix-blend-mode: difference", () => {
+  /*
+   * Cada tema varre o SEU set de paletas. Varrer o escuro contra o fundo claro
+   * provaria uma combinação que o site nunca compõe, e deixaria de provar a que
+   * ele compõe de verdade.
+   */
   const themes = [
-    { name: "claro", back: LIGHT_BACK, mix: FIELD_MIX.light },
-    { name: "escuro", back: DARK_BACK, mix: FIELD_MIX.dark },
+    { name: "claro", back: LIGHT_BACK, mix: FIELD_MIX.light, light: true },
+    { name: "escuro", back: DARK_BACK, mix: FIELD_MIX.dark, light: false },
   ] as const;
 
-  function rampAt(preset: PalettePreset, t: number): Rgb {
-    const [a, b, c] = paletteFor(preset);
+  function rampAt(preset: PalettePreset, t: number, light: boolean): Rgb {
+    const [a, b, c] = paletteFor(preset, light);
     return t < 0.5 ? lerpRgb(a, b, t * 2) : lerpRgb(b, c, (t - 0.5) * 2);
   }
 
@@ -192,7 +201,7 @@ describe("contraste do backdrop em mix-blend-mode: difference", () => {
         const target = vignetteTargetForBack(theme.back);
 
         for (let i = 0; i <= 40; i++) {
-          const field = rampAt(preset, i / 40);
+          const field = rampAt(preset, i / 40, theme.light);
           const composed = lerpRgb(theme.back, field, theme.mix);
 
           for (const vignette of [0, 0.5, 1]) {
