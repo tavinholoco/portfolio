@@ -4,10 +4,10 @@
 >
 > **Base:** v2 publicada (Next 16.3 + React 19, Tailwind v4, bilíngue com paridade testada, 36 unit + 6 E2E, Lighthouse 95/100/100/100).
 > **Referência de inspiração:** [p5aholic.me](https://p5aholic.me) (Keita Yamada). Inspiração estrutural, **não cópia**. Ver seção 0.3.
-> **Status:** ✅ **Concluído e no ar em 27/08/2026.** As 7 fases fechadas, mergeadas na `main` e publicadas. Avaliação pós-deploy registrada na seção 11.
+> **Status:** ✅ **No ar desde 27/08/2026.** As 7 fases da v3 fechadas e publicadas (avaliação na seção 11). O **refinamento V3.5**, na seção 12, está implementado e verificado.
 >
 > **Produção:** https://portfolio-tau-five-f86nc5khr8.vercel.app
-> **Versão do documento:** V3.2
+> **Versão do documento:** V3.5
 
 ---
 
@@ -36,6 +36,8 @@ Da Fase 6 está em pé a auditoria inteira, agora automatizada, e da Fase 7 a li
 **A v3 está no ar**, em https://portfolio-tau-five-f86nc5khr8.vercel.app, com 141 testes unitários e 68 E2E passando no CI. A avaliação pós-deploy está na seção 11.
 
 O que resta está listado no fim daquela seção, e nada é código.
+
+**A V3.5 veio depois.** O site rodando mostrou o que captura nenhuma mostra: a home ocupava altura demais, o `>_` repetido em 12 lugares destoava, a identidade não tinha âncora fixa e o campo de noise lia como líquido em vez de forma. A seção 12 registra esse passe, com as fases 8 a 13. Se você vai mexer no header, na home, no showcase ou no shader, **leia a seção 12 antes desta**: várias decisões aqui foram revogadas por ela.
 
 ### 0.2 As três coisas que mais quebram este plano
 
@@ -669,7 +671,7 @@ O baseline da v2 era 95/100/100/100 numa rota só. O Lighthouse não vem instala
 
 **Regras duras:**
 - No máximo **dois pesos tipográficos** por página
-- Cor só no shader. A UI é branco, preto e opacidade. O `>_` sobrevive monocromático (E4)
+- Cor só no shader. A UI é branco, preto e opacidade (E4). ~~O `>_` sobrevive monocromático~~, **revogado na V3.5**, seção 12
 - Todo espaçamento deriva de `var(--pad)` ou da escala do Tailwind
 - Nenhum `border-radius` acima de 2px, exceto na janela do preview
 - **Nenhum ancestral de seção `blend` pode criar contexto de empilhamento** (F1)
@@ -756,6 +758,13 @@ Roteiro manual, nos dois temas e nos dois idiomas:
 - [ ] 🔄 Captura do Netsheet Engine (aguardando deploy do Pedro; o preview usa o mockup em CSS enquanto isso)
 - [x] Preview do Repertório Progressivo, resolvido em 27/08/2026 com as prints da V2 no repositório do app, enquadradas como tela de celular
 - [ ] `NEXT_PUBLIC_SITE_URL` em produção e DNS de `pedrolevi.dev` (herdado da v2)
+- [x] Fase 8: Identidade fixa e nav vertical, V3.5
+- [x] Fase 9: Fim do `>_` nas 12 ocorrências, V3.5
+- [x] Fase 10: Home enxuta, cabeçalhos removidos, 5 passos em `/info/`, V3.5
+- [x] Fase 11: Textos do showcase fora da moldura, V3.5
+- [x] Fase 12: Fundo em ondas de praia, V3.5
+- [x] Fase 13: Testes e documentação da V3.5
+- [ ] Lighthouse da V3.5 medido contra o baseline da seção 11
 
 ---
 
@@ -802,3 +811,112 @@ Corrigido e **medido**, não estimado: a variante servida no desktop caiu de `w=
 | Domínio próprio | `pedrolevi.dev` ainda não responde. **Nada a fazer hoje.** No dia em que responder: `vercel env add NEXT_PUBLIC_SITE_URL production`, redeploy, e marcar o domínio como primário na Vercel para o `.vercel.app` redirecionar em vez de duplicar conteúdo |
 
 > ⚠️ Existe uma segunda URL de produção, no escopo do time (`portfolio-*-tavinholocos-projects.vercel.app`), que está **atrás do SSO da Vercel** e responde 302 com `X-Robots-Tag: noindex`. Ela não é a URL pública e não deve ser usada para medir nada. A URL boa é a do topo deste documento.
+
+---
+
+## 12. Refinamento V3.5 (27/08/2026)
+
+A v3 no ar mostrou o que captura nenhuma mostra. Quatro incômodos, todos de forma e nenhum de conteúdo: a Home gastava altura demais com a lista dos 5 passos, o `>_` repetido em 12 lugares destoava do resto, a identidade não tinha âncora fixa, e o campo de fBm com domain warping lia como líquido em vez de forma definida.
+
+Isto é um passe de refinamento sobre a v3, não uma reconstrução. A referência continua sendo o [p5aholic.me](https://p5aholic.me) e a fronteira ética da §0.3 continua valendo integralmente: nenhuma linha do código deles, shader escrito do zero.
+
+### 12.1 Decisões fechadas com o Pedro
+
+| Pergunta | Decisão |
+|---|---|
+| Layout da nav | **Coluna vertical** sob o nome, alinhada à mesma margem esquerda |
+| Fundo em ondas | **Ondas estilizadas passando pela paleta atual.** O `difference`, o tema e o teste de luminância continuam de pé |
+| Topo das páginas | **Sai o bloco inteiro** (`>_ clientes`, título e descrição). Entra `h1` em `sr-only` |
+| Os 5 passos | **Vão para `/info/`.** A Home fica minimalista |
+
+O caminho descartado no fundo era ondas realistas em cores, como o GIF de referência que o Pedro mandou. Custaria o `mix-blend-mode: difference` do site inteiro, que é a assinatura da v3 e a origem do contraste de graça (§1.3). Seria reescrita do shell, não refinamento.
+
+> O GIF de praia é **referência visual, não asset**. É material de banco de imagens de terceiros e não entra no repositório, nem como vídeo nem como textura.
+
+### Fase 8: Identidade fixa e nav vertical
+
+Saiu a barra horizontal com `>_ pedrolevi` à esquerda e a nav ao centro. Entrou um bloco ancorado no topo esquerdo, presente em todas as rotas: nome, cargo e, de `lg` para cima, a nav empilhada na vertical na mesma margem. Tema e idioma foram para o topo direito. Abaixo de `lg` a nav volta a ser o `Sheet`, porque cinco itens empilhados comeriam um 375px.
+
+Nenhuma chave nova: `hero.name` e `hero.role` já existiam e já diziam exatamente "Pedro Levi" e "Desenvolvedor Full Stack".
+
+**Duas descobertas de execução, e as duas quebram em silêncio:**
+
+1. **`pointer-events-none` no header virou obrigatório.** Ele é `fixed` e de largura cheia, e passou de tira fina a bloco de umas 300px de altura. Sem isso essa faixa rouba todo clique e todo hover do conteúdo que passa por baixo, inclusive o hover que troca o preview do showcase. Cada elemento interativo reabilita com `pointer-events-auto`. Mesmo esquema que o `<SiteFooter>` já usava.
+2. **A reserva da coluna não pode ser padding no `<main>`.** O fundo das seções `solid` deixaria de alcançar a faixa e apareceria uma tira do canvas na lateral esquerda, com borda dura. É o mesmo motivo pelo qual o `<main>` já não tinha padding vertical. O offset foi para o container interno do `<Section>`, via `--nav-col`, que é `0px` abaixo de `lg` e `15rem` acima. **Padding é seguro para a F1: não cria contexto de empilhamento.**
+
+**O `mx-auto` teve que sair em `lg`.** A nav é `fixed` em relação à viewport e o container é centrado em relação a ela, então o offset da coluna somava à margem do centramento: em 1440px o conteúdo começava em x=528 com a nav terminando em 150, e o vazio parecia acidente. Com `lg:[margin-inline-start:0]` o conteúdo passa a começar em x=312, logo depois da coluna. Medido, não estimado.
+
+### Fase 9: Fim do `>_`
+
+As 12 ocorrências saíram. Não era componente nem pseudo-elemento, era a string literal `&gt;_ ` repetida em JSX, com o rótulo vindo do dicionário depois dela.
+
+**O que a remoção expôs:** sem o prefixo, o rótulo virou duplicata literal do título logo abaixo. `about` era "sobre mim" sobre "Sobre mim", `skills` "habilidades" sobre "Habilidades", `process` "como trabalho" sobre "Como trabalho", `career` "trajetória" sobre "Trajetória profissional". O `>_` era o que fazia aquilo ler como prompt de terminal em vez de repetição. Os quatro rótulos saíram junto. **`contact` ficou**, porque "contato" não duplica "Vamos conversar?", e a categoria em `project-detail` ficou pelo mesmo motivo.
+
+As chaves `label` dessas seções continuam nos dicionários, órfãs, como já estavam `clients.label` e `projects.label`. Removê-las é limpeza para outro dia, e teria que sair dos dois dicionários no mesmo commit.
+
+### Fase 10: Home enxuta e cabeçalhos de página
+
+A Home perdeu a linha do cargo, o `<h1>` com o nome, a `<ol>` dos 5 passos e o CTA de baixo. Ficou o `h1` com a tese, a bio e os dois links do topo, que não estavam no pedido de remoção.
+
+**O `h1` da Home é a tese, não o nome.** O nome virou âncora fixa no header e repeti-lo seria ruído, mas deixar a rota sem `h1` seria pior. Entrou `hero.thesis` nos dois dicionários: *"Entendo o problema antes de escolher a tecnologia."* É o que impede esta fase de cumprir o alerta da §2.3, que diz em texto que uma Home reduzida a nome mais bio mais link mata a tese do portfólio.
+
+Os 5 passos foram para `/info/`, em `<Process>`, entre Identidade e Trajetória. Reusam `Dict.process.steps` inteiro, e as chaves `process.label`, `process.title` e `process.description`, que estavam órfãs desde a v3, passaram a ser usadas.
+
+Clientes e Projetos perderam o `<SectionHeading>` e abrem direto no showcase. Como eram os dois únicos consumidores, **`SectionHeading` foi deletado**.
+
+**Correção de acessibilidade que a fase destravou.** O `SectionHeading` renderizava `h2`, então Clientes e Projetos estavam no ar **sem `h1` nenhum**. Ganharam um em `sr-only`. Auditando as outras rotas apareceu o mesmo defeito, pré-existente, em `/info/` e `/contato/`: o `h2` de topo de cada uma virou `h1`. **As 5 rotas agora têm exatamente um `h1`, nos dois idiomas.**
+
+### Fase 11: Textos do showcase fora da moldura
+
+O problema e as responsabilidades viviam dentro do wrapper `lg:sticky` do `<ShowcasePreview>`. Tecnicamente já estavam fora do quadro, mas grudados nele e acompanhando a rolagem, então liam como conteúdo de dentro. Saíram para `<ShowcaseCaption>`, fora do grid, na largura cheia do conteúdo e separados por linha de 1px. Só a moldura ficou `sticky`. Não foi preciso estado novo: o `activeIndex` sempre viveu no pai (regra 3 da §3.1).
+
+O `<WindowMockup>` perdeu o título que desenhava dentro do quadro, que era o único texto de conteúdo ali. O host na barra de endereço ficou, porque é parte do mock da janela. O componente inteiro é `aria-hidden`, então nada disso era anunciado a leitor de tela.
+
+### Fase 12: O fundo em ondas de praia
+
+**Só a função que gera o escalar `v` mudou.** Os dois passes, o `RenderTarget`, o grain em `gl_FragCoord`, a vinheta, o tween de tema de 900ms, as 6 paletas, o fallback CSS, o `prefers-reduced-motion` e o cap de DPR continuam iguais. E, principalmente, **o ramp de 3 cores no fim do `main` não mudou**.
+
+É isso que torna a troca segura. O teste de contraste em `background-config.test.ts` varre 6 paletas x 2 temas x 41 pontos do ramp x 3 vinhetas x 3 amostras de grain, provando que nada cai em `UNSAFE_LUMINANCE`. Ele testa **o ramp, não o campo**. Trocando só o gerador de `v`, e mantendo o contradomínio em `[0,1]`, a garantia continua valendo por construção. O teste passou sem uma linha de alteração.
+
+O campo novo tem quatro camadas: céu com gradiente e halo do sol, mar em perspectiva (`z = 1/d`, com **z pequeno perto do observador e z grande no horizonte**), espuma de crista por `smoothstep` de faixa curta, e a linha de arrebentação presa à linha d'água, que sobe e desce com o vaivém e deixa resíduo do lado da areia. O `uProgress` deixou de atravessar um volume de noise e move o horizonte e a fase das cristas; o `uPointer` move a coluna do rastro do sol.
+
+**Detalhe que custa caro se esquecido:** perto do horizonte um período inteiro de onda cabe em menos de um pixel e o resultado cintila. O `w *= 1.0 - smoothstep(7.0, 22.0, z)` é o que troca esse moiré por uma faixa calma de mar distante.
+
+**A única mudança fora do shader** foi a resolução: `FIELD_TARGET_MAX` de 320 para 640 e `FIELD_TARGET_MAX_SMALL` de 200 para 384. O borrão bilinear de graça era virtude enquanto o campo era suave; ele derretia justamente a aresta de espuma que dá a forma sólida. O guarda de `renderer.test.ts` acompanhou, e os dois valores esperados de `fieldTargetSize` eram derivados dos tetos antigos e viraram 360 e 177.
+
+O que sai é contínuo e sem emenda, como o fundo da referência, não um loop de N segundos. Loop estrito exigiria noise 4D amostrado num círculo no eixo do tempo, e não paga o custo.
+
+> ⚠️ **Crase dentro do shader quebra o build.** Os shaders são template literals em `.ts`. Uma crase num comentário GLSL fecha a string do JS, e o erro que aparece é de parse do TypeScript apontando para o meio de um comentário. Nos comentários GLSL a convenção é aspas simples.
+
+### Fase 13: Testes e documentação
+
+Duas suítes E2E precisaram acompanhar, e as duas por regressão real, não por fragilidade de seletor:
+
+1. **A troca de idioma** era localizada por `locator("header a", { hasText: "EN" }).first()`. O `hasText` casa substring sem diferenciar maiúsculas, e "Clientes" contém "en". Funcionava só porque a nav vinha depois do toggle no DOM. Com a nav antes, o `.first()` mudou de alvo. O `<LangToggle>` ganhou `data-testid="lang-toggle"`.
+2. **O teste de rolagem (E10)** descia até o fim de `/projetos/` e navegava. Sem o cabeçalho, `/projetos/` passou a caber inteira numa viewport de 720px e parou de rolar. A rota longa virou `/info/`, que ganhou os 5 passos no mesmo passe.
+
+O `capture/playwright.config.ts` ganhou `LOOK_WIDTH` e `LOOK_HEIGHT`, porque o roteiro visual pede 375, 768 e 1440 e a viewport era fixa em 1440x900.
+
+### 12.2 Estado da verificação
+
+| Verificação | Resultado |
+|---|---|
+| `pnpm lint`, `pnpm typecheck` | Limpos |
+| `pnpm test` | **141 unitários passando** |
+| `pnpm test:e2e` | **68 E2E passando**, incluindo o controle negativo da F1 |
+| `h1` por rota | Exatamente 1 nas 5 rotas, nos dois idiomas |
+| Nenhum `>_` restante em `src/` | Confirmado |
+| Shader em runtime | Canvas dimensionado, fallback não acionado, zero erros de console |
+| Visual, 1440 e 375, tema escuro | Conferido por `pnpm look` |
+
+> ⚠️ Durante a execução, 8 E2E falharam por servidor velho na porta 3000, exatamente a armadilha do topo do `playwright.config.ts`. Nenhuma das 8 era defeito de código. **Derrube a porta 3000 depois de todo build, antes de testar.**
+
+### 12.3 O que continua aberto
+
+| Item | Situação |
+|---|---|
+| **Lighthouse** | Não medido depois da V3.5. O ganho de 4x no fill rate do passe 1 é o risco real, contra o baseline de 96 desktop e 92 mobile em `/`. Se o mobile cair abaixo de 90, o degrau intermediário é `FIELD_TARGET_MAX` 512 |
+| Tema claro | O campo entra a `FIELD_MIX.light` de 0.08 e as ondas ficam quase invisíveis. É o comportamento de projeto desde a v3, não regressão, mas vale decidir se a praia merece exceção |
+| Paleta da Home | Continua `graphite`. A `sand` já existe e combinaria com o tema de praia. É uma linha em `paletteForRoute` |
+| Chaves `label` órfãs | `about`, `skills`, `career`, `process`, `clients` e `projects` têm `label` sem consumidor. Limpeza para outro dia, nos dois dicionários no mesmo commit |
+| Herdados da v3 | PR #2, Netsheet Engine sem deploy, domínio próprio. Ver §11 |

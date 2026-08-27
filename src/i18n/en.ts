@@ -58,6 +58,7 @@ export const en: Dict = {
   hero: {
     role: "Full Stack Developer",
     name: "Pedro Levi",
+    thesis: "I understand the problem before choosing the technology.",
     bio: "I build web and mobile applications with a focus on architecture, quality and functional experiences.",
     viewProjects: "View projects",
     downloadCv: "Download CV",

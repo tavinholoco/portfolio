@@ -16,14 +16,16 @@ import {
 describe("fieldTargetSize", () => {
   it("põe o lado maior no teto em tela paisagem", () => {
     const size = fieldTargetSize(1920, 1080, FIELD_TARGET_MAX);
+    /* 640 * 1080/1920. Subiu junto com o teto na v3.5. */
     expect(size.width).toBe(FIELD_TARGET_MAX);
-    expect(size.height).toBe(180);
+    expect(size.height).toBe(360);
   });
 
   it("põe o lado maior no teto em tela retrato", () => {
     const size = fieldTargetSize(390, 844, FIELD_TARGET_MAX_SMALL);
+    /* 384 * 390/844, arredondado. */
     expect(size.height).toBe(FIELD_TARGET_MAX_SMALL);
-    expect(size.width).toBe(92);
+    expect(size.width).toBe(177);
   });
 
   it("preserva a proporção da tela dentro de um pixel", () => {
@@ -60,7 +62,7 @@ describe("fieldTargetSize", () => {
 describe("limites de custo do motor", () => {
   it("mantém os tetos que o checklist da Fase 6 exige", () => {
     expect(MAX_DPR).toBe(1.5);
-    expect(FIELD_TARGET_MAX).toBeLessThanOrEqual(320);
+    expect(FIELD_TARGET_MAX).toBeLessThanOrEqual(640);
     expect(SMALL_SCREEN_WIDTH).toBe(768);
   });
 

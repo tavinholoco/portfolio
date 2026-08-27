@@ -71,7 +71,7 @@ export async function ProjectDetailPage({
           </Link>
 
           <p className="mt-12 font-mono text-sm opacity-70">
-            &gt;_ {d.projects.categories[project.category]}
+            {d.projects.categories[project.category]}
           </p>
           <h1 className="mt-4 text-display font-semibold text-balance">
             {project.title}

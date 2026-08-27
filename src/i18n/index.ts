@@ -102,6 +102,8 @@ export type Dict = {
   hero: {
     role: string;
     name: string;
+    /** O h1 da home. O nome saiu para o header fixo na v3.5. */
+    thesis: string;
     bio: string;
     viewProjects: string;
     downloadCv: string;

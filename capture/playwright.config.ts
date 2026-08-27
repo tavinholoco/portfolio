@@ -26,7 +26,13 @@ export default defineConfig({
        viewport e o site seria capturado em 1280x720. */
     ...devices["Desktop Chrome"],
     baseURL: "http://localhost:3000",
-    viewport: { width: 1440, height: 900 },
+    /* LOOK_WIDTH e LOOK_HEIGHT existem para conferir o header em 375 e 768,
+       onde a nav vertical dá lugar ao Sheet. Sem eles só dá para olhar o
+       desktop, e o roteiro visual pede os três. */
+    viewport: {
+      width: Number(process.env.LOOK_WIDTH ?? 1440),
+      height: Number(process.env.LOOK_HEIGHT ?? 900),
+    },
     deviceScaleFactor: 1,
   },
   /*

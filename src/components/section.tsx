@@ -94,61 +94,22 @@ export function Section({
     >
       <div
         className={cn(
-          "mx-auto w-full [padding-inline:calc(var(--pad)*2)]",
+          "mx-auto w-full [padding-inline-end:calc(var(--pad)*2)]",
+          /* A coluna reservada para a nav vertical do header. O token é
+             0px abaixo de lg, onde a nav vira Sheet, então esta linha vale
+             nos dois lados sem variante de breakpoint. Padding é seguro
+             para a F1: não cria contexto de empilhamento. */
+          "[padding-inline-start:calc(var(--pad)*2+var(--nav-col))]",
+          /* Ancorado à esquerda a partir de lg, onde a coluna existe. Com
+             mx-auto o offset da nav somaria à margem do centramento e o
+             conteúdo começaria bem depois da coluna, deixando um vazio que
+             parece acidente. Medido em 1440 e 2560. */
+          "lg:[margin-inline-start:0]",
           wide ? "max-w-7xl" : "max-w-5xl"
         )}
       >
         {children}
       </div>
     </section>
-  );
-}
-
-type SectionHeadingProps = {
-  label: string;
-  title: string;
-  description?: string;
-  align?: "left" | "center";
-  className?: string;
-};
-
-/**
- * Cabeçalho padrão de seção.
- *
- * Sem `text-primary` (E4): a cor do site vive no shader, e a hierarquia aqui é
- * feita por tamanho e opacidade. O `>_` fica, monocromático, porque é a
- * identidade construída na v2 e é o que impede a v3 de virar cópia.
- *
- * A entrada anima só opacity, nas duas variantes. Isso era a regra E5, que
- * valia só para `blend` e dependia de o componente saber onde estava; com uma
- * implementação só, ela deixa de ser regra a lembrar e passa a ser verdade por
- * construção. Foi o que permitiu remover o contexto de variante e, com ele, a
- * necessidade de este arquivo rodar no cliente.
- */
-export function SectionHeading({
-  label,
-  title,
-  description,
-  align = "left",
-  className,
-}: SectionHeadingProps) {
-  return (
-    <div
-      className={cn(
-        "max-w-2xl animate-fade-in motion-reduce:animate-none",
-        align === "center" && "mx-auto text-center",
-        className
-      )}
-    >
-      <p className="font-mono text-sm opacity-70">&gt;_ {label}</p>
-      <h2 className="mt-2 text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
-        {title}
-      </h2>
-      {description && (
-        <p className="font-body mt-4 text-base leading-relaxed opacity-70 text-pretty">
-          {description}
-        </p>
-      )}
-    </div>
   );
 }

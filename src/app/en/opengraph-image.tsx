@@ -61,7 +61,7 @@ export default function OpenGraphImageEn() {
             marginBottom: 18,
           }}
         >
-          &gt;_ {d.hero.role}
+          {d.hero.role}
         </div>
         <div
           style={{

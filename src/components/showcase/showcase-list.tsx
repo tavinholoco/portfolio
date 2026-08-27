@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { getActiveBackground } from "@/components/background/background-config";
 import { Section } from "@/components/section";
+import { ShowcaseCaption } from "@/components/showcase/showcase-caption";
 import { ShowcasePreview } from "@/components/showcase/showcase-preview";
 import { ShowcaseRow } from "@/components/showcase/showcase-row";
 import type { ShowcaseItem } from "./types";
@@ -137,8 +138,6 @@ export function ShowcaseList({
           items={items}
           activeIndex={activeIndex}
           alt={previewAlt}
-          problemLabel={problemLabel}
-          rolesLabel={rolesLabel}
         />
 
         <ol ref={listRef} className="border-t border-current/15">
@@ -154,6 +153,17 @@ export function ShowcaseList({
           ))}
         </ol>
       </div>
+
+      {/*
+        Fora do grid, e portanto fora do wrapper sticky da moldura. Na v3.5 o
+        texto desceu para cá justamente para deixar de ler como conteúdo de
+        dentro do quadro.
+      */}
+      <ShowcaseCaption
+        item={items[activeIndex]}
+        problemLabel={problemLabel}
+        rolesLabel={rolesLabel}
+      />
     </Section>
   );
 }

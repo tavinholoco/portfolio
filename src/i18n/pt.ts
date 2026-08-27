@@ -58,6 +58,7 @@ export const pt: Dict = {
   hero: {
     role: "Desenvolvedor Full Stack",
     name: "Pedro Levi",
+    thesis: "Entendo o problema antes de escolher a tecnologia.",
     bio: "Construo aplicações web e mobile com foco em arquitetura, qualidade e experiências funcionais.",
     viewProjects: "Ver projetos",
     downloadCv: "Baixar CV",

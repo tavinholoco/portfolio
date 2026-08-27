@@ -1,5 +1,4 @@
 import { JsonLd } from "@/components/json-ld";
-import { Section, SectionHeading } from "@/components/section";
 import { ShowcaseList } from "@/components/showcase/showcase-list";
 import { projectShowcaseItems } from "@/components/showcase/items";
 import { dictionaries, type Locale } from "@/i18n";
@@ -8,11 +7,9 @@ import { projectListJsonLd } from "@/lib/json-ld";
 /**
  * A rota de projetos próprios.
  *
- * O cabeçalho vai em `blend` e a lista em `solid`. Essa divisão não é estética:
- * a lista tem screenshots, que em `difference` apareceriam em negativo, e o
- * cabeçalho é texto puro, que herda cor e mistura corretamente. É também o que
- * deixa a troca de paleta do shader visível ao percorrer a lista, já que sobra
- * canvas à vista fora da faixa da lista.
+ * A lista vai em `solid` porque tem screenshots, que em `difference` apareceriam
+ * em negativo. O cabeçalho em `blend` que existia aqui saiu na v3.5: a rota
+ * abre direto no showcase, como a referência faz, e sobrou só um h1 invisível.
  */
 export function ProjectsPage({ lang }: { lang: Locale }) {
   const d = dictionaries[lang].projects;
@@ -20,13 +17,13 @@ export function ProjectsPage({ lang }: { lang: Locale }) {
   return (
     <>
       <JsonLd data={projectListJsonLd(lang)} />
-      <Section id="projetos-intro" variant="blend">
-        <SectionHeading
-          label={d.label}
-          title={d.title}
-          description={d.description}
-        />
-      </Section>
+      {/*
+        O h1 da rota, invisível. Na v3.5 o cabeçalho visível saiu e a página
+        abre direto na lista: quem diz onde você está é o dot na nav do header.
+        Sem isto a rota ficaria sem h1 nenhum, que aliás era o estado da v3,
+        porque o <SectionHeading> renderizava h2.
+      */}
+      <h1 className="sr-only">{d.title}</h1>
       <ShowcaseList
         id="projetos"
         items={projectShowcaseItems(lang)}

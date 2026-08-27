@@ -5,7 +5,12 @@ import { cn } from "@/lib/utils";
 import type { ShowcaseItem } from "./types";
 
 /**
- * O preview que fica no topo da lista e troca conforme a linha ativa.
+ * A moldura do preview, que troca conforme a linha ativa.
+ *
+ * Só a moldura: na v3.5 o problema e as responsabilidades saíram daqui para o
+ * <ShowcaseCaption>, abaixo do grid. Enquanto viviam dentro deste wrapper
+ * `sticky` eles acompanhavam a rolagem colados no quadro e liam como se
+ * estivessem dentro dele.
  *
  * Duas regras da seção 3.1 do plano vivem aqui, e as duas são contraintuitivas:
  *
@@ -23,18 +28,11 @@ export function ShowcasePreview({
   items,
   activeIndex,
   alt,
-  problemLabel,
-  rolesLabel,
 }: {
   items: ShowcaseItem[];
   activeIndex: number;
   alt: string;
-  problemLabel: string;
-  /** Rótulo do que foi feito. Só as rotas com itens de cliente passam. */
-  rolesLabel?: string;
 }) {
-  const active = items[activeIndex];
-
   return (
     <div className="lg:sticky lg:top-[calc(var(--pad)*3)]">
       <div className="relative aspect-16/10 w-full overflow-hidden rounded-md border border-current/15">
@@ -50,7 +48,7 @@ export function ShowcasePreview({
             )}
           >
             {!item.image ? (
-              <WindowMockup title={item.title} host={hostOf(item.href)} />
+              <WindowMockup host={hostOf(item.href)} />
             ) : item.imageKind === "phone" ? (
               /* Print de celular: contida e centrada numa moldura de aparelho.
                  Preencher o slot 16:10 com uma imagem em retrato cortaria
@@ -91,33 +89,6 @@ export function ShowcasePreview({
           </div>
         ))}
       </div>
-
-      {/*
-        O problema logo abaixo do preview, trocando junto. É o que liga o
-        componente à tese da v2: a lista deixa de ser catálogo e passa a
-        argumentar (seção 3.2).
-      */}
-      <p
-        data-testid="showcase-problem"
-        className="font-body mt-4 text-sm leading-relaxed opacity-70"
-      >
-        <span className="font-mono text-xs tracking-wide uppercase">
-          {problemLabel}{" "}
-        </span>
-        {active.problem}
-      </p>
-
-      {/*
-        O que foi feito, quando o item traz. É a pergunta que trabalho de
-        cliente levanta e a stack não responde: se o envolvimento foi só a tela
-        ou foi até o deploy.
-      */}
-      {rolesLabel && active.responsibilities?.length ? (
-        <p className="mt-2 font-mono text-xs opacity-70">
-          <span className="tracking-wide uppercase">{rolesLabel} </span>
-          {active.responsibilities.join("  ·  ")}
-        </p>
-      ) : null}
     </div>
   );
 }

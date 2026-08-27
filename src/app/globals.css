@@ -25,6 +25,17 @@
   --shell-fade: 900ms;
   --shell-ease: cubic-bezier(0.1, 0.4, 0.2, 1);
 
+  /*
+   * Coluna reservada para a nav vertical do header (v3.5). O header é fixed e
+   * não empurra conteúdo, então o espaço dele vive aqui e é consumido pelo
+   * container do <Section>. Zero abaixo de lg, onde a nav vira Sheet.
+   *
+   * Não pode virar padding no <main>: o fundo das seções solid deixaria de
+   * alcançar a faixa e apareceria uma tira do canvas na lateral esquerda, pelo
+   * mesmo motivo que o <main> já não tem padding vertical.
+   */
+  --nav-col: 0px;
+
   /* Camada shadcn reneutralizada. */
   --background: var(--c-bg);
   --foreground: var(--c-ink);
@@ -47,6 +58,12 @@
 
   background: var(--c-bg);
   transition: background-color var(--shell-fade) var(--shell-ease);
+}
+
+@media (min-width: 64rem) {
+  :root {
+    --nav-col: 15rem;
+  }
 }
 
 .dark {

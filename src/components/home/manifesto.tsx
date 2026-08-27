@@ -4,17 +4,20 @@ import { ArrowRight, Download } from "lucide-react";
 import { Section } from "@/components/section";
 import { profile } from "@/data/profile";
 import { dictionaries, type Locale } from "@/i18n";
-import { navLabelFor, pathFor } from "@/lib/routes";
+import { pathFor } from "@/lib/routes";
 
 /**
- * A Home: o manifesto do processo.
+ * A Home: a tese, e nada mais.
  *
- * Esta é a decisão central da v3 (seção 2.3 do plano). Os 5 passos de
- * `Dict.process.steps` deixaram de ser cards numerados numa seção enterrada e
- * viraram o corpo tipográfico da página inicial. A tese do portfólio, "entendo
- * o problema antes de escolher a tecnologia", é a primeira coisa que se lê.
- * Se a Home virar só nome mais bio mais link, a tese morre e a v3 vira um
- * retrocesso em relação à v2. Isso é requisito, não sugestão.
+ * A v3 usava esta rota como manifesto do processo, com os 5 passos de
+ * `Dict.process.steps` desdobrados em lista tipográfica. Ocupava altura demais
+ * para o que a v3.5 quer, então a lista migrou para `/info/` e aqui ficou só a
+ * frase que carrega o argumento: `hero.thesis`.
+ *
+ * Isso é o que impede a mudança de virar regressão. A seção 2.3 do plano avisa
+ * que uma home reduzida a nome mais bio mais link mata a tese do portfólio. O
+ * `h1` desta página é justamente a tese, e não o nome: o nome virou âncora fixa
+ * no `<SiteHeader>` e repeti-lo aqui seria ruído.
  *
  * Tudo em `variant="blend"`, e por isso nada aqui pode ter cor ou fundo
  * próprios: o que não herda cor inverte por conta própria contra o canvas e
@@ -29,11 +32,9 @@ export function Manifesto({ lang }: { lang: Locale }) {
   return (
     <Section id="inicio" variant="blend">
       <div className="animate-fade-in motion-reduce:animate-none">
-        <p className="font-mono text-sm opacity-70">&gt;_ {d.hero.role}</p>
-
         {/* Elemento de LCP da rota: sem delay de animação. */}
-        <h1 className="mt-4 text-display font-semibold text-balance">
-          {d.hero.name}
+        <h1 className="max-w-4xl text-title font-semibold tracking-tight text-balance">
+          {d.hero.thesis}
         </h1>
 
         <p className="font-body mt-8 max-w-2xl text-lede opacity-80 text-pretty">
@@ -58,39 +59,6 @@ export function Manifesto({ lang }: { lang: Locale }) {
           </a>
         </div>
       </div>
-
-      {/*
-        Os 5 passos como lista tipográfica: número, título e descrição, sem
-        card, sem borda em volta, sem sombra. O único separador é a linha de
-        1px, como manda a seção 8 do plano.
-      */}
-      <ol className="mt-24 border-t border-current/15 sm:mt-32">
-        {d.process.steps.map((step, index) => (
-          <li
-            key={step.title}
-            className="grid gap-2 border-b border-current/15 py-7 sm:grid-cols-[auto_minmax(0,14rem)_minmax(0,1fr)] sm:items-baseline sm:gap-8"
-          >
-            <span className="font-mono text-xs opacity-70 tabular-nums">
-              {String(index + 1).padStart(2, "0")}
-            </span>
-            <h2 className="text-xl font-medium tracking-tight sm:text-2xl">
-              {step.title}
-            </h2>
-            <p className="font-body text-sm leading-relaxed opacity-70 text-pretty">
-              {step.description}
-            </p>
-          </li>
-        ))}
-      </ol>
-
-      {/* Fecha empurrando para a prova: os projetos. */}
-      <Link
-        href={pathFor("projects", lang)}
-        className="focus-ring mt-16 inline-flex items-center gap-3 text-title font-semibold tracking-tight transition-opacity hover:opacity-70"
-      >
-        {navLabelFor("projects", lang)}
-        <ArrowRight className="size-[0.8em]" aria-hidden />
-      </Link>
     </Section>
   );
 }

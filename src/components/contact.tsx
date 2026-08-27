@@ -34,10 +34,10 @@ export function Contact({ lang }: { lang: Locale }) {
   return (
     <Section id="contato" variant="blend">
       <div className="animate-fade-in motion-reduce:animate-none">
-        <p className="font-mono text-sm opacity-70">&gt;_ {d.label}</p>
-        <h2 className="mt-4 text-display font-semibold text-balance">
+        <p className="font-mono text-sm opacity-70">{d.label}</p>
+        <h1 className="mt-4 text-display font-semibold text-balance">
           {d.title}
-        </h2>
+        </h1>
         <p className="font-body mt-8 max-w-2xl text-lede opacity-80 text-pretty">
           {d.description}
         </p>

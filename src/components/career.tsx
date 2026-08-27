@@ -16,8 +16,7 @@ export function Career({ lang }: { lang: Locale }) {
 
   return (
     <Section id="trajetoria" variant="solid">
-      <p className="font-mono text-sm text-muted-foreground">&gt;_ {d.label}</p>
-      <h2 className="mt-4 text-title font-semibold tracking-tight text-balance">
+      <h2 className="text-title font-semibold tracking-tight text-balance">
         {d.title}
       </h2>
       <p className="font-body mt-6 max-w-2xl text-base leading-relaxed text-muted-foreground text-pretty">
