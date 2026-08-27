@@ -97,10 +97,8 @@ export type Dict = {
     role: string;
     name: string;
     bio: string;
-    stackLabel: string;
     viewProjects: string;
     downloadCv: string;
-    scrollLabel: string;
     socials: { github: string; linkedin: string; email: string };
   };
   about: {
@@ -119,18 +117,14 @@ export type Dict = {
     description: string;
     updatedAt: string;
     github: string;
-    viewProject: string;
-    featuredBadge: string;
     problemLabel: string;
     solutionLabel: string;
     highlightLabel: string;
-    stackLabel: string;
     backToProjects: string;
     learningsTitle: string;
     previous: string;
     next: string;
     demoLabel: string;
-    allOnGithub: string;
     categories: Record<ProjectCategory, string>;
     featured: FeaturedProject[];
   };
@@ -139,9 +133,6 @@ export type Dict = {
     title: string;
     description: string;
     projectKind: string;
-    responsibilitiesLabel: string;
-    statusLabel: string;
-    visit: string;
     previewAlt: string;
     projects: ClientProject[];
   };

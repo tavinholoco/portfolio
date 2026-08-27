@@ -1,62 +1,52 @@
-"use client";
-
-import type { LucideIcon } from "lucide-react";
-import { Database, MonitorSmartphone, Sparkles, Wrench } from "lucide-react";
-
-import { FadeIn, Section, SectionHeading } from "@/components/section";
+import { Section } from "@/components/section";
 import { dictionaries, type Locale } from "@/i18n";
 
-const blockIcons: Record<string, LucideIcon> = {
-  dev: MonitorSmartphone,
-  data: Database,
-  ai: Sparkles,
-  tools: Wrench,
-};
-
 /**
- * Habilidades em 4 categorias enxutas, sem classificação de nível.
- * O nível é demonstrado pelos projetos (decisão 12 do plano v2).
+ * Habilidades em 4 categorias, sem classificação de nível.
+ *
+ * O nível é demonstrado pelos projetos, não por barrinha de progresso (decisão
+ * 12 do plano v2, que sobrevive na v3).
+ *
+ * Em `variant="blend"`. As tecnologias saíram das caixinhas e viraram texto
+ * corrido separado por ponto: chip com borda e fundo é exatamente o tipo de
+ * caixa que a seção 8 remove, e dentro de uma seção misturada o fundo do chip
+ * inverteria por conta própria.
  */
 export function Skills({ lang }: { lang: Locale }) {
   const d = dictionaries[lang].skills;
 
   return (
-    <Section id="habilidades" variant="solid">
-      <SectionHeading
-        label={d.label}
-        title={d.title}
-        description={d.description}
-      />
-      <div className="mt-12 grid gap-5 sm:grid-cols-2">
-        {d.blocks.map((block, index) => {
-          const Icon = blockIcons[block.id];
-          return (
-            <FadeIn key={block.id} delay={index * 0.05}>
-              <div className="group flex h-full flex-col rounded-2xl border border-border bg-card/60 p-6 transition-all duration-300 hover:-translate-y-1 hover:border-primary/30">
-                <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors group-hover:bg-primary/20">
-                  <Icon className="size-5" aria-hidden />
-                </div>
-                <h3 className="mt-5 text-base font-semibold text-foreground">
-                  {block.title}
-                </h3>
-                <p className="font-body mt-1.5 text-sm leading-relaxed text-muted-foreground text-pretty">
-                  {block.description}
-                </p>
-                <div className="mt-5 flex flex-wrap gap-1.5">
-                  {block.skills.map((skill) => (
-                    <span
-                      key={skill}
-                      className="rounded-md border border-border bg-secondary/40 px-2 py-0.5 font-mono text-[11px] text-muted-foreground"
-                    >
-                      {skill}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </FadeIn>
-          );
-        })}
+    <Section id="habilidades" variant="blend">
+      <div className="animate-fade-in motion-reduce:animate-none">
+        <p className="font-mono text-sm opacity-60">&gt;_ {d.label}</p>
+        <h2 className="mt-4 text-title font-semibold tracking-tight text-balance">
+          {d.title}
+        </h2>
+        <p className="font-body mt-6 max-w-2xl text-base leading-relaxed opacity-70 text-pretty">
+          {d.description}
+        </p>
       </div>
+
+      <ul className="mt-16 border-t border-current/15">
+        {d.blocks.map((block) => (
+          <li
+            key={block.id}
+            className="grid gap-3 border-b border-current/15 py-8 sm:grid-cols-[minmax(0,14rem)_minmax(0,1fr)] sm:gap-8"
+          >
+            <div>
+              <h3 className="text-lg font-medium tracking-tight">
+                {block.title}
+              </h3>
+              <p className="font-body mt-2 text-sm leading-relaxed opacity-60 text-pretty">
+                {block.description}
+              </p>
+            </div>
+            <p className="font-mono text-sm leading-relaxed opacity-70">
+              {block.skills.join("  ·  ")}
+            </p>
+          </li>
+        ))}
+      </ul>
     </Section>
   );
 }

@@ -1,7 +1,4 @@
-"use client";
-
-import { createContext, useContext, type ReactNode } from "react";
-import { motion, useReducedMotion, type Variants } from "framer-motion";
+import type { ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
 
@@ -25,35 +22,24 @@ import { cn } from "@/lib/utils";
  * console**. É o erro mais caro possível neste projeto.
  *
  * Filhos de uma seção `blend` podem criar contexto à vontade: eles são pintados
- * dentro do grupo que será misturado, e isso não quebra nada.
+ * dentro do grupo que será misturado, e isso não quebra nada. A exceção
+ * descoberta na Fase 4 é `position: sticky` com fundo opaco, que vaza para o
+ * composite de uma seção `blend` vizinha mesmo estando em outra seção.
+ *
+ * ----------------------------------------------------------------------------
+ *
+ * SEGUNDA LEI, descoberta no portão da Fase 2: **uma seção `blend` exige
+ * conteúdo que herde a cor.** O `color: #fff` da seção só alcança texto que
+ * herda. Classes como `text-muted-foreground`, `bg-card` e `bg-primary`
+ * mantêm a própria cor e cada uma inverte para um lado diferente, produzindo um
+ * resultado sujo. Uma seção só deve virar `blend` no mesmo passo em que perde
+ * as cores e caixas explícitas.
+ *
+ * Este arquivo é server component de propósito: depois que o Framer Motion saiu
+ * (F10), não sobrou nada aqui que precise rodar no cliente.
  */
 
 export type SectionVariant = "blend" | "solid";
-
-/**
- * A variante desce por contexto em vez de prop.
- *
- * O motivo é E5: dentro de `blend` a entrada precisa animar só opacity, então
- * `SectionHeading` e `FadeIn` precisam saber onde estão. Passando por prop,
- * esquecer uma delas produziria um bug visual silencioso; por contexto, a regra
- * se aplica sozinha.
- */
-const SectionVariantContext = createContext<SectionVariant>("solid");
-
-export function useSectionVariant(): SectionVariant {
-  return useContext(SectionVariantContext);
-}
-
-const fadeUp: Variants = {
-  hidden: { opacity: 0, y: 24 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] },
-  },
-};
-
-const viewport = { once: true, margin: "-80px" } as const;
 
 type SectionProps = {
   id: string;
@@ -95,28 +81,26 @@ export function Section({
   children,
 }: SectionProps) {
   return (
-    <SectionVariantContext.Provider value={variant}>
-      <section
-        id={id}
-        data-variant={variant}
+    <section
+      id={id}
+      data-variant={variant}
+      className={cn(
+        "scroll-mt-24 py-24 sm:py-28",
+        variant === "blend"
+          ? "mix-blend-difference text-white"
+          : "bg-[var(--c-bg)] [transition:background-color_var(--shell-fade)_var(--shell-ease)]",
+        className
+      )}
+    >
+      <div
         className={cn(
-          "scroll-mt-24 py-24 sm:py-28",
-          variant === "blend"
-            ? "mix-blend-difference text-white"
-            : "bg-[var(--c-bg)] [transition:background-color_var(--shell-fade)_var(--shell-ease)]",
-          className
+          "mx-auto w-full [padding-inline:calc(var(--pad)*2)]",
+          wide ? "max-w-7xl" : "max-w-5xl"
         )}
       >
-        <div
-          className={cn(
-            "mx-auto w-full [padding-inline:calc(var(--pad)*2)]",
-            wide ? "max-w-7xl" : "max-w-5xl"
-          )}
-        >
-          {children}
-        </div>
-      </section>
-    </SectionVariantContext.Provider>
+        {children}
+      </div>
+    </section>
   );
 }
 
@@ -134,6 +118,12 @@ type SectionHeadingProps = {
  * Sem `text-primary` (E4): a cor do site vive no shader, e a hierarquia aqui é
  * feita por tamanho e opacidade. O `>_` fica, monocromático, porque é a
  * identidade construída na v2 e é o que impede a v3 de virar cópia.
+ *
+ * A entrada anima só opacity, nas duas variantes. Isso era a regra E5, que
+ * valia só para `blend` e dependia de o componente saber onde estava; com uma
+ * implementação só, ela deixa de ser regra a lembrar e passa a ser verdade por
+ * construção. Foi o que permitiu remover o contexto de variante e, com ele, a
+ * necessidade de este arquivo rodar no cliente.
  */
 export function SectionHeading({
   label,
@@ -142,17 +132,14 @@ export function SectionHeading({
   align = "left",
   className,
 }: SectionHeadingProps) {
-  const variant = useSectionVariant();
-  const reduceMotion = useReducedMotion();
-
-  const wrapperClass = cn(
-    "max-w-2xl",
-    align === "center" && "mx-auto text-center",
-    className
-  );
-
-  const content = (
-    <>
+  return (
+    <div
+      className={cn(
+        "max-w-2xl animate-fade-in motion-reduce:animate-none",
+        align === "center" && "mx-auto text-center",
+        className
+      )}
+    >
       <p className="font-mono text-sm opacity-60">&gt;_ {label}</p>
       <h2 className="mt-2 text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
         {title}
@@ -162,84 +149,6 @@ export function SectionHeading({
           {description}
         </p>
       )}
-    </>
-  );
-
-  /* Em blend, só opacity: qualquer transform aqui viraria um grupo isolado no
-     meio da mistura, e o resultado do difference mudaria durante a entrada. */
-  if (variant === "blend") {
-    return (
-      <div
-        className={cn(wrapperClass, "animate-fade-in motion-reduce:animate-none")}
-      >
-        {content}
-      </div>
-    );
-  }
-
-  return (
-    <motion.div
-      {...(reduceMotion === true
-        ? {}
-        : { initial: "hidden", whileInView: "visible" })}
-      variants={fadeUp}
-      viewport={viewport}
-      className={wrapperClass}
-    >
-      {content}
-    </motion.div>
-  );
-}
-
-/**
- * Entrada reutilizável para blocos dentro das seções.
- *
- * Em `solid` continua sendo o fade-up do Framer. Em `blend` degrada para a
- * animação CSS de opacity (E5), porque translateY dentro de uma subárvore
- * misturada altera o próprio resultado da mistura enquanto anima.
- */
-export function FadeIn({
-  children,
-  className,
-  delay = 0,
-}: {
-  children: ReactNode;
-  className?: string;
-  delay?: number;
-}) {
-  const variant = useSectionVariant();
-  const reduceMotion = useReducedMotion();
-
-  if (variant === "blend") {
-    return (
-      <div
-        className={cn(className, "animate-fade-in motion-reduce:animate-none")}
-        style={delay ? { animationDelay: `${delay}s` } : undefined}
-      >
-        {children}
-      </div>
-    );
-  }
-
-  const variants: Variants = {
-    hidden: { opacity: 0, y: 24 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.6, delay, ease: [0.22, 1, 0.36, 1] },
-    },
-  };
-
-  return (
-    <motion.div
-      {...(reduceMotion === true
-        ? {}
-        : { initial: "hidden", whileInView: "visible" })}
-      variants={variants}
-      viewport={viewport}
-      className={className}
-    >
-      {children}
-    </motion.div>
+    </div>
   );
 }

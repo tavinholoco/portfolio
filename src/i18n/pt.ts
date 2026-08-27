@@ -59,10 +59,8 @@ export const pt: Dict = {
     role: "Desenvolvedor Full Stack",
     name: "Pedro Levi",
     bio: "Construo aplicações web e mobile com foco em arquitetura, qualidade e experiências funcionais.",
-    stackLabel: "Tecnologias",
     viewProjects: "Ver projetos",
     downloadCv: "Baixar CV",
-    scrollLabel: "Rolar para a seção sobre",
     socials: {
       github: "GitHub",
       linkedin: "LinkedIn",
@@ -117,18 +115,14 @@ export const pt: Dict = {
       "Seleção dos meus trabalhos no GitHub, do app mobile ao portal com IA. Metadados sincronizados automaticamente com os repositórios.",
     updatedAt: "atualizado",
     github: "GitHub",
-    viewProject: "Ver projeto",
-    featuredBadge: "Projeto principal",
     problemLabel: "Problema",
     solutionLabel: "Solução",
     highlightLabel: "Destaque técnico",
-    stackLabel: "Stack",
     backToProjects: "Voltar aos projetos",
     learningsTitle: "O que aprendi",
     previous: "Anterior",
     next: "Próximo",
     demoLabel: "Demo",
-    allOnGithub: "Ver todos os projetos no GitHub",
     categories: {
       fullstack: "Full Stack",
       mobile: "Mobile",
@@ -210,9 +204,6 @@ export const pt: Dict = {
     description:
       "Trabalhos entregues e publicados para clientes, da ideia ao site no ar.",
     projectKind: "Projeto profissional",
-    responsibilitiesLabel: "Responsabilidades",
-    statusLabel: "Status",
-    visit: "Visitar projeto",
     previewAlt: "Prévia do site",
     projects: [
       {

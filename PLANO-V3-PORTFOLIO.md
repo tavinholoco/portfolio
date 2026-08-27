@@ -4,7 +4,7 @@
 >
 > **Base:** v2 publicada (Next 16.3 + React 19, Tailwind v4, bilíngue com paridade testada, 36 unit + 6 E2E, Lighthouse 95/100/100/100).
 > **Referência de inspiração:** [p5aholic.me](https://p5aholic.me) (Keita Yamada). Inspiração estrutural, **não cópia**. Ver seção 0.3.
-> **Status:** 🚧 **Em desenvolvimento. Fases 0 a 4 concluídas em 26/08/2026**, com o portão de saída da Fase 2 aprovado. Duas auditorias completas realizadas (seções 5 e 6, 30 achados já incorporados às fases). Próxima: Fase 5 (Info, Contato e páginas de projeto).
+> **Status:** 🚧 **Em desenvolvimento. Fases 0 a 5 concluídas em 26/08/2026**, com o portão de saída da Fase 2 aprovado. Duas auditorias completas realizadas (seções 5 e 6, 30 achados já incorporados às fases). Próxima: Fase 6 (performance, acessibilidade e fallbacks).
 > **Versão do documento:** V3.2
 
 ---
@@ -25,9 +25,11 @@ Da Fase 2 está em pé o `<SiteShell>` nos dois layouts, a moldura, a máscara e
 
 Da Fase 3 estão em pé as 10 rotas (5 por idioma, todas estáticas), o header e o footer reescritos, o Lenis em rolagem nativa e o SEO por rota derivado do manifesto.
 
-Da Fase 4 estão em pé a Home como manifesto tipográfico com os 5 passos, e o showcase com preview trocando no hover, servindo Projetos e Clientes. 133 testes unitários e 6 E2E passando.
+Da Fase 4 estão em pé a Home como manifesto tipográfico com os 5 passos, e o showcase com preview trocando no hover, servindo Projetos e Clientes.
 
-Falta redesenhar Info, Contato e as páginas de projeto, que ainda usam o visual da v2. O trabalho continua na **Fase 5** (seção 7).
+Da Fase 5 estão em pé Info, Contato e as páginas de case redesenhadas, e o **Framer Motion foi removido do projeto** (F10 resolvido). 133 testes unitários e 6 E2E passando.
+
+Nenhuma tela usa mais o visual da v2. O trabalho continua na **Fase 6** (seção 7).
 
 ### 0.2 As três coisas que mais quebram este plano
 
@@ -555,6 +557,22 @@ Client component, `variant="solid"`. Subcomponentes: `showcase-preview.tsx` (pil
 
 ---
 
+#### Notas de execução da Fase 5 (26/08/2026)
+
+1. **F10 resolvido: o Framer Motion saiu do projeto.** Depois do redesenho, `FadeIn` ficou sem nenhum consumidor e `SectionHeading` só era usado dentro de seções `blend`, onde a entrada já era CSS. Com uma implementação só, a regra E5 ("em blend, só opacity") deixa de ser regra a lembrar e passa a ser verdade por construção. Isso permitiu remover também o contexto de variante e, com ele, o `"use client"` de `section.tsx`, que voltou a ser server component.
+
+2. **`identity.tsx` é novo** e resolve E12: a foto e os fatos rápidos saíram de `about.tsx` para um bloco `solid`, porque foto em `difference` apareceria em negativo. A foto é pequena e quadrada, sem halo e sem gradiente.
+
+3. **`BackgroundPalette` liga o que estava solto.** `paletteForRoute` existia desde a Fase 1 e não tinha consumidor nenhum: o `<SiteShell>` vive nos layouts e não sabe a rota. Um componente que só dispara um efeito resolve isso. Rotas com showcase não o usam, porque lá quem manda na paleta é o item ativo da lista.
+
+4. **Regressão minha, achada e corrigida:** ao reescrever a página de case, parei de renderizar `updatedAt` e `language`, que são os únicos campos que vêm do GitHub. O ISR de 1h em `lib/github.ts` continuava buscando dados que nada exibia. A página de case voltou a mostrar `atualizado <data> · <linguagem>`, verificado no HTML gerado. **`projects.updatedAt` não era chave órfã, eu é que tinha parado de usá-la.**
+
+5. **Oito rótulos ficaram realmente órfãos** com o redesenho e foram removidos dos dois dicionários: `stackLabel` (em `hero` e em `projects`), `scrollLabel`, `viewProject`, `featuredBadge`, `allOnGithub`, `visit`, `responsibilitiesLabel` e `statusLabel`.
+
+6. **Pendência de conteúdo para a Fase 7:** `clients.projects[].responsibilities` e `.status` continuam nos dicionários mas não são renderizados por nenhuma tela. São conteúdo, não rótulo, então não foram removidos sem decisão do Pedro: ou ganham lugar no showcase, ou saem.
+
+---
+
 ### Fase 6: Performance, acessibilidade e fallbacks
 
 - [ ] Canvas em SSR normal, `ogl` via `await import()` no efeito. Sem `ssr: false` (E1)
@@ -673,7 +691,7 @@ Roteiro manual, nos dois temas e nos dois idiomas:
 - [x] Fase 2: Shell, blend e moldura, concluída em 26/08/2026, portão de saída aprovado
 - [x] Fase 3: Rotas, navegação e scroll, concluída em 26/08/2026
 - [x] Fase 4: Home e showcase, concluída em 26/08/2026
-- [ ] Fase 5: Info, Contato e páginas de projeto
+- [x] Fase 5: Info, Contato e páginas de projeto, concluída em 26/08/2026
 - [ ] Fase 6: Performance, acessibilidade e fallbacks
 - [ ] Fase 7: Testes, documentação e deploy
 - [ ] Capturas: Newra News, Trak, Dandarkness

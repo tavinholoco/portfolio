@@ -1,78 +1,77 @@
-"use client";
-
-import { FadeIn, Section, SectionHeading } from "@/components/section";
+import { Section } from "@/components/section";
 import { dictionaries, type Locale } from "@/i18n";
 
 /**
- * Trajetória em storytelling: timeline vertical por ano (2023 → 2025 → 2026),
- * cada capítulo com "o que aprendi" em destaque.
+ * Trajetória em storytelling: um capítulo por etapa, cada um com o que aprendi.
+ *
+ * Em `variant="solid"` porque fica entre dois blocos misturados e serve de
+ * respiro: uma página inteira em `difference` cansa, e alternar dá ritmo.
+ *
+ * Da v2 sobreviveu a estrutura; saíram o card com `rounded-2xl` em volta dos
+ * aprendizados, as tags em caixinha e o dot colorido. O trilho vertical é uma
+ * linha de 1px, que é o único separador que a seção 8 do plano permite.
  */
 export function Career({ lang }: { lang: Locale }) {
   const d = dictionaries[lang].career;
 
   return (
     <Section id="trajetoria" variant="solid">
-      <SectionHeading
-        label={d.label}
-        title={d.title}
-        description={d.description}
-      />
-      <ol className="relative mt-12 space-y-8 border-l border-border pl-8">
-        {d.chapters.map((chapter, index) => (
-          /* <li> filho direto do <ol> (semântica de lista); o FadeIn anima o conteúdo interno */
-          <li key={`${chapter.year}-${chapter.title}`} className="relative">
-            <FadeIn delay={index * 0.05}>
-              {/* Dot do capítulo na rail */}
-              <span
-                aria-hidden
-                className="absolute -left-8 top-1.5 size-3 -translate-x-1/2 rounded-full border-2 border-primary bg-background"
-              />
+      <p className="font-mono text-sm text-muted-foreground">&gt;_ {d.label}</p>
+      <h2 className="mt-4 text-title font-semibold tracking-tight text-balance">
+        {d.title}
+      </h2>
+      <p className="font-body mt-6 max-w-2xl text-base leading-relaxed text-muted-foreground text-pretty">
+        {d.description}
+      </p>
 
-              <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                <span className="font-mono text-sm text-primary">
-                  {chapter.year}
-                </span>
-                <h3 className="text-lg font-semibold text-foreground">
-                  {chapter.title}
-                </h3>
-                <span className="text-sm text-muted-foreground">
-                  {chapter.org}
-                </span>
-                <span className="ml-auto font-mono text-xs text-muted-foreground">
-                  {chapter.period}
-                </span>
-              </div>
+      <ol className="mt-16 border-l border-border pl-8 sm:pl-12">
+        {d.chapters.map((chapter) => (
+          <li
+            key={`${chapter.year}-${chapter.title}`}
+            className="relative pb-14 last:pb-0"
+          >
+            {/* Marcador do capítulo no trilho: um traço, não um ponto colorido. */}
+            <span
+              aria-hidden
+              className="absolute top-3 -left-8 h-px w-5 bg-border sm:-left-12 sm:w-9"
+            />
 
-              <div className="mt-3 rounded-2xl border border-border bg-card/60 p-5">
-                <p className="font-mono text-[11px] text-primary">
-                  {d.learningsTitle}
-                </p>
-                <ul className="mt-2 space-y-2">
-                  {chapter.learnings.map((learning) => (
-                    <li
-                      key={learning}
-                      className="font-body flex gap-2.5 text-sm leading-relaxed text-muted-foreground"
-                    >
-                      <span
-                        className="mt-[0.55rem] size-1 shrink-0 rounded-full bg-primary/60"
-                        aria-hidden
-                      />
-                      {learning}
-                    </li>
-                  ))}
-                </ul>
-                <div className="mt-4 flex flex-wrap gap-1.5">
-                  {chapter.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="rounded-md border border-border bg-secondary/40 px-2 py-0.5 font-mono text-[11px] text-muted-foreground"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </FadeIn>
+            <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+              <span className="font-mono text-sm text-muted-foreground tabular-nums">
+                {chapter.year}
+              </span>
+              <h3 className="text-lg font-medium tracking-tight">
+                {chapter.title}
+              </h3>
+              <span className="text-sm text-muted-foreground">
+                {chapter.org}
+              </span>
+              <span className="ml-auto font-mono text-xs text-muted-foreground">
+                {chapter.period}
+              </span>
+            </div>
+
+            <p className="mt-6 font-mono text-xs text-muted-foreground">
+              {d.learningsTitle}
+            </p>
+            <ul className="mt-3 space-y-2">
+              {chapter.learnings.map((learning) => (
+                <li
+                  key={learning}
+                  className="font-body flex gap-3 text-sm leading-relaxed text-muted-foreground"
+                >
+                  <span
+                    aria-hidden
+                    className="mt-2.5 h-px w-2 shrink-0 bg-border"
+                  />
+                  {learning}
+                </li>
+              ))}
+            </ul>
+
+            <p className="mt-5 font-mono text-xs text-muted-foreground">
+              {chapter.tags.join("  ·  ")}
+            </p>
           </li>
         ))}
       </ol>
