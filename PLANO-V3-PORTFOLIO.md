@@ -4,7 +4,9 @@
 >
 > **Base:** v2 publicada (Next 16.3 + React 19, Tailwind v4, bilíngue com paridade testada, 36 unit + 6 E2E, Lighthouse 95/100/100/100).
 > **Referência de inspiração:** [p5aholic.me](https://p5aholic.me) (Keita Yamada). Inspiração estrutural, **não cópia**. Ver seção 0.3.
-> **Status:** ✅ **Concluído em 27/08/2026. As 7 fases fechadas**, com o portão de saída da Fase 2 aprovado e o Lighthouse acima da meta nas 5 rotas. Resta o deploy, que depende do Pedro, e o registro do Lighthouse pós-deploy.
+> **Status:** ✅ **Concluído e no ar em 27/08/2026.** As 7 fases fechadas, mergeadas na `main` e publicadas. Avaliação pós-deploy registrada na seção 11.
+>
+> **Produção:** https://portfolio-tau-five-f86nc5khr8.vercel.app
 > **Versão do documento:** V3.2
 
 ---
@@ -31,9 +33,9 @@ Da Fase 5 estão em pé Info, Contato e as páginas de case redesenhadas, e o **
 
 Da Fase 6 está em pé a auditoria inteira, agora automatizada, e da Fase 7 a limpeza final e a documentação.
 
-**Estado final: 141 testes unitários e 68 E2E.** Lighthouse nas 5 rotas: **Perf 96 a 100, A11y 100, Best Practices 100, SEO 100**, contra o baseline de 95/100/100/100 da v2 numa rota só.
+**A v3 está no ar**, em https://portfolio-tau-five-f86nc5khr8.vercel.app, com 141 testes unitários e 68 E2E passando no CI. A avaliação pós-deploy está na seção 11.
 
-O que falta não é código: é o deploy, que depende do Pedro, e o registro do Lighthouse rodado contra a URL de produção.
+O que resta está listado no fim daquela seção, e nada é código.
 
 ### 0.2 As três coisas que mais quebram este plano
 
@@ -754,3 +756,49 @@ Roteiro manual, nos dois temas e nos dois idiomas:
 - [ ] 🔄 Captura do Netsheet Engine (aguardando deploy do Pedro; o preview usa o mockup em CSS enquanto isso)
 - [x] Preview do Repertório Progressivo, resolvido em 27/08/2026 com as prints da V2 no repositório do app, enquadradas como tela de celular
 - [ ] `NEXT_PUBLIC_SITE_URL` em produção e DNS de `pedrolevi.dev` (herdado da v2)
+
+---
+
+## 11. Avaliação pós-deploy (27/08/2026)
+
+A v3 foi mergeada na `main` (commit `7d45443`) e publicada. CI verde: lint, typecheck, 141 unitários, build e 68 E2E no Ubuntu do GitHub.
+
+### SSR e SEO, verificados contra produção
+
+As 12 rotas (5 por idioma mais os cases) respondem 200, com `<html lang>` correto no SSR e **canonical próprio em cada uma**. O hreflang de `/contato/` aponta para `/en/contact/`, não para a home, que era o risco real da divisão em cinco rotas. Sitemap com 18 URLs, robots liberando e apontando para ele, JSON-LD presente.
+
+**O `getSiteUrl()` resolveu sozinho para a URL pública**, via `VERCEL_PROJECT_PRODUCTION_URL`, sem `NEXT_PUBLIC_SITE_URL` definida. Confirma o que a seção 7 previa: a variável só passa a importar quando houver domínio próprio.
+
+O ISR do GitHub chegou vivo: a página de case mostra `atualizado ago. de 2026 · TypeScript`.
+
+### Runtime, com navegador real contra produção
+
+WebGL2 ativo, canvas dimensionado, fallback não acionado, **zero erros de console**, **zero quebras da lei F1** (nenhum ancestral confinando o blend), `<main>` com `z-index: auto`, Lenis rodando. Verificado nos dois temas.
+
+### Lighthouse
+
+| Rota | Desktop | Mobile |
+|---|---|---|
+| `/` | 96 | 92 |
+| `/clientes/` | 99 | não medido |
+| `/projetos/` | 99 | 89 |
+| `/info/` | 99 | 96 |
+| `/contato/` | 100 | não medido |
+
+Acessibilidade, Best Practices e SEO em **100 em todas**, nos dois presets. CLS **zero** em todas.
+
+### O que a avaliação encontrou
+
+O `/projetos/` em mobile ficou logo abaixo de 90, e o Lighthouse apontou excesso de bytes na imagem de LCP. O `sizes` do preview dizia `60vw` no desktop quando o real é **31vw**, e `100vw` no mobile quando o real é **90vw**.
+
+Corrigido e **medido**, não estimado: a variante servida no desktop caiu de `w=1080` para `w=640`. Em mobile o ganho foi de 1 ponto, dentro do ruído, porque o DPR emulado já pedia variante pequena; o ganho real está no desktop, que é onde o Lighthouse mobile não olha. Está no **PR [#2](https://github.com/tavinholoco/portfolio/pull/2)**, aberto e aguardando revisão.
+
+### O que continua aberto
+
+| Item | Situação |
+|---|---|
+| **PR #2** | Aberto, com a correção do `sizes`. Não é urgente |
+| Netsheet Engine | Sem deploy público. O preview usa o mockup em CSS, por decisão. Quando a URL existir: alvo em `capture/previews.spec.ts`, `pnpm capture`, e preencher `image` em `src/data/projects.ts` |
+| Domínio próprio | `pedrolevi.dev` ainda não responde. **Nada a fazer hoje.** No dia em que responder: `vercel env add NEXT_PUBLIC_SITE_URL production`, redeploy, e marcar o domínio como primário na Vercel para o `.vercel.app` redirecionar em vez de duplicar conteúdo |
+
+> ⚠️ Existe uma segunda URL de produção, no escopo do time (`portfolio-*-tavinholocos-projects.vercel.app`), que está **atrás do SSO da Vercel** e responde 302 com `X-Robots-Tag: noindex`. Ela não é a URL pública e não deve ser usada para medir nada. A URL boa é a do topo deste documento.
