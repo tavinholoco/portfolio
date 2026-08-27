@@ -73,7 +73,16 @@ export function ShowcasePreview({
                 src={item.image}
                 alt={`${alt}: ${item.title}`}
                 fill
-                sizes="(min-width: 1024px) 60vw, 100vw"
+                /*
+                  Medido, não estimado. A partir de lg o preview ocupa 5 de 12
+                  colunas do container max-w-7xl, o que dá cerca de 31vw num
+                  viewport de 1440. Abaixo disso ele ocupa a largura do
+                  container, que é a viewport menos o padding de
+                  calc(var(--pad) * 2) de cada lado, cerca de 90vw num celular.
+                  O valor antigo (60vw e 100vw) fazia o Next servir uma variante
+                  maior do que a necessária.
+                */
+                sizes="(min-width: 1024px) 35vw, 90vw"
                 className="object-cover object-top"
                 /* O primeiro é o que aparece no load e vale como LCP. */
                 priority={index === 0}
