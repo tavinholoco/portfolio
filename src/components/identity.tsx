@@ -12,8 +12,10 @@ import { dictionaries, type Locale } from "@/i18n";
  * usam `plain`. Sem fundo próprio: o canvas aparece atrás, e a foto continua
  * nas cores certas porque a seção não mistura.
  *
- * A foto é pequena e quadrada, sem borda arredondada, sem glow e sem gradiente
- * (E12 mais a seção 8 do plano). O avatar circular com halo era o visual da v2.
+ * A foto é redonda, pequena, sem glow e sem gradiente. O quadrado com canto de
+ * 2px era a leitura literal da seção 8 do plano, que proíbe `border-radius`
+ * acima de 2px; virou exceção explícita a pedido do Pedro, ao lado da janela do
+ * preview. O que a E12 proíbe é o halo e o gradiente da v2, não o círculo.
  */
 export function Identity({ lang }: { lang: Locale }) {
   const d = dictionaries[lang].about;
@@ -27,7 +29,7 @@ export function Identity({ lang }: { lang: Locale }) {
           width={160}
           height={160}
           sizes="160px"
-          className="size-32 rounded-sm object-cover sm:size-40"
+          className="size-32 rounded-full object-cover sm:size-40"
         />
 
         <dl className="border-t border-border">

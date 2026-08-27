@@ -121,7 +121,22 @@
   /*
    * Sem `scroll-behavior`: a rolagem é a nativa do navegador, sem suavização
    * nenhuma. O Lenis saiu na v3.5, junto com a reação do fundo ao scroll.
+   *
+   * A barra de rolagem fica escondida, como na referência. **Some a barra, não
+   * a rolagem:** roda, teclado, touch e a barra de espaço continuam iguais, e
+   * `overflow` segue `auto`. O custo é real e é uma escolha: quem chega numa
+   * página longa perde a pista visual de que há mais coisa abaixo, e perde a
+   * noção de posição. Num site de cinco rotas curtas isso é aceitável; numa
+   * página de documentação não seria.
    */
+  html {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  html::-webkit-scrollbar {
+    display: none;
+  }
   /*
    * Sem bg-background aqui (F1). O antialiased não é enfeite: navegadores
    * desligam antialiasing de subpixel em camadas com blend, e sem suavização

@@ -13,6 +13,7 @@
     "look": "playwright test --config capture/playwright.config.ts look.spec.ts",
     "capture": "playwright test --config capture/playwright.config.ts previews.spec.ts",
     "waves": "playwright test --config capture/playwright.config.ts wave-direction.spec.ts",
+    "favicon": "playwright test --config capture/playwright.config.ts favicon.spec.ts",
     "deploy": "vercel --prod",
     "deploy:preview": "vercel"
   },

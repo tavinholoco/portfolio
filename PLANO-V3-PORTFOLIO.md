@@ -988,3 +988,22 @@ Verificação: lint e typecheck limpos, **140 unitários**, **124 E2E** (4 pulad
 | Fantasma atrás do copyright | A `<ViewportMask>` cobre a faixa de baixo a `opacity: .9`, por decisão da E15, e o conteúdo que rola por baixo transparece atrás do copyright. Ficou visível agora que o rodapé mora nessa faixa. Subir a barra de baixo para opacidade 1 resolve, ao custo de uma faixa chapada |
 | Variante `solid` sem consumidor | Continua no `Section`, para o caso de alguma seção futura precisar mesmo esconder o fundo. Se não aparecer, é código morto para remover |
 | Chaves órfãs | `hero.bio` e `hero.viewProjects` perderam o consumidor quando a home esvaziou, e somam-se aos `label` já órfãos |
+
+### 12.7 Quarta rodada: foto redonda, barra escondida e os ativos de marca
+
+**1. A foto do perfil voltou a ser redonda.** O quadrado com canto de 2px era a leitura literal da §8, que proíbe `border-radius` acima de 2px. Virou exceção explícita, ao lado da janela do preview. O que a E12 proíbe é o halo e o gradiente da v2, não o círculo.
+
+**2. A barra de rolagem some.** `scrollbar-width: none` mais `::-webkit-scrollbar { display: none }` no `html`. **Some a barra, não a rolagem:** roda, teclado, touch e a barra de espaço continuam iguais, e o `overflow` segue `auto`.
+
+O custo é real e é escolha, não descuido: quem chega numa página longa perde a pista visual de que há mais coisa abaixo, e perde a noção de posição. Num site de cinco rotas curtas isso é aceitável; numa página de documentação não seria.
+
+**3. Os ativos de marca estavam três versões atrasados.** O `icon.svg`, o `favicon.ico` e as duas imagens de OG continuavam no verde-água `#2dd4bf` da v2, e as OG ainda tinham os dois blobs borrados que a §8 tirou do site. Sobreviveram porque **nada olha para eles**: ícone de aba não aparece em captura, nem em teste de DOM, nem no Lighthouse. Quem viu foi o Pedro, olhando a aba do navegador.
+
+O ícone virou fundo `--c-bg` escuro, "PL" em `--c-ink` e uma crista de onda na paleta graphite, ecoando o campo do site. As OG perderam os blobs e ganharam as mesmas cristas, feitas com raio elíptico em `<div>` e não com `<path>`, porque o satori renderiza um subconjunto de CSS e curva por `border-radius` é o caminho seguro.
+
+Duas ferramentas novas fecham o buraco:
+
+- **`pnpm favicon`** regrava o `favicon.ico` a partir do `icon.svg`, renderizando em 6 tamanhos e embrulhando os PNGs no container ICO. Antes os dois eram editados à mão, separados, e por isso divergiam.
+- **`src/app/brand-assets.test.ts`** exige que todo hexadecimal do ícone e das OG saia da paleta do site. Controle negativo conferido: injetando `#2dd4bf` de volta, reprova apontando a cor.
+
+Verificação: lint e typecheck limpos, **144 unitários**, **124 E2E**, `pnpm waves` passando.

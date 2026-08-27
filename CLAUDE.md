@@ -29,13 +29,15 @@ Estas não geram erro no console. Se forem violadas, o site parece funcionar e o
 9. **Crase dentro de shader quebra o build.** Os shaders são template literals em `.ts`, e uma crase num comentário GLSL fecha a string do JS. O erro aparece como parse do TypeScript no meio de um comentário. Nos comentários GLSL use aspas simples.
 10. **A direção da onda é o sinal do termo de tempo no `field.ts`.** `sin(z*k + t*w)` traz a crista para a praia; com `-` ela corre para o horizonte, e **nada acusa**: o fundo continua animado e sem erro. Rode `pnpm waves`.
 11. **Cada tema tem o seu conjunto de paletas.** O claro usa `palettesLight`, pálidas, porque sobre `#f0f0f0` só há 0.22 de luminância até a faixa proibida, e paleta escura ali obriga o campo a quase sumir. A paleta viaja no mesmo tween da cor de fundo, nunca num paralelo.
-12. **O campo do shader precisa devolver `v` em `[0,1]`.** O ramp de 3 cores no fim de `field.ts` é o que garante o contraste, e o teste de `background-config.test.ts` prova isso varrendo o ramp, não o campo. Trocar o gerador é seguro; mudar o contradomínio ou o ramp não é.
+12. **Ícone de aba e imagem de link envelhecem sem ninguém ver.** Não aparecem em captura, em teste de DOM nem no Lighthouse. `src/app/brand-assets.test.ts` exige que as cores deles saiam da paleta; se você acrescentar uma cor de propósito, ela entra na lista de permitidas junto.
+13. **O campo do shader precisa devolver `v` em `[0,1]`.** O ramp de 3 cores no fim de `field.ts` é o que garante o contraste, e o teste de `background-config.test.ts` prova isso varrendo o ramp, não o campo. Trocar o gerador é seguro; mudar o contradomínio ou o ramp não é.
 
 ## Ferramentas do projeto
 
 - **`pnpm look`** captura telas do site em `.captures/`, para inspecionar o resultado visual. Parametrizado por `LOOK_PATHS`, `LOOK_THEMES`, `LOOK_FULL`, `LOOK_SCROLL`, `LOOK_HOVER`, `LOOK_WIDTH`, `LOOK_HEIGHT`. No Git Bash do Windows, prefixe com `MSYS_NO_PATHCONV=1`.
 - **`pnpm capture`** gera os previews do showcase em `public/projects/`. Sob demanda, nunca no CI.
 - **`pnpm waves`** mede para que lado as cristas do fundo viajam, compilando o GLSL real num contexto próprio. Existe porque a direção invertida não gera erro nenhum.
+- **`pnpm favicon`** regrava o `favicon.ico` a partir do `icon.svg`. Rode sempre que mexer no ícone, senão os dois divergem.
 - **`e2e/responsivo.spec.ts`** varre 5 rotas × 4 larguras: rolagem horizontal, colisão com o bloco de identidade fixo e texto vazando a moldura. Roda no `pnpm test:e2e`.
 - **Lighthouse** precisa de `CHROME_PATH` apontando para o Chromium do Playwright: a máquina não tem Chrome instalado.
 

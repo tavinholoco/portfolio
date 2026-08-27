@@ -1,31 +1,43 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#111113" />
-      <stop offset="100%" stop-color="#0a0a0b" />
-    </linearGradient>
+    <clipPath id="quadro">
+      <rect width="64" height="64" rx="14" />
+    </clipPath>
   </defs>
-  <rect width="64" height="64" rx="14" fill="url(#bg)" />
-  <rect
-    x="1.5"
-    y="1.5"
-    width="61"
-    height="61"
-    rx="12.5"
-    fill="none"
-    stroke="#2dd4bf"
-    stroke-opacity="0.45"
-    stroke-width="1.5"
-  />
+
+  <g clip-path="url(#quadro)">
+    <rect width="64" height="64" fill="#0b0b0c" />
+    <path
+      d="M0 50 C 11 46 20 53 32 50 S 53 46 64 50 L64 64 L0 64 Z"
+      fill="#232838"
+    />
+    <path
+      d="M0 56 C 13 52 22 59 34 56 S 54 53 64 56 L64 64 L0 64 Z"
+      fill="#454f6b"
+    />
+  </g>
+
   <text
     x="32"
-    y="41.5"
+    y="37"
     font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
-    font-size="25"
+    font-size="30"
     font-weight="600"
-    fill="#2dd4bf"
+    fill="#fafafa"
     text-anchor="middle"
   >
     PL
   </text>
+
+  <rect
+    x="0.5"
+    y="0.5"
+    width="63"
+    height="63"
+    rx="13.5"
+    fill="none"
+    stroke="#454f6b"
+    stroke-opacity="0.5"
+    stroke-width="1"
+  />
 </svg>
