@@ -4,7 +4,9 @@
 
 Este portfólio está na **V3.5** (visual minimalista, identidade fixa no canto esquerdo e fundo WebGL em ondas de praia, sem troca de paleta e sem rolagem suave). A V3 subiu em 27/08/2026 e está **no ar** em https://portfolio-tau-five-f86nc5khr8.vercel.app; a V3.5 é o passe de refinamento em cima dela.
 
-Antes de mexer no frontend, leia a **seção 0 do `PLANO-V3-PORTFOLIO.md`** e depois a **seção 12**, que é a V3.5 e revoga várias decisões das anteriores (o `>_`, a Home com os 5 passos, os cabeçalhos de Clientes e Projetos, o campo de noise). O `README.md` documenta a arquitetura de camadas. Os três estão em dia. Os planos V1 e V2 na raiz são histórico.
+Antes de mexer no frontend, leia a **seção 0 do `PLANO-V3-PORTFOLIO.md`** e depois a **seção 12**, que é a V3.5 e revoga várias decisões das anteriores (o `>_`, a Home com os 5 passos, os cabeçalhos de Clientes e Projetos, o campo de noise, o Lenis e as trocas de paleta). A avaliação final está na **§12.10**. O `README.md` documenta a arquitetura de camadas. Os três estão em dia. Os planos V1 e V2 na raiz são histórico.
+
+Estado: **144 unitários e 168 E2E** passando. Lighthouse com A11y, Best Practices e SEO em 100 nas 5 rotas e CLS zero; Perf 99 a 100 no desktop e 74 a 89 no mobile, sendo `/clientes/` o pior e o único que merece investigação.
 
 ## Regras que valem sempre
 

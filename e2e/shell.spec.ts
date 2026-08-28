@@ -408,3 +408,38 @@ test.describe("contraste: a regra de opacidade em texto", () => {
     });
   }
 });
+
+/**
+ * Hierarquia de cabeçalhos, nas 10 rotas.
+ *
+ * Quebrou duas vezes em silêncio nesta versão, e as duas por um motivo que
+ * revisão de código não pega. `/info/` e `/contato/` estavam **sem `h1`**, e
+ * promover o `h2` de topo a `h1` consertou isso e criou o defeito seguinte: os
+ * `h3` que viviam sob aquele `h2` passaram a pendurar direto no `h1`, pulando
+ * um nível. O Lighthouse acusa como `heading-order`, mas só se alguém rodar o
+ * Lighthouse; a tela continua idêntica nos dois casos.
+ */
+test.describe("hierarquia de cabeçalhos", () => {
+  for (const rota of rotas) {
+    test(`${rota} tem um h1 e não pula nível`, async ({ page }) => {
+      await page.goto(rota);
+
+      const niveis = await page.evaluate(() =>
+        [...document.querySelectorAll("h1, h2, h3, h4, h5, h6")].map((el) =>
+          Number(el.tagName[1])
+        )
+      );
+
+      expect(niveis.filter((n) => n === 1)).toHaveLength(1);
+      expect(niveis[0], "o primeiro cabeçalho da página tem que ser o h1").toBe(1);
+
+      const pulos: string[] = [];
+      for (let i = 1; i < niveis.length; i++) {
+        if (niveis[i] > niveis[i - 1] + 1) {
+          pulos.push(`h${niveis[i - 1]} seguido de h${niveis[i]}`);
+        }
+      }
+      expect(pulos, pulos.join(" | ")).toEqual([]);
+    });
+  }
+});
