@@ -4,7 +4,7 @@
 >
 > **Base:** v2 publicada (Next 16.3 + React 19, Tailwind v4, bilíngue com paridade testada, 36 unit + 6 E2E, Lighthouse 95/100/100/100).
 > **Referência de inspiração:** [p5aholic.me](https://p5aholic.me) (Keita Yamada). Inspiração estrutural, **não cópia**. Ver seção 0.3.
-> **Status:** ✅ **No ar desde 27/08/2026.** As 7 fases da v3 fechadas e publicadas (avaliação na seção 11). O **refinamento V3.5**, na seção 12, está implementado e verificado.
+> **Status:** ✅ **V3.5 no ar.** As 7 fases da v3 fechadas em 27/08/2026 (avaliação na seção 11), e o refinamento **V3.5** mergeado pelo PR #4, em 6 rodadas de ajuste. Avaliação completa na **seção 12.10**.
 >
 > **Produção:** https://portfolio-tau-five-f86nc5khr8.vercel.app
 > **Versão do documento:** V3.5
@@ -1040,3 +1040,57 @@ Os dois arquivos subiram para `src/app/`, que é pai dos dois grupos, e passaram
 Entrou `e2e/marca.spec.ts`, que exige `link[rel="icon"]` em toda rota dos dois idiomas e confere que os dois arquivos respondem 200, checando o cabeçalho ICONDIR do `.ico` para não passar com um HTML de 404 no lugar. Ele faz par com o `brand-assets.test.ts`: um cuida da cor, o outro da entrega, e de nada adianta a cor certa num ícone que a rota não declara.
 
 Verificação: lint e typecheck limpos, **144 unitários**, **157 E2E**, `pnpm waves` passando.
+
+### 12.10 Fechamento: a medição que faltava
+
+A V3.5 foi mergeada na `main` pelo PR [#4](https://github.com/tavinholoco/portfolio/pull/4), com 8 commits. Esta seção é a avaliação completa depois do merge, que ficou pendente desde a 12.2 porque cada rodada mudava o que havia para medir.
+
+#### Lighthouse, as 5 rotas, os dois presets
+
+| Rota | Perf desktop | Perf mobile | A11y | Best Practices | SEO | CLS |
+|---|---|---|---|---|---|---|
+| `/` | 99 | 85 | 100 | 100 | 100 | 0 |
+| `/clientes/` | 100 | **74** | 100 | 100 | 100 | 0 |
+| `/projetos/` | 100 | 89 | 100 | 100 | 100 | 0 |
+| `/info/` | 100 | 89 | 100 | 100 | 100 | 0 |
+| `/contato/` | 100 | 89 | 100 | 100 | 100 | 0 |
+
+**No desktop o site é praticamente perfeito**, com LCP entre 0.6s e 0.8s e TBT entre 30ms e 100ms. A limpeza da V3.5 aparece aqui: `/clientes/` e `/projetos/`, que eram 99, chegaram a 100 depois de perderem o Lenis, a troca de paleta e o cabeçalho.
+
+**No mobile o número honesto é 74 a 89**, e vale dizer com todas as letras que **isso é pior do que os 89 a 96 que a §11 registrou para a V3**. Parte é ambiente (aqueles números vieram de outra máquina), mas parte é real: o campo do shader subiu de 200 para 256 no alvo pequeno, e o mobile do Lighthouse roda com 4x de throttle de CPU.
+
+O gargalo não é o shader. Os audits que reprovam em todas as rotas são `legacy-javascript-insight` (13 KiB), `render-blocking-insight` (~110ms) e `network-dependency-tree-insight`, todos do framework, não do código do site.
+
+**`/clientes/` em 74 é o pior número e o único que merece investigação**, com TBT de 560ms e LCP de 3.9s, contra 250ms e 3.0s de `/projetos/`. As duas rotas usam o mesmo componente e os mesmos dados; a diferença é o screenshot do Dandarkness, e o `lcp-discovery-insight` reprova, sugerindo que a imagem de LCP não é descoberta cedo. Fica registrado, não resolvido.
+
+#### Um defeito de acessibilidade que a medição pegou, e que eu tinha causado
+
+`/info/` e `/contato/` estavam em **A11y 98**, reprovando `heading-order`. A causa foi a correção da 12.5: promover o `h2` de topo a `h1` resolveu as rotas sem `h1`, e criou o defeito seguinte, porque os `h3` que viviam sob aquele `h2` passaram a pendurar direto no `h1`.
+
+O conserto respeita a semântica em vez de renumerar por conveniência: em `<About>`, "Engenharia além da interface" e "Interesses ativos" eram `<p>` e **são cabeçalhos de verdade**, então viraram `h2`; em `<Contact>`, os dois caminhos são o nível logo abaixo do título da página, então os `h3` viraram `h2`. Nada mudou na tela. As duas rotas voltaram a **100**.
+
+> ⚠️ Isso quebrou **duas vezes seguidas** nesta versão, e nas duas a tela ficou idêntica. Entrou `hierarquia de cabeçalhos` em `e2e/shell.spec.ts`, exigindo exatamente um `h1`, que ele seja o primeiro cabeçalho da página, e nenhum pulo de nível, nas 11 rotas.
+
+#### O que a V3.5 acrescentou de rede de segurança
+
+Seis defeitos desta versão só apareceram porque alguém olhou a tela, nunca porque um teste falhou: as ondas correndo para o horizonte, o rodapé dentro da moldura, o email cortado com reticências, "contratando" por cima da coluna vizinha, o ícone verde-água de três versões atrás e o ícone ausente em `/en/`. Cada um virou teste:
+
+| Teste | Pega |
+|---|---|
+| `pnpm waves` | Direção das cristas, com controle negativo |
+| `e2e/responsivo.spec.ts` | 5 rotas × 4 larguras: rolagem lateral, colisão com a identidade, texto fora da moldura, palavra estourando a caixa |
+| `e2e/marca.spec.ts` | Ícone declarado em toda rota dos dois idiomas, e os arquivos servidos |
+| `src/app/brand-assets.test.ts` | Cores do ícone e das OG saem da paleta, com controle negativo |
+| `hierarquia de cabeçalhos` | Um `h1` por rota, sem pulo de nível |
+
+Total: **144 unitários e 168 E2E**.
+
+#### O que continua aberto
+
+| Item | Situação |
+|---|---|
+| `/clientes/` mobile em 74 | O pior número do site. TBT 560ms e LCP 3.9s, com `lcp-discovery-insight` reprovando. Não investigado |
+| Fantasma atrás do copyright | A `<ViewportMask>` é `opacity: .9` por decisão da E15, e o conteúdo transparece na faixa de baixo. Subir para 1 resolve, ao custo de uma faixa chapada |
+| Variante `solid` | Sem consumidor desde a 12.5. Se não aparecer uso, é código morto |
+| Chaves órfãs | `hero.bio`, `hero.viewProjects`, `clients.projectKind` e vários `label` perderam consumidor ao longo das rodadas |
+| Netsheet Engine e domínio próprio | Herdados da v3, sem mudança. Ver §11 |

@@ -39,9 +39,11 @@ export function About({ lang }: { lang: Locale }) {
 
       {/* Métricas: grandes porque importam, não coloridas porque importam. */}
       <div className="mt-20">
-        <p className="font-mono text-sm opacity-70">
+        {/* h2, e não <p>: é o cabeçalho da lista de métricas, e sem ele a
+            hierarquia pula de h1 para h3 (heading-order). O visual não muda. */}
+        <h2 className="font-mono text-sm font-normal opacity-70">
           {d.metricsTitle}
-        </p>
+        </h2>
         <dl className="mt-8 grid grid-cols-2 border-t border-current/15 sm:grid-cols-4">
           {d.metrics.map((metric) => (
             <div
@@ -61,9 +63,9 @@ export function About({ lang }: { lang: Locale }) {
 
       {/* Interesses em lista, sem cartão e sem ícone. */}
       <div className="mt-20">
-        <p className="font-mono text-sm opacity-70">
+        <h2 className="font-mono text-sm font-normal opacity-70">
           {d.interestsHeading}
-        </p>
+        </h2>
         <ul className="mt-8 border-t border-current/15">
           {d.interests.map((interest) => (
             <li

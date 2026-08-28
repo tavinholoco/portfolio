@@ -55,9 +55,9 @@ export function Contact({ lang }: { lang: Locale }) {
       */}
       <div className="mt-20 grid border-t border-current/15 md:grid-cols-2">
         <div className="min-w-0 border-b border-current/15 py-10 md:border-r md:border-b-0 md:pr-12">
-          <h3 className="text-title font-semibold tracking-tight break-words hyphens-auto">
+          <h2 className="text-title font-semibold tracking-tight break-words hyphens-auto">
             {d.hiringTitle}
-          </h3>
+          </h2>
           <p className="font-body mt-4 max-w-sm text-sm leading-relaxed opacity-70 text-pretty">
             {d.hiringDescription}
           </p>
@@ -72,9 +72,9 @@ export function Contact({ lang }: { lang: Locale }) {
         </div>
 
         <div className="min-w-0 py-10 md:pl-12">
-          <h3 className="text-title font-semibold tracking-tight break-words hyphens-auto">
+          <h2 className="text-title font-semibold tracking-tight break-words hyphens-auto">
             {d.projectTitle}
-          </h3>
+          </h2>
           <p className="font-body mt-4 max-w-sm text-sm leading-relaxed opacity-70 text-pretty">
             {d.projectDescription}
           </p>

@@ -2,9 +2,18 @@
 
 Portfólio minimalista com fundo WebGL próprio, tipografia fluida e navegação em 5 rotas por idioma. O texto branco das seções usa `mix-blend-mode: difference` e inverte contra o que estiver embaixo, então o contraste sai de graça sem escurecer o fundo.
 
+**Versão atual: V3.5.** Identidade fixa no canto esquerdo (nome, cargo e nav vertical), home reduzida ao campo de ondas, e uma paleta só no site inteiro. O fundo é um campo procedural de ondas de praia: céu, mar em perspectiva, espuma de crista e vaivém na areia, tudo por pixel e por frame, **sem nenhum vídeo ou GIF envolvido**.
+
 **Live:** [pedrolevi.dev](https://pedrolevi.dev) _(definido via `NEXT_PUBLIC_SITE_URL` no deploy)_
 
-> A referência estrutural foi [p5aholic.me](https://p5aholic.me), **sem reúso de código**: shader, paleta, composição e CSS foram escritos do zero. O plano completo, com as decisões e as duas auditorias, está em [PLANO-V3-PORTFOLIO.md](PLANO-V3-PORTFOLIO.md).
+| | Desktop | Mobile |
+|---|---|---|
+| Performance | 99 a 100 | 74 a 89 |
+| Acessibilidade, Best Practices e SEO | 100 | 100 |
+
+CLS zero nas 5 rotas. **144 testes unitários e 168 E2E.**
+
+> A referência estrutural foi [p5aholic.me](https://p5aholic.me), **sem reúso de código**: shader, paleta, composição e CSS foram escritos do zero. O plano completo está em [PLANO-V3-PORTFOLIO.md](PLANO-V3-PORTFOLIO.md): a V3 nas seções 0 a 11 e a **V3.5 na seção 12**, rodada por rodada.
 
 ## ✨ Stack
 
@@ -254,7 +263,8 @@ O anel de foco usa `currentColor` de propósito: com uma cor fixa, ele ficaria i
 | `gitleaks.yml` | Varredura de segredos com Gitleaks, config em `.gitleaks.toml` |
 
 - **Unitários** (`pnpm test`): manifesto de rotas e os arquivos em disco, contraste das paletas, grain determinístico, aritmética do render target, metadados, sitemap, GitHub com fallback e paridade dos dicionários.
-- **E2E** (`pnpm test:e2e`): a lei de camadas nas 11 rotas com controle negativo, o fallback sem WebGL, DPR por tamanho de tela, movimento reduzido, as regras do showcase em ponteiro, teclado e toque, a navegação nos dois idiomas e o `<html lang>` no SSR.
+- **E2E** (`pnpm test:e2e`): a lei de camadas nas 11 rotas com controle negativo, o fallback sem WebGL, DPR por tamanho de tela, movimento reduzido, as regras do showcase em ponteiro, teclado e toque, a navegação nos dois idiomas, o `<html lang>` no SSR, a **hierarquia de cabeçalhos**, o **ícone de aba em toda rota** e uma **auditoria de responsividade** em 4 larguras.
+- Os testes de responsividade e de marca existem porque a V3.5 acumulou seis defeitos que só apareceram quando alguém olhou a tela: ondas correndo para o lado errado, email cortado com reticências no celular, palavra por cima da coluna vizinha, ícone de três versões atrás e ícone ausente em `/en/`. Cada um virou asserção.
 - O `pnpm look` **não** roda no CI: tem config própria em `capture/`.
 
 ## 🔗 Integração com o GitHub
@@ -288,5 +298,7 @@ pnpm deploy
 | `pnpm test:e2e` | Testes E2E (Playwright), requer `pnpm build` antes |
 | `pnpm look` | Captura telas do site em `.captures/`, requer `pnpm build` antes |
 | `pnpm capture` | Gera os previews do showcase em `public/projects/`, sob demanda |
+| `pnpm waves` | Mede para que lado as cristas do fundo viajam, compilando o GLSL real |
+| `pnpm favicon` | Regrava o `favicon.ico` a partir do `icon.svg`, em 6 tamanhos |
 | `pnpm deploy` | Deploy de produção na Vercel |
 | `pnpm deploy:preview` | Deploy de preview na Vercel |
