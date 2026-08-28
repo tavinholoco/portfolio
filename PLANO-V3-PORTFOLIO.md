@@ -1094,3 +1094,48 @@ Total: **144 unitários e 168 E2E**.
 | Variante `solid` | Sem consumidor desde a 12.5. Se não aparecer uso, é código morto |
 | Chaves órfãs | `hero.bio`, `hero.viewProjects`, `clients.projectKind` e vários `label` perderam consumidor ao longo das rodadas |
 | Netsheet Engine e domínio próprio | Herdados da v3, sem mudança. Ver §11 |
+
+### 12.11 Os dois itens abertos, medidos e fechados
+
+#### `/clientes/` no mobile não tinha defeito próprio
+
+O 74 registrado na 12.10 era **o pior de uma amostra só**. Rodando três vezes cada rota, as medianas ficaram em 83 para `/clientes/` e 84 para `/projetos/`: as duas na mesma faixa. A conclusão da 12.10 de que aquela rota merecia investigação especial estava errada, e sai.
+
+O que existe de verdade vale para todas as rotas. O custo de JS na CPU emulada, por chunk:
+
+| Chunk | Custo |
+|---|---|
+| framework | 651 ms |
+| **`ogl`, 108 KB** | **622 ms** |
+| aplicação | 279 ms |
+
+O motor do fundo custava 622ms **dentro da janela que o TBT e o LCP medem**, porque o `await import("ogl")` acontecia no efeito de montagem, competindo com a hidratação. O fundo é decorativo: nada na página depende dele para ser lido ou clicado, e por isso é o candidato certo a sair do caminho.
+
+O import passou a esperar a primeira ociosidade (`requestIdleCallback`, `timeout: 2000`, com `setTimeout` de fallback), e o canvas ganhou fade de 700ms, para a entrada ser intencional em vez de pipoco. Sob movimento reduzido a transição some.
+
+Medianas de 3 rodadas, mobile:
+
+| | `/clientes/` antes | depois | `/projetos/` antes | depois |
+|---|---|---|---|---|
+| Bootup de JS | 1303 ms | **955 ms** | 1432 ms | 1344 ms |
+| TBT | 326 ms | **134 ms** | 231 ms | 229 ms |
+| LCP | 3646 ms | **3020 ms** | 3877 ms | 3992 ms |
+
+**O ganho é assimétrico, e vale registrar por quê.** Onde o JS domina, ele é grande: `/clientes/` perdeu 59% do TBT. Onde as imagens dominam, some: `/projetos/` monta quatro previews de uma vez, e o custo delas absorve o que a espera economizou. Não houve regressão em lugar nenhum.
+
+#### O fantasma atrás do copyright era um comentário errado
+
+As barras da `<ViewportMask>` eram `opacity: .9`, justificadas como *deixa o canvas transparecer de leve na borda*. Medindo a geometria numa viewport de 720px:
+
+| Elemento | Posição |
+|---|---|
+| Canvas | 29 a **691** |
+| Barra de baixo | **691** a 720 |
+
+**O canvas termina exatamente onde a barra começa.** Ele é recuado em `var(--pad)` e nunca entra na faixa, então não havia canvas nenhum ali para transparecer. O que estava atrás era o fundo do `:root`, da **mesma cor da barra**, e compor uma cor sobre ela mesma a 90% devolve a mesma cor.
+
+Ou seja, a translucidez não produzia o efeito que a justificava, e a única coisa que ela deixava passar era o conteúdo rolando por baixo, que aparecia como fantasma atrás do copyright. As barras viraram opacas: **a cor da faixa não mudou um pixel** e o fantasma sumiu.
+
+O teste em `e2e/shell.spec.ts` trava as duas coisas juntas, porque uma sustenta a outra: as barras opacas **e** o canvas contido dentro delas. Se um dia o canvas deixar de ser recuado, a barra opaca passa a cobrir fundo de verdade, e o teste avisa.
+
+Verificação: lint e typecheck limpos, **144 unitários**, **169 E2E**.
