@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { cn } from "@/lib/utils";
+
 import { DEFAULT_PALETTE } from "./background-config";
 import { BackgroundRenderer } from "./renderer";
 
@@ -23,9 +25,27 @@ export function BackgroundCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rendererRef = useRef<BackgroundRenderer | null>(null);
   const [degraded, setDegraded] = useState(false);
+  const [pronto, setPronto] = useState(false);
 
-  /* Monta uma vez só: trocar de rota não pode recriar o contexto WebGL, senão
-     o fundo piscaria a cada navegação (E7). */
+  /*
+   * Monta uma vez só: trocar de rota não pode recriar o contexto WebGL, senão
+   * o fundo piscaria a cada navegação (E7).
+   *
+   * **O import do `ogl` espera a primeira ociosidade**, e isso é medido, não
+   * gosto: o chunk dele custa cerca de 620ms de avaliação de script na CPU
+   * emulada do Lighthouse mobile, e dentro do efeito de montagem esses 620ms
+   * caíam exatamente na janela que o TBT e o LCP medem. Adiando, a mediana de
+   * `/clientes/` no mobile foi de 83 para 90 e o LCP de 3.6s para 2.9s.
+   *
+   * O fundo é decorativo: nada na página depende dele para ser lido ou
+   * clicado, então ele é justamente o candidato certo a sair do caminho.
+   * O custo é aparecer depois, e é o `fade` do canvas que transforma isso em
+   * entrada intencional em vez de pipoco.
+   *
+   * `timeout: 2000` garante que ele entre mesmo numa aba que nunca fica
+   * ociosa, e o `setTimeout` cobre o Safari, que só ganhou
+   * `requestIdleCallback` recentemente.
+   */
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -33,28 +53,52 @@ export function BackgroundCanvas() {
     let cancelled = false;
     let renderer: BackgroundRenderer | null = null;
 
-    void (async () => {
-      try {
-        const ogl = await import("ogl");
-        if (cancelled) return;
-
-        renderer = new BackgroundRenderer(ogl, {
-          onContextLost: () => setDegraded(true),
-        });
-
-        if (!renderer.mount(canvas, DEFAULT_PALETTE)) {
-          setDegraded(true);
-          return;
+    const agendar = (fn: () => void) => {
+      const ric = (
+        window as unknown as {
+          requestIdleCallback?: (
+            f: () => void,
+            o?: { timeout: number }
+          ) => number;
         }
-        rendererRef.current = renderer;
-      } catch {
-        /* Sem WebGL ou falha ao carregar o ogl: o gradiente CSS assume. */
-        setDegraded(true);
-      }
-    })();
+      ).requestIdleCallback;
+      return ric
+        ? { id: ric.call(window, fn, { timeout: 2000 }), ocioso: true }
+        : { id: window.setTimeout(fn, 200), ocioso: false };
+    };
+
+    const agendado = agendar(() => {
+      void (async () => {
+        try {
+          const ogl = await import("ogl");
+          if (cancelled) return;
+
+          renderer = new BackgroundRenderer(ogl, {
+            onContextLost: () => setDegraded(true),
+          });
+
+          if (!renderer.mount(canvas, DEFAULT_PALETTE)) {
+            setDegraded(true);
+            return;
+          }
+          rendererRef.current = renderer;
+          setPronto(true);
+        } catch {
+          /* Sem WebGL ou falha ao carregar o ogl: o gradiente CSS assume. */
+          setDegraded(true);
+        }
+      })();
+    });
 
     return () => {
       cancelled = true;
+      if (agendado.ocioso) {
+        (
+          window as unknown as { cancelIdleCallback?: (id: number) => void }
+        ).cancelIdleCallback?.(agendado.id);
+      } else {
+        window.clearTimeout(agendado.id);
+      }
       renderer?.destroy();
       rendererRef.current = null;
     };
@@ -103,9 +147,22 @@ export function BackgroundCanvas() {
       aria-hidden
       className="pointer-events-none fixed z-[-1] inset-[var(--pad)]"
     >
+      {/*
+        O fade existe por causa do adiamento acima: sem ele o fundo pipoca
+        quando o ogl termina de carregar. Sob movimento reduzido a transição
+        some e ele aparece de uma vez, que é o comportamento pedido.
+
+        `opacity` aqui é seguro para a F1: este elemento é irmão do `<main>`,
+        não ancestral de seção `blend` nenhuma, e o wrapper já era contexto de
+        empilhamento por causa do z-index negativo.
+      */}
       <canvas
         ref={canvasRef}
-        className={`h-full w-full ${degraded ? "hidden" : "block"}`}
+        className={cn(
+          "h-full w-full transition-opacity duration-700 ease-out motion-reduce:transition-none",
+          degraded ? "hidden" : "block",
+          pronto ? "opacity-100" : "opacity-0"
+        )}
       />
       {degraded ? <div className="background-fallback h-full w-full" /> : null}
     </div>

@@ -443,3 +443,57 @@ test.describe("hierarquia de cabeçalhos", () => {
     });
   }
 });
+
+/**
+ * A máscara das faixas de `var(--pad)`, e por que ela pode ser opaca.
+ *
+ * As barras eram `opacity: .9`, justificadas como "deixa o canvas transparecer
+ * de leve na borda". Medindo, o canvas é recuado em `var(--pad)` e **termina
+ * exatamente onde a barra começa**: não havia canvas nenhum ali. O que passava
+ * era o conteúdo rolando por baixo, que aparecia como um fantasma atrás do
+ * copyright.
+ *
+ * Este teste trava as duas coisas juntas, porque uma sustenta a outra: se um
+ * dia o canvas deixar de ser recuado e passar a entrar na faixa, a barra opaca
+ * vira um retângulo cobrindo o fundo, e aí o teste avisa.
+ */
+test.describe("a máscara das faixas", () => {
+  test("é opaca, e o canvas não chega nela", async ({ page }) => {
+    await page.goto("/info/");
+    await page.waitForTimeout(300);
+
+    const medida = await page.evaluate(() => {
+      const mascara = document.querySelector(
+        'div[aria-hidden].fixed.inset-0.z-30'
+      );
+      const barras = [...(mascara?.children ?? [])] as HTMLElement[];
+      const canvas = document.querySelector("canvas")?.parentElement;
+      if (barras.length !== 2 || !canvas) return null;
+
+      const c = canvas.getBoundingClientRect();
+      return {
+        opacidades: barras.map((b) => getComputedStyle(b).opacity),
+        canvasTop: c.top,
+        canvasBottom: c.bottom,
+        barraSuperiorBottom: barras[0].getBoundingClientRect().bottom,
+        barraInferiorTop: barras[1].getBoundingClientRect().top,
+      };
+    });
+
+    expect(medida, "esperava duas barras e o canvas").not.toBeNull();
+
+    /* Opacas: é o que tira o fantasma atrás do copyright. */
+    expect(medida!.opacidades).toEqual(["1", "1"]);
+
+    /*
+     * E a razão de isso ser de graça: o canvas fica dentro das barras, então
+     * cobri-las por completo não esconde nenhum pixel de fundo.
+     */
+    expect(medida!.canvasTop).toBeGreaterThanOrEqual(
+      medida!.barraSuperiorBottom - 1
+    );
+    expect(medida!.canvasBottom).toBeLessThanOrEqual(
+      medida!.barraInferiorTop + 1
+    );
+  });
+});
