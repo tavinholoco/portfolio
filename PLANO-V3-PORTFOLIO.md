@@ -1285,11 +1285,26 @@ Três hipóteses testadas, **na mesma sessão de medição**, porque comparar en
 
 > **Aceite não atingido, e por um motivo estrutural:** o LCP deste site é dominado por `Element render delay`, que é trabalho de main thread durante a hidratação. Os três chunks de framework somam 151 KB gzip, e é ali que está a alavanca. Não há ganho grande em imagens, CSS ou atributos: isso já foi medido, e está tudo aqui para não ser remedido.
 
-#### M4. Fim da duplicação por idioma (achado D)
+#### M4. Fim da duplicação por idioma (achado D) ✅
 
-Extrair o corpo comum dos dois `layout.tsx` para um componente único parametrizado por `lang`, e o mesmo para as duas `opengraph-image.tsx`.
+**Concluído.** O corpo do documento foi para `<RootDocument lang>` e o desenho da imagem de link para `ogImage(lang)`. Os arquivos por idioma ficaram só com o que o Next exige no módulo do segmento.
 
-> **Aceite:** os arquivos por idioma ficam com menos de 20 linhas cada, `e2e/html-lang.spec.ts` e `brand-assets.test.ts` continuam verdes, e o `diff` entre os pares deixa de existir.
+| | Antes | Depois |
+|---|---|---|
+| `layout.tsx`, cada um | 60 linhas | **17 linhas** |
+| `opengraph-image.tsx`, cada um | 109 linhas | **10 linhas** |
+| Total dos quatro | 338 linhas | 54, mais 207 de código compartilhado |
+| Superfície duplicada | ~330 linhas | **~27 linhas de boilerplate** |
+
+**`metadata` e `viewport` são reexportados**, e isso é o único ponto que exigiu cuidado: o Next lê os dois no módulo do segmento, não no componente. `export { metadata, viewport }` funciona, e foi verificado no HTML servido, não só no build: `<html lang>`, `theme-color`, `og:image` e `og:image:alt` continuam corretos e **diferentes** nos dois idiomas, e as duas imagens renderizam em 200 com o texto do idioma certo.
+
+> ⚠️ **O `diff` entre os pares não desapareceu por completo, e não deveria.** Sobraram 6 linhas nos layouts e 4 nas OG, e são exatamente as que precisam diferir: o `lang`, o nome da função e o `alt`. O que sumiu foi a cópia de fontes, script de tema, `<html>`, `<body>` e o desenho inteiro da imagem, que é onde o risco morava.
+
+**Um efeito colateral de mover código para fora de `app/`:** o `@next/next/no-head-element` passou a avisar sobre o `<head>` do documento. A regra é do Pages Router, onde `<head>` competia com o `next/head`, e o plugin isenta por caminho, não por conteúdo. O aviso está silenciado com a justificativa no lugar; o script de tema precisa rodar antes do primeiro paint e por isso não pode virar `<Script>`.
+
+O `brand-assets.test.ts` passou a varrer `src/components/og-image.tsx`, que é onde as cores agora vivem. São 143 unitários em vez de 144 porque o teste itera dois arquivos em vez de três.
+
+> **Aceite atingido:** 17 e 10 linhas por idioma, `html-lang.spec.ts` e `brand-assets.test.ts` verdes, e 137 E2E.
 
 #### M5. Limpeza (achados E, F, G)
 

@@ -40,8 +40,9 @@ const PERMITIDAS = new Set(
 
 const ARQUIVOS = [
   "src/app/icon.svg",
-  "src/app/(home)/opengraph-image.tsx",
-  "src/app/en/opengraph-image.tsx",
+  /* O desenho das duas OG mora aqui desde o M4; os arquivos por idioma
+     só reexportam metadado e não têm cor nenhuma. */
+  "src/components/og-image.tsx",
 ];
 
 describe("ativos de marca fora do site", () => {
