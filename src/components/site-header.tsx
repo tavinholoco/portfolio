@@ -17,7 +17,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { profile } from "@/data/profile";
-import { dictionaries, type Locale } from "@/i18n";
+import type { Dict, Locale } from "@/i18n";
 import { activeRouteId, navRoutes, pathFor } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 
@@ -50,8 +50,34 @@ import { cn } from "@/lib/utils";
  * O header é irmão do `<main>`, nunca ancestral, então o blend daqui não
  * interfere no blend das seções (F1).
  */
-export function SiteHeader({ lang }: { lang: Locale }) {
-  const d = dictionaries[lang];
+/**
+ * As strings que o header usa, e só elas.
+ *
+ * O header precisa ser client component por causa do `usePathname()`, que é
+ * o que marca o item ativo da nav. Enquanto ele importava `dictionaries`, o
+ * `dictionaries[lang]` impedia o bundler de descartar qualquer um dos dois
+ * idiomas, e **os dois iam inteiros para o cliente**: 107 KB, 36 KB gzip,
+ * 13% de todo o JS do site, para um visitante que lê um idioma só.
+ *
+ * Recebendo por prop, as nove strings viajam no payload do servidor, que já
+ * é específico da rota, e os dicionários ficam onde sempre deveriam ter
+ * ficado: no servidor.
+ */
+export type HeaderLabels = {
+  name: string;
+  role: string;
+  downloadCv: string;
+  nav: Dict["nav"];
+  controls: Dict["controls"];
+};
+
+export function SiteHeader({
+  lang,
+  labels,
+}: {
+  lang: Locale;
+  labels: HeaderLabels;
+}) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
@@ -81,13 +107,13 @@ export function SiteHeader({ lang }: { lang: Locale }) {
             href={pathFor("home", lang)}
             className="focus-ring pointer-events-auto self-start text-2xl font-medium tracking-tight lg:text-3xl"
           >
-            {d.hero.name}
+            {labels.name}
           </Link>
-          <p className="mt-1 font-mono text-xs opacity-70">{d.hero.role}</p>
+          <p className="mt-1 font-mono text-xs opacity-70">{labels.role}</p>
 
           <nav
             className="mt-8 hidden flex-col items-start gap-3.5 lg:flex"
-            aria-label={d.nav.mainAria}
+            aria-label={labels.nav.mainAria}
           >
             {items.map((item) => (
               <NavLink
@@ -112,18 +138,18 @@ export function SiteHeader({ lang }: { lang: Locale }) {
             className="focus-ring inline-flex h-9 items-center gap-1.5 rounded-md px-2 text-sm opacity-70 transition-opacity hover:opacity-100"
           >
             <Download className="size-4" aria-hidden />
-            <span className="hidden sm:inline">{d.hero.downloadCv}</span>
-            <span className="sr-only sm:hidden">{d.hero.downloadCv}</span>
+            <span className="hidden sm:inline">{labels.downloadCv}</span>
+            <span className="sr-only sm:hidden">{labels.downloadCv}</span>
           </a>
-          <LangToggle lang={lang} labels={d.controls} />
-          <ThemeToggle label={d.controls.theme} />
+          <LangToggle lang={lang} labels={labels.controls} />
+          <ThemeToggle label={labels.controls.theme} />
 
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger
               render={
                 <button
                   type="button"
-                  aria-label={d.nav.openMenu}
+                  aria-label={labels.nav.openMenu}
                   className="focus-ring pointer-events-auto inline-flex size-9 items-center justify-center rounded-md opacity-70 transition-opacity hover:opacity-100 lg:hidden"
                 />
               }
@@ -135,14 +161,14 @@ export function SiteHeader({ lang }: { lang: Locale }) {
                 capturada pelo Lenis e moveria a página atrás dele. */}
             <SheetContent side="right" className="w-72" data-lenis-prevent>
               <SheetHeader>
-                <SheetTitle>{d.nav.sheetTitle}</SheetTitle>
+                <SheetTitle>{labels.nav.sheetTitle}</SheetTitle>
                 <SheetDescription className="sr-only">
-                  {d.nav.sheetDescription}
+                  {labels.nav.sheetDescription}
                 </SheetDescription>
               </SheetHeader>
               <nav
                 className="flex flex-col gap-1 px-4 pt-2"
-                aria-label={d.nav.mobileAria}
+                aria-label={labels.nav.mobileAria}
               >
                 {items.map((item) => (
                   <SheetClose

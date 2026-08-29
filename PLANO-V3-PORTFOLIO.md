@@ -1235,11 +1235,25 @@ Investigando, a célula mais estreita **não acontecia na tela mais estreita, e 
 
 > **Aceite atingido:** 42 combinações verdes, 144 unitários e 135 E2E.
 
-#### M2. Tirar os dicionários do cliente (achado A)
+#### M2. Tirar os dicionários do cliente (achado A) ✅
 
-`SiteHeader` continua client component, porque depende de `usePathname()` para o item ativo, mas **para de importar `dictionaries`**: recebe as strings prontas por prop, montadas pelo `<SiteShell>`, que é server component.
+**Concluído**, com uma correção importante ao número que eu mesmo tinha estimado.
 
-> **Aceite:** nenhum chunk de cliente contém as duas linhas de marcação `Desenvolvedor Full Stack` e `Full Stack Developer` juntas, e o total de JS gzip cai de 270 KB para perto de 235 KB. Teste automatizado varrendo `.next/static/chunks`, para não voltar.
+`SiteHeader` continua client component, porque depende de `usePathname()` para o item ativo, mas **parou de importar `dictionaries`**: as nove strings que ele usa (`hero.name`, `hero.role`, `hero.downloadCv`, o bloco `nav` e o `controls`) chegam por prop, montadas no `<SiteShell>`, que roda no servidor. `Dict` passou a ser exportado como tipo, e import de tipo é apagado no build.
+
+> ⚠️ **O ganho real é 7 KB gzip, não os 36 KB que a §13.1 previa.** O erro foi meu e vale registrar: eu atribuí ao dicionário o **gzip do chunk inteiro**, quando aquele chunk de 107 KB carregava o dicionário **e mais código**. Texto natural repetido comprime muito bem, então 19 KB brutos de dicionário viram uns 6 a 7 KB depois do gzip. A lição é medir o delta entre dois builds, e não o tamanho do chunk que contém a coisa.
+
+| | Antes | Depois |
+|---|---|---|
+| JS do cliente, gzip | 270 KB | **263 KB** |
+| JS do cliente, bruto | 860 KB | **841 KB** |
+| Chunks com texto de dicionário | 1 | **0** |
+
+O que continua valendo, e não é pouco: **cada página passou a carregar só o idioma dela**. Antes, o visitante brasileiro baixava o dicionário inglês inteiro para ler uma página em português, e isso é defeito de correção antes de ser de peso.
+
+**Descoberta paralela:** o `ogl` aparece em dois chunks, e isso **já era assim antes do M2**. Não é regressão desta mudança, e fica anotado como candidato do M3.
+
+> **Aceite atingido:** `e2e/bundle.spec.ts` varre os chunks e o HTML das duas rotas, lendo a maior string literal de cada dicionário em vez de fixar texto que envelhece. Controle negativo conferido: reinstalando o `dictionaries[lang]` no header, o teste reprova nomeando o chunk e os dois idiomas.
 
 #### M3. Imagens do showcase fora do caminho crítico (achado C)
 
