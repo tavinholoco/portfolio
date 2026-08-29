@@ -77,12 +77,9 @@ export type ContactCard = {
 /** Estrutura completa de textos do site (pt-BR e en). */
 export type Dict = {
   meta: {
-    title: string;
     name: string;
-    description: string;
     keywords: string[];
     ogSiteName: string;
-    ogDescription: string;
   };
   /**
    * Título e descrição de cada rota, para o generateMetadata correspondente.
@@ -104,13 +101,9 @@ export type Dict = {
     name: string;
     /** O h1 da home. O nome saiu para o header fixo na v3.5. */
     thesis: string;
-    bio: string;
-    viewProjects: string;
     downloadCv: string;
-    socials: { github: string; linkedin: string; email: string };
   };
   about: {
-    label: string;
     title: string;
     facts: Fact[];
     summary: string[];
@@ -120,9 +113,7 @@ export type Dict = {
     interests: Interest[];
   };
   projects: {
-    label: string;
     title: string;
-    description: string;
     updatedAt: string;
     github: string;
     problemLabel: string;
@@ -137,35 +128,29 @@ export type Dict = {
     featured: FeaturedProject[];
   };
   clients: {
-    label: string;
     title: string;
-    description: string;
     projectKind: string;
     responsibilitiesLabel: string;
     previewAlt: string;
     projects: ClientProject[];
   };
   process: {
-    label: string;
     title: string;
     description: string;
     steps: { title: string; description: string }[];
   };
   career: {
-    label: string;
     title: string;
     description: string;
     learningsTitle: string;
     chapters: TimelineChapter[];
   };
   skills: {
-    label: string;
     title: string;
     description: string;
     blocks: SkillBlock[];
   };
   contact: {
-    label: string;
     title: string;
     description: string;
     hiringTitle: string;

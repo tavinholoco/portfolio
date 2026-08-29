@@ -1306,11 +1306,29 @@ O `brand-assets.test.ts` passou a varrer `src/components/og-image.tsx`, que é o
 
 > **Aceite atingido:** 17 e 10 linhas por idioma, `html-lang.spec.ts` e `brand-assets.test.ts` verdes, e 137 E2E.
 
-#### M5. Limpeza (achados E, F, G)
+#### M5. Limpeza (achados E, F, G) ✅
 
-Reintroduzir um `<SectionIntro>` para o cabeçalho repetido, remover as 15 chaves órfãs **dos dois dicionários no mesmo commit**, e decidir entre usar ou apagar `composedLuminance`, `lerpPalette` e a variante `solid`.
+**Concluído.**
 
-> **Aceite:** `index.test.ts` verde (paridade preservada), a varredura de órfãs voltando zero, e nenhuma regressão visual em `pnpm look`.
+**As 15 chaves órfãs saíram**, dos dois dicionários e do tipo `Dict`, no mesmo commit: `meta.title`, `meta.description`, `meta.ogDescription`, `hero.bio`, `hero.viewProjects`, `hero.socials` e o `label` de sete seções, mais `clients.description` e `projects.description`. O `Dict` foi de 75 para 60 folhas.
+
+> ⚠️ **A varredura volta 8, e os 8 são falso positivo.** São os campos de `nav` e `controls`, que desde o M2 viajam como **objeto inteiro** na prop `labels` do header, e o script procura acesso `dictionaries[lang].grupo.campo`. Conferido no HTML servido: os seis textos de `nav` e `controls` aparecem no DOM. Órfãos reais: **zero**.
+
+**O `<SectionIntro>` voltou, com escopo menor que o do antigo `<SectionHeading>`.** Aquele carregava rótulo, título, descrição e alinhamento, e morreu na §12.5 quando seus dois consumidores perderam o cabeçalho. Este é só o par título mais descrição, usado por `career`, `process` e `skills`. **`About` e a página de case ficaram de fora de propósito:** lá o título é `h1` e a escala é outra, e forçar os cinco no mesmo componente foi exatamente o que inchou o anterior.
+
+Ele também unificou uma divergência que já existia: `career` pintava a descrição com `text-muted-foreground` enquanto os outros dois usavam `opacity-70`. A lei 6 pede hierarquia por opacidade, e cor que não herda ainda inverteria sozinha se a seção virasse `blend`. Ficou `opacity-70` nos três.
+
+**O código morto saiu:**
+
+| Item | Destino |
+|---|---|
+| `lerpPalette` | Removido. Servia ao crossfade de paleta, que saiu na V3.5 |
+| `composedLuminance` | Removido. Não dava para reaproveitar no teste de contraste, que aplica vinheta e grão entre a mistura e a luminância |
+| `Section variant="solid"` | Removido. A `plain` resolveu o mesmo problema sem cobrir o fundo, e a `solid` ficou sem consumidor desde a §12.5 |
+
+Os dois helpers eram exportados e testados **só pelos próprios testes**, que saíram junto: 143 unitários viraram 141, sem perder cobertura de nada real. `CLAUDE.md` e `README.md` acompanharam a saída da variante.
+
+> **Aceite atingido:** paridade dos dicionários verde, órfãos reais em zero, e `pnpm look` sem regressão na seção que mudou de cor.
 
 ### 13.4 O que ficou de fora, e por quê
 

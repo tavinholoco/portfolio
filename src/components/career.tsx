@@ -1,4 +1,5 @@
 import { Section } from "@/components/section";
+import { SectionIntro } from "@/components/section-intro";
 import { dictionaries, type Locale } from "@/i18n";
 
 /**
@@ -18,12 +19,7 @@ export function Career({ lang }: { lang: Locale }) {
 
   return (
     <Section id="trajetoria" variant="plain">
-      <h2 className="text-title font-semibold tracking-tight text-balance">
-        {d.title}
-      </h2>
-      <p className="font-body mt-6 max-w-2xl text-base leading-relaxed text-muted-foreground text-pretty">
-        {d.description}
-      </p>
+      <SectionIntro title={d.title} description={d.description} />
 
       <ol className="mt-16 border-l border-border pl-8 sm:pl-12">
         {d.chapters.map((chapter) => (

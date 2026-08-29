@@ -39,7 +39,7 @@ import { cn } from "@/lib/utils";
  * (F10), não sobrou nada aqui que precise rodar no cliente.
  */
 
-export type SectionVariant = "blend" | "plain" | "solid";
+export type SectionVariant = "blend" | "plain";
 
 type SectionProps = {
   id: string;
@@ -73,19 +73,20 @@ type SectionProps = {
  * teste de `background-config`, então no tema escuro ela fica bem abaixo e no
  * claro bem acima, e o texto normal contrasta nos dois casos com folga.
  *
- * `solid`: fundo opaco em `--c-bg`, que **cobre** o canvas. Era a variante das
- * seções com imagem até a V3.5, e o efeito colateral era um retângulo chapado
- * ocupando a página inteira, com emenda dura onde a seção acabava. Hoje não
- * tem consumidor, e existe só para o caso de alguma seção futura precisar
- * mesmo esconder o fundo. Carrega a própria transição de cor porque a do
- * `:root` não cascateia para o fundo de outro elemento (F5).
+ * Havia uma terceira, `solid`, com fundo opaco em `--c-bg` cobrindo o canvas.
+ * Era a variante das seções com imagem até a V3.5, e o efeito colateral era um
+ * retângulo chapado ocupando a página inteira, com emenda dura onde a seção
+ * acabava. A `plain` resolveu o mesmo problema sem cobrir nada, a `solid` ficou
+ * sem consumidor e saiu no M5. Se algum dia uma seção precisar mesmo esconder o
+ * fundo, ela volta em duas linhas, lembrando de carregar a própria transição de
+ * cor, porque a do `:root` não cascateia para o fundo de outro elemento (F5).
  *
  * O padding do container é `calc(var(--pad) * 2)` como piso (E9), para o texto
  * nunca passar por baixo das linhas da moldura, que ficam em `var(--pad)`.
  */
 export function Section({
   id,
-  variant = "solid",
+  variant = "plain",
   wide = false,
   className,
   children,
@@ -96,11 +97,7 @@ export function Section({
       data-variant={variant}
       className={cn(
         "scroll-mt-24 py-24 sm:py-28",
-        variant === "blend"
-          ? "mix-blend-difference text-white"
-          : variant === "plain"
-            ? ""
-            : "bg-[var(--c-bg)] [transition:background-color_var(--shell-fade)_var(--shell-ease)]",
+        variant === "blend" ? "mix-blend-difference text-white" : "",
         className
       )}
     >

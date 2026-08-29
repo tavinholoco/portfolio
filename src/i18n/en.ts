@@ -3,10 +3,7 @@ import type { Dict } from "./index";
 /** Website copy in English. */
 export const en: Dict = {
   meta: {
-    title: "Pedro Levi | Full Stack Developer",
     name: "Pedro Levi",
-    description:
-      "Full Stack Developer specialized in React, Next.js, Node.js and TypeScript. Check out my web, mobile and AI-powered projects.",
     keywords: [
       "Pedro Levi",
       "Full Stack Developer",
@@ -18,8 +15,6 @@ export const en: Dict = {
       "Portfolio",
     ],
     ogSiteName: "Pedro Levi | Portfolio",
-    ogDescription:
-      "Full Stack Developer specialized in React, Next.js, Node.js and TypeScript. Web, mobile and AI-powered projects.",
   },
   routes: {
     home: {
@@ -59,17 +54,9 @@ export const en: Dict = {
     role: "Full Stack Developer",
     name: "Pedro Levi",
     thesis: "I understand the problem before choosing the technology.",
-    bio: "I build web and mobile applications with a focus on architecture, quality and functional experiences.",
-    viewProjects: "View projects",
     downloadCv: "Download CV",
-    socials: {
-      github: "GitHub",
-      linkedin: "LinkedIn",
-      email: "Email",
-    },
   },
   about: {
-    label: "about me",
     title: "About me",
     facts: [
       { id: "formation", label: "Education", value: "Systems Analysis · UNOESTE" },
@@ -109,10 +96,7 @@ export const en: Dict = {
     ],
   },
   projects: {
-    label: "projects",
     title: "Featured projects",
-    description:
-      "A selection of my work on GitHub, from the mobile app to the AI-powered portal. Metadata synced automatically with the repositories.",
     updatedAt: "updated",
     github: "GitHub",
     problemLabel: "Problem",
@@ -199,10 +183,7 @@ export const en: Dict = {
     ],
   },
   clients: {
-    label: "clients",
     title: "Clients",
-    description:
-      "Delivered and published work for clients, from idea to live website.",
     projectKind: "Professional project",
     responsibilitiesLabel: "Responsibilities",
     previewAlt: "Site preview",
@@ -222,7 +203,6 @@ export const en: Dict = {
     ],
   },
   process: {
-    label: "how I work",
     title: "How I work",
     description:
       "How I turn a problem into software, from first contact to deployment.",
@@ -252,7 +232,6 @@ export const en: Dict = {
     ],
   },
   career: {
-    label: "career",
     title: "Professional journey",
     description:
       "From support to full stack: the journey that brought me here.",
@@ -307,7 +286,6 @@ export const en: Dict = {
     ],
   },
   skills: {
-    label: "skills",
     title: "Skills",
     description:
       "Technologies and competences I use every day to turn problems into solutions.",
@@ -342,7 +320,6 @@ export const en: Dict = {
     ],
   },
   contact: {
-    label: "contact",
     title: "Let's talk?",
     description:
       "Hiring or have a project? There's a direct path for each case.",

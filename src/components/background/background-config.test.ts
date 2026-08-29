@@ -7,12 +7,10 @@ import {
   UNSAFE_LUMINANCE,
   VIGNETTE_STRENGTH,
   applyVignette,
-  composedLuminance,
   cubicBezier,
   easeShell,
   hexToRgb,
   isLightBack,
-  lerpPalette,
   lerpRgb,
   mixForBack,
   paletteFor,
@@ -97,15 +95,6 @@ describe("interpolação", () => {
     expect(lerpRgb(from, to, 7)).toEqual(to);
   });
 
-  it("lerpPalette interpola as 3 cores do ramp de uma vez", () => {
-    const from = paletteFor("graphite");
-    const to = paletteFor("ember");
-    expect(lerpPalette(from, to, 0)).toEqual(from);
-    expect(lerpPalette(from, to, 1)).toEqual(to);
-
-    const middle = lerpPalette(from, to, 0.5);
-    expect(middle[1][0]).toBeCloseTo((from[1][0] + to[1][0]) / 2, 10);
-  });
 });
 
 describe("cubicBezier", () => {
@@ -232,13 +221,4 @@ describe("contraste do backdrop em mix-blend-mode: difference", () => {
     }
   }
 
-  it("composedLuminance reproduz a mistura do shader", () => {
-    /* Sem campo nenhum, o backdrop é o próprio fundo do tema. */
-    expect(composedLuminance(DARK_BACK, [1, 1, 1], 0)).toBeCloseTo(
-      relativeLuminance(DARK_BACK),
-      10
-    );
-    /* Com campo cheio, é a cor do campo. */
-    expect(composedLuminance(DARK_BACK, [1, 1, 1], 1)).toBeCloseTo(1, 6);
-  });
 });

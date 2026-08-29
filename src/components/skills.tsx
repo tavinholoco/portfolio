@@ -1,4 +1,5 @@
 import { Section } from "@/components/section";
+import { SectionIntro } from "@/components/section-intro";
 import { dictionaries, type Locale } from "@/i18n";
 
 /**
@@ -17,14 +18,7 @@ export function Skills({ lang }: { lang: Locale }) {
 
   return (
     <Section id="habilidades" variant="blend">
-      <div className="animate-fade-in motion-reduce:animate-none">
-        <h2 className="text-title font-semibold tracking-tight text-balance">
-          {d.title}
-        </h2>
-        <p className="font-body mt-6 max-w-2xl text-base leading-relaxed opacity-70 text-pretty">
-          {d.description}
-        </p>
-      </div>
+      <SectionIntro title={d.title} description={d.description} />
 
       <ul className="mt-16 border-t border-current/15">
         {d.blocks.map((block) => (
