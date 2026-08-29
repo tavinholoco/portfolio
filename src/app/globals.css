@@ -19,7 +19,18 @@
   --radius: 0.125rem;
 
   /* Tokens de shell da v3. */
-  --pad: max(20px, 4vmin);
+  /*
+   * O teto de 40px nao e enfeite. Sem ele, `--pad` era `max(20px, 4vmin)` e
+   * crescia sem limite: num 2560x1600 dava 64px, e como o conteudo paga
+   * `2 * --pad` de cada lado mais `--nav-col`, sobravam 528px de coluna util
+   * contra 640px num laptop de 1440x900. **Tela maior entregava conteudo mais
+   * estreito**, o que e o oposto do esperado, e foi o que fez a metrica "144+"
+   * estourar a celula em telas grandes e o titulo de case estourar em desktop.
+   *
+   * O piso de 20px continua sendo o minimo para a moldura nao encostar na
+   * borda no celular.
+   */
+  --pad: clamp(20px, 4vmin, 40px);
   --c-bg: #f0f0f0;
   --c-ink: #0d0d0d;
   --shell-fade: 900ms;

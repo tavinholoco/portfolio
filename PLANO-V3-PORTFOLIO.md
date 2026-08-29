@@ -1217,6 +1217,22 @@ Ordenados por retorno sobre risco. **Cada um fecha sozinho**, com critério de a
 
 A auditoria foi reescrita: **6 rotas × 7 larguras** (320, 390, 844 em paisagem, 768, 1024, 1440, 2560), com as cinco asserções rodando **num carregamento só**. Antes eram quatro `goto` por combinação, o que fazia cada largura nova custar 4x e desestimulava exatamente o que faltava. O E2E caiu de 169 para 135 testes **com mais cobertura**.
 
+**6. E o CI achou a causa raiz de tudo isso, que eu tinha tratado só nos sintomas.**
+
+A auditoria passou aqui e **reprovou no CI**: a métrica "144+" pedia 116px numa célula de 114px em 2560x1440. Dois pixels, e a diferença entre passar e falhar era a renderização de fonte do Linux contra a do Windows.
+
+Investigando, a célula mais estreita **não acontecia na tela mais estreita, e sim na mais larga**. `--pad` era `max(20px, 4vmin)`, sem teto, e o conteúdo paga o dobro dele de cada lado, mais `--nav-col`:
+
+| Viewport | `--pad` | Coluna de conteúdo |
+|---|---|---|
+| 1440x900 | 36 px | 640 px |
+| 2560x1440 | 57.6 px | 554 px |
+| 2560x1600 | 64 px | 528 px |
+
+**Tela maior entregava conteúdo mais estreito**, que é o oposto do esperado, e é a mesma causa do estouro do título de case do achado 1. Tratar cada estouro com `break-words` teria escondido isso indefinidamente.
+
+`--pad` virou `clamp(20px, 4vmin, 40px)`. A coluna de conteúdo passou a ser **estável em 1024px** de 1440 até 3840, e a folga da métrica foi de -1px para 22px. O `pr-6` de cada célula virou `gap-x-6` no grid, porque com padding a última coluna desperdiçava 24px que ninguém usava.
+
 > **Aceite atingido:** 42 combinações verdes, 144 unitários e 135 E2E.
 
 #### M2. Tirar os dicionários do cliente (achado A)
