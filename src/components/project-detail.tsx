@@ -70,7 +70,7 @@ export async function ProjectDetailPage({
           <p className="mt-12 font-mono text-sm opacity-70">
             {d.projects.categories[project.category]}
           </p>
-          <h1 className="mt-4 text-display font-semibold text-balance">
+          <h1 className="mt-4 text-display font-semibold text-balance break-words hyphens-auto">
             {project.title}
           </h1>
           <p className="font-body mt-8 max-w-2xl text-lede opacity-80 text-pretty">

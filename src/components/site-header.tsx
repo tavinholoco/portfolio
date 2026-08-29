@@ -60,7 +60,22 @@ export function SiteHeader({ lang }: { lang: Locale }) {
 
   return (
     <header className="pointer-events-none fixed inset-x-0 top-0 z-50 mix-blend-difference text-white">
-      <div className="flex items-start justify-between gap-6 [padding-block:calc(var(--pad)*1.5)] lg:[padding-block:calc(var(--pad)*2)] [padding-inline:calc(var(--pad)*2)]">
+      {/*
+        `flex-wrap` e `ms-auto` nos controles, e isso conserta um defeito que
+        estava no ar: com o "Baixar CV" no header, identidade mais controles
+        pedem 368px, e sobram 310 num celular de 390px. Os controles saíam da
+        tela, e o botão do menu ficava **inalcançável** em 320, 360 e 390px,
+        que é a maioria dos celulares.
+
+        Nenhuma auditoria pegou porque o header é `fixed`: o que transborda
+        dele não entra no `scrollWidth` do documento, então não existe rolagem
+        horizontal para acusar. Agora existe asserção própria em
+        `e2e/responsivo.spec.ts`.
+
+        Com wrap, os controles descem para a segunda linha quando não cabem, e
+        o `ms-auto` os mantém à direita nos dois casos.
+      */}
+      <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-3 [padding-block:calc(var(--pad)*1.5)] lg:[padding-block:calc(var(--pad)*2)] [padding-inline:calc(var(--pad)*2)]">
         <div className="flex shrink-0 flex-col">
           <Link
             href={pathFor("home", lang)}
@@ -85,7 +100,7 @@ export function SiteHeader({ lang }: { lang: Locale }) {
           </nav>
         </div>
 
-        <div className="pointer-events-auto flex shrink-0 items-center gap-1">
+        <div className="pointer-events-auto ms-auto flex shrink-0 items-center gap-1">
           {/*
             O CV mora aqui desde a V3.5, junto de idioma e tema, porque a home
             ficou sem conteúdo e ele era o único CTA que precisava sobreviver.

@@ -96,7 +96,15 @@
    * Escala tipográfica fluida da v3. Só três degraus: hierarquia se faz por
    * tamanho e opacidade, não por cor nem por caixa (seção 8 do plano).
    */
-  --text-display: clamp(2.75rem, 1.15rem + 6.6vw, 7rem);
+  /*
+   * O teto era 7rem, dimensionado na v3, quando o container ocupava a largura
+   * inteira. A V3.5 reservou `--nav-col` para a coluna da nav e comeu 15rem
+   * dele, mas a escala nao acompanhou: em 1440px a maior palavra de titulo de
+   * case, "Progressivo", pedia 702px numa caixa de 640. Estourava em TODO
+   * desktop, e passou despercebido porque a auditoria nao visitava as rotas
+   * de case. 6rem e o maior valor que cabe.
+   */
+  --text-display: clamp(2.75rem, 1.15rem + 6.6vw, 6rem);
   --text-display--line-height: 0.95;
   --text-display--letter-spacing: -0.03em;
 
