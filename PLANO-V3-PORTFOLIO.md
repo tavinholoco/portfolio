@@ -1255,11 +1255,35 @@ O que continua valendo, e não é pouco: **cada página passou a carregar só o 
 
 > **Aceite atingido:** `e2e/bundle.spec.ts` varre os chunks e o HTML das duas rotas, lendo a maior string literal de cada dicionário em vez de fixar texto que envelhece. Controle negativo conferido: reinstalando o `dictionaries[lang]` no header, o teste reprova nomeando o chunk e os dois idiomas.
 
-#### M3. Imagens do showcase fora do caminho crítico (achado C)
+#### M3. Imagens do showcase fora do caminho crítico (achado C) ⚠️
 
-Manter as quatro montadas, que é a regra 2 da §3.1 e evita o flash no primeiro hover, mas **só dar `src` às inativas depois da primeira ociosidade**, no mesmo padrão que a §12.11 usou para o `ogl`.
+**A premissa estava errada, e o aceite não foi atingido.** Fica registrado porque saber o que não funciona vale tanto quanto saber o que funciona, e porque duas das tentativas são ideias que qualquer pessoa teria de novo.
 
-> **Aceite:** LCP mediano de `/projetos/` no mobile abaixo de 3000 ms, com 3 rodadas, e o teste de hover do showcase continuando verde.
+**As imagens nunca estiveram no caminho crítico.** O achado C dizia que as quatro previews competiam pela banda na janela do LCP. Medindo o breakdown, elas carregam em **15 ms** e o que domina é `Element render delay`, de 169 ms:
+
+| Fase do LCP em `/projetos/` | Mediana |
+|---|---|
+| Time to first byte | 7 ms |
+| Resource load delay | 8 ms |
+| Resource load duration | **15 ms** |
+| Element render delay | **209 ms** |
+
+Três hipóteses testadas, **na mesma sessão de medição**, porque comparar entre sessões é ruído:
+
+| Tentativa | `/projetos/` | Decisão |
+|---|---|---|
+| Base (com M1 e M2) | 92 / 3250 ms | |
+| Adiar imagens inativas para a ociosidade | **81 / 4133 ms** | revertida |
+| `experimental.inlineCss` | 90 / 3493 ms | revertida |
+| `fetchPriority="high"` na imagem de LCP | 91 / 3340 ms | **mantida** |
+
+**Por que o adiamento piorou:** as três imagens continuam sendo baixadas, porque a ociosidade chega antes de o Lighthouse terminar o traço. Não se economizou byte nenhum, e o re-render que monta as outras duas empurrou o `Element render delay` de 169 para 231 ms. A ideia gastava trabalho de main thread para não economizar rede.
+
+**Por que o `inlineCss` piorou:** ele resolve o que promete, e o audit `render-blocking` passou a marcar zero (eram 156 ms de bloqueio por um CSS de 9.8 KB, custo de round trip e não de tamanho). Só que inlinar 9.8 KB em **cada** resposta engorda o HTML, e sob a simulação de rede do Lighthouse isso custa mais do que o round trip economizado. Piorou o LCP nas cinco rotas.
+
+**O que ficou:** `fetchPriority="high"` na imagem de LCP. O `priority` do Next gera o `<link rel="preload">` mas **não** põe `fetchpriority` nele, e o `lcp-discovery-insight` cobrava isso em `priorityHinted`. O audit passou a marcar `true`. No LCP o efeito é neutro dentro do ruído, mas é correção real, de um atributo, sem risco.
+
+> **Aceite não atingido, e por um motivo estrutural:** o LCP deste site é dominado por `Element render delay`, que é trabalho de main thread durante a hidratação. Os três chunks de framework somam 151 KB gzip, e é ali que está a alavanca. Não há ganho grande em imagens, CSS ou atributos: isso já foi medido, e está tudo aqui para não ser remedido.
 
 #### M4. Fim da duplicação por idioma (achado D)
 

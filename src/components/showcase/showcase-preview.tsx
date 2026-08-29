@@ -82,8 +82,15 @@ export function ShowcasePreview({
                 */
                 sizes="(min-width: 1024px) 35vw, 90vw"
                 className="object-cover object-top"
-                /* O primeiro é o que aparece no load e vale como LCP. */
+                /*
+                  O primeiro é o que aparece no load e vale como LCP. O
+                  `priority` já gera o `<link rel="preload">`, mas **não** põe
+                  `fetchpriority` nele, e é isso que o `lcp-discovery-insight`
+                  do Lighthouse cobra em `priorityHinted`. Explicitar custa um
+                  atributo.
+                */
                 priority={index === 0}
+                fetchPriority={index === 0 ? "high" : "auto"}
               />
             )}
           </div>
