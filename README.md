@@ -13,7 +13,7 @@ Portfólio minimalista com fundo WebGL próprio, tipografia fluida e navegação
 
 CLS zero nas 5 rotas. O mobile é **medido contra a URL de produção**, mediana de 3 rodadas por rota: o mesmo build no `next start` local dá 80 a 94, porque não tem CDN, HTTP/2 nem Brotli. Rodada única não serve como medida em nenhum dos dois ambientes.
 
-**145 testes unitários e 151 E2E.** A auditoria responsiva sozinha cobre 6 rotas × 7 larguras (320 a 2560) com 5 asserções cada.
+**146 testes unitários e 151 E2E.** A auditoria responsiva sozinha cobre 6 rotas × 7 larguras (320 a 2560) com 5 asserções cada.
 
 > A referência estrutural foi [p5aholic.me](https://p5aholic.me), **sem reúso de código**: shader, paleta, composição e CSS foram escritos do zero. O plano completo está em [PLANO-V3-PORTFOLIO.md](PLANO-V3-PORTFOLIO.md): a V3 nas seções 0 a 11, a **V3.5 na seção 12** rodada por rodada, e o **passe de aperfeiçoamento na seção 13**.
 

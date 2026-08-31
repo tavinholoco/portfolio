@@ -113,12 +113,18 @@ test.describe("metadados do documento (SSR)", () => {
   });
 
   /**
-   * O caminho da imagem é literal em `src/lib/metadata.ts`, porque o sufixo
-   * que o Next gera para o grupo de rota não é derivável do código. Este teste
-   * é o que impede a constante de apodrecer: se o esquema mudar, ele falha em
-   * vez de o site servir uma imagem de link quebrada sem ninguém ver.
+   * As imagens têm que responder **200 direto, sem redirecionamento**.
+   *
+   * O `maxRedirects: 0` é o ponto do teste, não um detalhe. O projeto roda com
+   * `trailingSlash: true`, e uma URL sem barra final devolve 308 para a versão
+   * com barra antes de servir a imagem. Isso passou despercebido justamente
+   * porque o Playwright segue redirecionamento por padrão, como `curl -L` e
+   * como os scrapers: o 200 aparecia e o salto ficava invisível.
+   *
+   * Funcionava, mas anunciava uma URL não canônica e cobrava um salto a mais
+   * de quem tem timeout curto.
    */
-  test("as duas imagens de link são servidas de verdade", async ({
+  test("as duas imagens respondem 200 sem redirecionamento", async ({
     request,
   }) => {
     for (const rota of ["/", "/en/"] as const) {
@@ -126,8 +132,10 @@ test.describe("metadados do documento (SSR)", () => {
       const url = conteudoMeta(html, "og:image");
       expect(url).toBeTruthy();
 
-      const img = await request.get(new URL(url!).pathname);
-      expect(img.status(), `${url} não respondeu 200`).toBe(200);
+      const img = await request.get(new URL(url!).pathname, {
+        maxRedirects: 0,
+      });
+      expect(img.status(), `${url} não respondeu 200 direto`).toBe(200);
       expect(img.headers()["content-type"]).toContain("image/png");
     }
   });

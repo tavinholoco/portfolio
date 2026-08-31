@@ -52,16 +52,21 @@ export const languageUrls: Record<string, string> =
  * A saída é a que a própria documentação do Next prescreve: extrair o campo
  * para uma variável e espalhá-la em cada `openGraph`.
  *
- * O sufixo de `pt` é gerado pelo Next porque `(home)` é grupo de rota. É
- * **estável entre builds e máquinas** (o que muda a cada build é a query de
- * cache, que não escrevemos aqui), mas não é derivável do código: por isso
- * `e2e/marca.spec.ts` busca as duas URLs e exige 200 com `image/png`. Se um
- * dia o Next mudar o esquema, o teste falha alto em vez de o site passar a
- * servir uma imagem de link quebrada em silêncio.
+ * O sufixo de `pt` é gerado pelo Next porque `(home)` é grupo de rota, e sai de
+ * `djb2Hash(caminhoPai)` em base 36 truncado em 6. `src/lib/metadata.test.ts`
+ * reimplementa a regra e confere estes literais contra ela; `e2e/marca.spec.ts`
+ * busca as duas URLs de verdade.
+ *
+ * **A barra final não é enfeite.** O projeto roda com `trailingSlash: true`, e
+ * sem ela o Next devolve 308 para a versão com barra antes de servir a imagem.
+ * Funcionava, porque todo scraper segue 308, mas anunciávamos uma URL que não
+ * é a canônica e cobrávamos um salto a mais de quem tem timeout curto. Passou
+ * despercebido porque tanto o Playwright quanto `curl -L` seguem redirecionamento
+ * por padrão: por isso o teste agora exige **200 sem seguir**.
  */
 const ogImagePath: Record<Locale, string> = {
-  pt: "/opengraph-image-12gd74",
-  en: "/en/opengraph-image",
+  pt: "/opengraph-image-12gd74/",
+  en: "/en/opengraph-image/",
 };
 
 /**

@@ -221,13 +221,27 @@ function rotaDeImagem(caminhoPai: string): string {
 }
 
 describe("ogImageMeta: a imagem de link", () => {
+  /*
+   * `rotaDeImagem` modela a rota que o Next gera, que não tem barra final. A
+   * barra vem do `trailingSlash: true` do projeto, e é concern separado: sem
+   * ela o site devolve 308 antes de servir a imagem. Somar aqui, em vez de
+   * embutir no helper, mantém as duas regras visíveis e independentes.
+   */
+  const comBarra = (rota: string) => `${rota}/`;
+
   it("o caminho do português bate com o que o Next gera para /(home)", () => {
-    expect(ogImageMeta("pt").url).toBe(rotaDeImagem("/(home)"));
+    expect(ogImageMeta("pt").url).toBe(comBarra(rotaDeImagem("/(home)")));
   });
 
   it("o do inglês não leva sufixo, porque /en não é grupo de rota", () => {
-    expect(ogImageMeta("en").url).toBe(rotaDeImagem("/en"));
-    expect(ogImageMeta("en").url).toBe("/en/opengraph-image");
+    expect(ogImageMeta("en").url).toBe(comBarra(rotaDeImagem("/en")));
+    expect(ogImageMeta("en").url).toBe("/en/opengraph-image/");
+  });
+
+  it("os dois terminam em barra, senão o trailingSlash cobra um 308", () => {
+    for (const lang of ["pt", "en"] as const) {
+      expect(ogImageMeta(lang).url.endsWith("/")).toBe(true);
+    }
   });
 
   it("os dois caminhos são diferentes, senão os idiomas compartilhariam imagem", () => {

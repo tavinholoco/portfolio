@@ -1485,6 +1485,18 @@ Por rota (12): `theme-color` correto, `og:image` presente, apontando para o idio
 
 **Controle negativo executado:** removendo a correção de `src/lib/metadata.ts` e reconstruindo, **10 dos 27 testes de `marca.spec.ts` falham**. A suíte pega o defeito, não apenas acompanha a correção.
 
-E2E foram de 137 para **151**, e os unitários de 141 para **145**.
+E2E foram de 137 para **151**, e os unitários de 141 para **146**.
+
+#### Um salto que a própria verificação pós-merge encontrou
+
+Conferindo em produção depois do merge, as duas imagens respondiam **308 antes do 200**. O projeto roda com `trailingSlash: true` e a URL anunciada não tinha barra final.
+
+**Não era regressão:** antes do PR a URL vinha gerada pelo próprio Next, também sem barra, e já saltava igual. O que faltava era enxergar, e o motivo de não se enxergar é instrutivo: **Playwright, `curl -L` e os scrapers seguem redirecionamento por padrão**, então o 200 aparecia e o salto ficava invisível. Um teste que só pergunta "responde 200?" nunca pegaria.
+
+Funcionava, porque todo scraper segue 308. Mas anunciava URL não canônica e cobrava um salto a mais de quem tem timeout curto.
+
+Corrigido com barra final nos dois caminhos, e a guarda passou a exigir **200 com `maxRedirects: 0`**. Controle negativo executado: removendo a barra, o teste falha.
+
+> **A lição, que é a mesma da §13.6 noutra roupa:** a ferramenta de verificação tinha um padrão conveniente que escondia o defeito. Lá era o `--preset=perf` trocando o throttling; aqui é o "seguir redirecionamento" ligado por toda parte. Vale desconfiar do default quando ele é o que torna o teste fácil de passar.
 
 > **O que fica de lição:** a §13.5 tratou "nenhum teste cobre `og:image`" como dívida de teste, de prioridade baixa, e a recomendação era "poucas linhas na suíte". Eram poucas linhas mesmo, e elas revelaram que **dez de doze rotas estavam quebradas para compartilhamento**. Lacuna de teste não é risco futuro: costuma ser defeito presente que ninguém olhou.
