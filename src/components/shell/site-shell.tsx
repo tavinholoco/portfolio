@@ -5,7 +5,7 @@ import { Frame } from "@/components/shell/frame";
 import { ViewportMask } from "@/components/shell/viewport-mask";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
-import type { Locale } from "@/i18n";
+import { dictionaries, type Locale } from "@/i18n";
 
 /**
  * O shell do site, compartilhado pelos dois root layouts.
@@ -46,7 +46,21 @@ export function SiteShell({
   return (
     <>
       <BackgroundCanvas />
-      <SiteHeader lang={lang} />
+      {/*
+        As strings do header saem daqui, que é server component, e não de um
+        `dictionaries[lang]` lá dentro. Ver `HeaderLabels`: era esse acesso
+        que arrastava os dois dicionários inteiros para o bundle do cliente.
+      */}
+      <SiteHeader
+        lang={lang}
+        labels={{
+          name: dictionaries[lang].hero.name,
+          role: dictionaries[lang].hero.role,
+          downloadCv: dictionaries[lang].hero.downloadCv,
+          nav: dictionaries[lang].nav,
+          controls: dictionaries[lang].controls,
+        }}
+      />
       {/*
         Sem padding vertical, de propósito. Header e footer são fixos e em
         difference: o conteúdo passa por baixo deles e eles invertem contra o

@@ -34,7 +34,7 @@ export function Contact({ lang }: { lang: Locale }) {
   return (
     <Section id="contato" variant="blend">
       <div className="animate-fade-in motion-reduce:animate-none">
-        <h1 className="mt-4 text-display font-semibold text-balance">
+        <h1 className="mt-4 text-display font-semibold text-balance break-words hyphens-auto">
           {d.title}
         </h1>
         <p className="font-body mt-8 max-w-2xl text-lede opacity-80 text-pretty">
@@ -101,16 +101,25 @@ export function Contact({ lang }: { lang: Locale }) {
                 {...(target.external
                   ? { target: "_blank", rel: "noopener noreferrer" }
                   : {})}
-                className="focus-ring grid grid-cols-[minmax(0,7rem)_minmax(0,1fr)_auto] items-baseline gap-4 border-b border-current/15 py-5 opacity-70 transition-opacity hover:opacity-100"
+                /*
+                  Empilhado no mobile. Com as três colunas fixas, em 320px o
+                  valor ficava com 96px e o email era cortado com reticências,
+                  o mesmo defeito que a lista de fatos teve. A seta é
+                  decorativa e some junto, para não sobrar sozinha numa linha.
+                */
+                className="focus-ring grid gap-1 border-b border-current/15 py-5 opacity-70 transition-opacity hover:opacity-100 sm:grid-cols-[minmax(0,7rem)_minmax(0,1fr)_auto] sm:items-baseline sm:gap-4"
               >
                 <span className="font-mono text-xs">
                   {card.label}
                 </span>
-                <span className="truncate text-sm">{card.value}</span>
+                <span className="text-sm break-words">{card.value}</span>
                 {target.external ? (
-                  <ArrowUpRight className="size-4 opacity-50" aria-hidden />
+                  <ArrowUpRight
+                    className="hidden size-4 opacity-50 sm:block"
+                    aria-hidden
+                  />
                 ) : (
-                  <span aria-hidden />
+                  <span aria-hidden className="hidden sm:block" />
                 )}
               </a>
             </li>

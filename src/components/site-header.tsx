@@ -17,7 +17,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { profile } from "@/data/profile";
-import { dictionaries, type Locale } from "@/i18n";
+import type { Dict, Locale } from "@/i18n";
 import { activeRouteId, navRoutes, pathFor } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 
@@ -50,8 +50,34 @@ import { cn } from "@/lib/utils";
  * O header é irmão do `<main>`, nunca ancestral, então o blend daqui não
  * interfere no blend das seções (F1).
  */
-export function SiteHeader({ lang }: { lang: Locale }) {
-  const d = dictionaries[lang];
+/**
+ * As strings que o header usa, e só elas.
+ *
+ * O header precisa ser client component por causa do `usePathname()`, que é
+ * o que marca o item ativo da nav. Enquanto ele importava `dictionaries`, o
+ * `dictionaries[lang]` impedia o bundler de descartar qualquer um dos dois
+ * idiomas, e **os dois iam inteiros para o cliente**: 107 KB, 36 KB gzip,
+ * 13% de todo o JS do site, para um visitante que lê um idioma só.
+ *
+ * Recebendo por prop, as nove strings viajam no payload do servidor, que já
+ * é específico da rota, e os dicionários ficam onde sempre deveriam ter
+ * ficado: no servidor.
+ */
+export type HeaderLabels = {
+  name: string;
+  role: string;
+  downloadCv: string;
+  nav: Dict["nav"];
+  controls: Dict["controls"];
+};
+
+export function SiteHeader({
+  lang,
+  labels,
+}: {
+  lang: Locale;
+  labels: HeaderLabels;
+}) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
@@ -60,19 +86,34 @@ export function SiteHeader({ lang }: { lang: Locale }) {
 
   return (
     <header className="pointer-events-none fixed inset-x-0 top-0 z-50 mix-blend-difference text-white">
-      <div className="flex items-start justify-between gap-6 [padding-block:calc(var(--pad)*1.5)] lg:[padding-block:calc(var(--pad)*2)] [padding-inline:calc(var(--pad)*2)]">
+      {/*
+        `flex-wrap` e `ms-auto` nos controles, e isso conserta um defeito que
+        estava no ar: com o "Baixar CV" no header, identidade mais controles
+        pedem 368px, e sobram 310 num celular de 390px. Os controles saíam da
+        tela, e o botão do menu ficava **inalcançável** em 320, 360 e 390px,
+        que é a maioria dos celulares.
+
+        Nenhuma auditoria pegou porque o header é `fixed`: o que transborda
+        dele não entra no `scrollWidth` do documento, então não existe rolagem
+        horizontal para acusar. Agora existe asserção própria em
+        `e2e/responsivo.spec.ts`.
+
+        Com wrap, os controles descem para a segunda linha quando não cabem, e
+        o `ms-auto` os mantém à direita nos dois casos.
+      */}
+      <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-3 [padding-block:calc(var(--pad)*1.5)] lg:[padding-block:calc(var(--pad)*2)] [padding-inline:calc(var(--pad)*2)]">
         <div className="flex shrink-0 flex-col">
           <Link
             href={pathFor("home", lang)}
             className="focus-ring pointer-events-auto self-start text-2xl font-medium tracking-tight lg:text-3xl"
           >
-            {d.hero.name}
+            {labels.name}
           </Link>
-          <p className="mt-1 font-mono text-xs opacity-70">{d.hero.role}</p>
+          <p className="mt-1 font-mono text-xs opacity-70">{labels.role}</p>
 
           <nav
             className="mt-8 hidden flex-col items-start gap-3.5 lg:flex"
-            aria-label={d.nav.mainAria}
+            aria-label={labels.nav.mainAria}
           >
             {items.map((item) => (
               <NavLink
@@ -85,7 +126,7 @@ export function SiteHeader({ lang }: { lang: Locale }) {
           </nav>
         </div>
 
-        <div className="pointer-events-auto flex shrink-0 items-center gap-1">
+        <div className="pointer-events-auto ms-auto flex shrink-0 items-center gap-1">
           {/*
             O CV mora aqui desde a V3.5, junto de idioma e tema, porque a home
             ficou sem conteúdo e ele era o único CTA que precisava sobreviver.
@@ -97,18 +138,18 @@ export function SiteHeader({ lang }: { lang: Locale }) {
             className="focus-ring inline-flex h-9 items-center gap-1.5 rounded-md px-2 text-sm opacity-70 transition-opacity hover:opacity-100"
           >
             <Download className="size-4" aria-hidden />
-            <span className="hidden sm:inline">{d.hero.downloadCv}</span>
-            <span className="sr-only sm:hidden">{d.hero.downloadCv}</span>
+            <span className="hidden sm:inline">{labels.downloadCv}</span>
+            <span className="sr-only sm:hidden">{labels.downloadCv}</span>
           </a>
-          <LangToggle lang={lang} labels={d.controls} />
-          <ThemeToggle label={d.controls.theme} />
+          <LangToggle lang={lang} labels={labels.controls} />
+          <ThemeToggle label={labels.controls.theme} />
 
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger
               render={
                 <button
                   type="button"
-                  aria-label={d.nav.openMenu}
+                  aria-label={labels.nav.openMenu}
                   className="focus-ring pointer-events-auto inline-flex size-9 items-center justify-center rounded-md opacity-70 transition-opacity hover:opacity-100 lg:hidden"
                 />
               }
@@ -120,14 +161,14 @@ export function SiteHeader({ lang }: { lang: Locale }) {
                 capturada pelo Lenis e moveria a página atrás dele. */}
             <SheetContent side="right" className="w-72" data-lenis-prevent>
               <SheetHeader>
-                <SheetTitle>{d.nav.sheetTitle}</SheetTitle>
+                <SheetTitle>{labels.nav.sheetTitle}</SheetTitle>
                 <SheetDescription className="sr-only">
-                  {d.nav.sheetDescription}
+                  {labels.nav.sheetDescription}
                 </SheetDescription>
               </SheetHeader>
               <nav
                 className="flex flex-col gap-1 px-4 pt-2"
-                aria-label={d.nav.mobileAria}
+                aria-label={labels.nav.mobileAria}
               >
                 {items.map((item) => (
                   <SheetClose

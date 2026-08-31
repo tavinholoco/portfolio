@@ -3,10 +3,7 @@ import type { Dict } from "./index";
 /** Textos do site em português (Brasil). */
 export const pt: Dict = {
   meta: {
-    title: "Pedro Levi | Desenvolvedor Full Stack",
     name: "Pedro Levi",
-    description:
-      "Desenvolvedor Full Stack especializado em React, Next.js, Node.js e TypeScript. Confira meus projetos web, mobile e soluções com IA.",
     keywords: [
       "Pedro Levi",
       "Desenvolvedor Full Stack",
@@ -18,8 +15,6 @@ export const pt: Dict = {
       "Portfólio",
     ],
     ogSiteName: "Pedro Levi | Portfólio",
-    ogDescription:
-      "Desenvolvedor Full Stack especializado em React, Next.js, Node.js e TypeScript. Projetos web, mobile e soluções com IA.",
   },
   routes: {
     home: {
@@ -59,17 +54,9 @@ export const pt: Dict = {
     role: "Desenvolvedor Full Stack",
     name: "Pedro Levi",
     thesis: "Entendo o problema antes de escolher a tecnologia.",
-    bio: "Construo aplicações web e mobile com foco em arquitetura, qualidade e experiências funcionais.",
-    viewProjects: "Ver projetos",
     downloadCv: "Baixar CV",
-    socials: {
-      github: "GitHub",
-      linkedin: "LinkedIn",
-      email: "Email",
-    },
   },
   about: {
-    label: "sobre mim",
     title: "Sobre mim",
     facts: [
       { id: "formation", label: "Formação", value: "ADS · UNOESTE" },
@@ -109,10 +96,7 @@ export const pt: Dict = {
     ],
   },
   projects: {
-    label: "projetos",
     title: "Projetos em destaque",
-    description:
-      "Seleção dos meus trabalhos no GitHub, do app mobile ao portal com IA. Metadados sincronizados automaticamente com os repositórios.",
     updatedAt: "atualizado",
     github: "GitHub",
     problemLabel: "Problema",
@@ -199,10 +183,7 @@ export const pt: Dict = {
     ],
   },
   clients: {
-    label: "clientes",
     title: "Clientes",
-    description:
-      "Trabalhos entregues e publicados para clientes, da ideia ao site no ar.",
     projectKind: "Projeto profissional",
     responsibilitiesLabel: "Responsabilidades",
     previewAlt: "Prévia do site",
@@ -222,7 +203,6 @@ export const pt: Dict = {
     ],
   },
   process: {
-    label: "como trabalho",
     title: "Como trabalho",
     description:
       "Como transformo um problema em software, do primeiro contato ao deploy.",
@@ -253,7 +233,6 @@ export const pt: Dict = {
     ],
   },
   career: {
-    label: "trajetória",
     title: "Trajetória profissional",
     description:
       "Do suporte ao full stack: a jornada que me trouxe até aqui.",
@@ -308,7 +287,6 @@ export const pt: Dict = {
     ],
   },
   skills: {
-    label: "habilidades",
     title: "Habilidades",
     description:
       "Tecnologias e competências que uso no dia a dia para transformar problemas em soluções.",
@@ -343,7 +321,6 @@ export const pt: Dict = {
     ],
   },
   contact: {
-    label: "contato",
     title: "Vamos conversar?",
     description:
       "Está contratando ou tem um projeto? Há um caminho direto para cada caso.",

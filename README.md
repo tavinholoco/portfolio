@@ -47,7 +47,6 @@ A montagem correta, em `src/components/shell/site-shell.tsx`:
 | `<main>` | **estático, sem z-index** | auto | **Não pode** criar contexto de empilhamento |
 | `Section variant="blend"` | em fluxo | auto | `mix-blend-difference`, mistura contra o canvas |
 | `Section variant="plain"` | em fluxo | auto | Sem fundo e sem blend: para seção com imagem |
-| `Section variant="solid"` | em fluxo | auto | Fundo opaco, cobre o canvas. Sem consumidor hoje |
 | `<ViewportMask>` | `fixed` | 30 | Cobre as faixas de `var(--pad)` no topo e na base |
 | `<Frame>` | `fixed` | 40 | Moldura de 1px, em `difference` |
 | `<SiteHeader>` / `<SiteFooter>` | `fixed` | 50 | Em `difference`, acima da máscara. Ambos em `pointer-events-none` |
@@ -58,7 +57,7 @@ Cinco detalhes decorrentes, todos descobertos na prática:
 2. **Nada pode aplicar `transform` em `html`, `body` ou `main`.** Era a lei do Lenis, que saiu na V3.5. Vale para qualquer lib de rolagem suave que se pense em adicionar depois: as que envolvem o conteúdo num wrapper com `transform` matam o blend de todas as seções de uma vez.
 3. **Não dê fundo opaco a elemento `sticky`** na mesma página de uma seção `blend`. Sticky cria contexto de empilhamento, e a combinação pinta um retângulo da cor do fundo dentro da seção misturada, a centenas de pixels de distância.
 4. **O `<SiteHeader>` é `pointer-events-none`, e cada elemento interativo dentro dele é `pointer-events-auto`.** Ele é `fixed` e de largura cheia, e com a nav vertical passou a ter umas 300px de altura. Sem isso essa faixa rouba clique e hover de todo o conteúdo que passa por baixo, inclusive o hover que troca o preview do showcase.
-5. **A coluna da nav se reserva por `--nav-col`, no container do `<Section>`, nunca por padding no `<main>`.** Padding no `<main>` faria o fundo das seções `solid` parar antes da faixa e abriria uma tira do canvas na lateral esquerda. Padding é seguro para a lei principal, porque não cria contexto de empilhamento. O token é `0px` abaixo de `lg`, onde a nav vira `Sheet`.
+5. **A coluna da nav se reserva por `--nav-col`, no container do `<Section>`, nunca por padding no `<main>`.** Padding no `<main>` faria o fundo de qualquer seção com cor própria parar antes da faixa e abriria uma tira do canvas na lateral esquerda. Padding é seguro para a lei principal, porque não cria contexto de empilhamento. O token é `0px` abaixo de `lg`, onde a nav vira `Sheet`.
 
 Há teste E2E para tudo isso em `e2e/shell.spec.ts`, inclusive com controle negativo: um caso introduz a quebra de propósito e exige que a auditoria a enxergue.
 
@@ -66,12 +65,12 @@ Há teste E2E para tudo isso em `e2e/shell.spec.ts`, inclusive com controle nega
 
 ```tsx
 <Section id="contato" variant="blend">  {/* texto branco, mistura com o canvas */}
-<Section id="clientes" variant="solid"> {/* fundo opaco, cobre o canvas */}
+<Section id="clientes" variant="plain"> {/* sem fundo e sem blend, o canvas aparece atrás */}
 ```
 
 **Uma seção só pode ser `blend` se o conteúdo dela herdar a cor.** O `color: #fff` da seção alcança apenas texto que herda: classes como `text-muted-foreground`, `bg-card` e `bg-primary` mantêm a própria cor e cada uma inverte para um lado diferente, produzindo um resultado sujo.
 
-Regra prática: qualquer seção com **imagem, foto ou screenshot** vai em `solid`, senão aparece em negativo.
+Regra prática: qualquer seção com **imagem, foto ou screenshot** vai em `plain`, senão a imagem aparece em negativo. A `plain` resolve isso sem cobrir o fundo, que era o defeito da antiga `solid`.
 
 ### Regra de opacidade em texto
 

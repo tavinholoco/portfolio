@@ -36,7 +36,7 @@ export function ShowcaseRow({
         {String(index + 1).padStart(2, "0")}
       </span>
 
-      <span className="min-w-0 text-lg font-medium tracking-tight text-balance sm:text-xl">
+      <span className="min-w-0 text-lg font-medium tracking-tight text-balance break-words hyphens-auto sm:text-xl">
         {item.title}
         {external && (
           <ArrowUpRight
@@ -50,8 +50,13 @@ export function ShowcaseRow({
         Três tecnologias, não a stack inteira: a linha é resumo, e a lista
         completa vive na página do case. É o que o diagrama da seção 3 mostra,
         e é o que impede a coluna de empurrar o título para duas linhas.
+
+        **A partir de `xl`, não de `lg`.** A coluna é `auto` e não encolhe, e
+        em 1024px, onde `--nav-col` já tirou 15rem do container, ela deixava
+        uns 30px para o título: "Repertório Progressivo" saía por cima das
+        tecnologias. Em 1280px sobra largura para as duas.
       */}
-      <span className="hidden gap-x-3 font-mono text-xs whitespace-nowrap lg:flex">
+      <span className="hidden gap-x-3 font-mono text-xs whitespace-nowrap xl:flex">
         {item.stack.slice(0, 3).map((tech) => (
           <span key={tech}>{tech}</span>
         ))}
@@ -64,7 +69,7 @@ export function ShowcaseRow({
   );
 
   const className = cn(
-    "focus-ring grid w-full grid-cols-[auto_minmax(0,1fr)_auto] items-baseline gap-4 border-b border-current/15 py-5 transition-opacity sm:gap-6 lg:grid-cols-[auto_minmax(0,1fr)_auto_auto]",
+    "focus-ring grid w-full grid-cols-[auto_minmax(0,1fr)_auto] items-baseline gap-4 border-b border-current/15 py-5 transition-opacity sm:gap-6 xl:grid-cols-[auto_minmax(0,1fr)_auto_auto]",
     active ? "opacity-100" : "opacity-70 hover:opacity-100"
   );
 

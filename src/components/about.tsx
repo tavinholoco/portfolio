@@ -44,11 +44,23 @@ export function About({ lang }: { lang: Locale }) {
         <h2 className="font-mono text-sm font-normal opacity-70">
           {d.metricsTitle}
         </h2>
-        <dl className="mt-8 grid grid-cols-2 border-t border-current/15 sm:grid-cols-4">
+        {/*
+          `gap-x-6` e não `pr-6` em cada célula: com padding, a última coluna
+          desperdiça 24px que ninguém usa, e as outras três ficam mais
+          apertadas do que precisam.
+
+          Isso importava porque a célula mais estreita não acontecia na tela
+          mais estreita, e sim na mais larga: `--pad` crescia sem teto e o
+          conteúdo paga o dobro dele de cada lado. "144+" estourava a célula
+          por 1px num 2560x1440, e o CI, que renderiza fonte no Linux, via 2px:
+          passava aqui e reprovava lá. A raiz foi corrigida no teto de `--pad`,
+          em `globals.css`, e o `gap` fica porque é melhor de qualquer jeito.
+        */}
+        <dl className="mt-8 grid grid-cols-2 gap-x-6 border-t border-current/15 sm:grid-cols-4">
           {d.metrics.map((metric) => (
             <div
               key={metric.label}
-              className="border-b border-current/15 py-8 pr-6"
+              className="border-b border-current/15 py-8"
             >
               <dd className="font-mono text-4xl font-semibold tabular-nums sm:text-5xl">
                 {metric.value}

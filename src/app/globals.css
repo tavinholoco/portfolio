@@ -19,7 +19,18 @@
   --radius: 0.125rem;
 
   /* Tokens de shell da v3. */
-  --pad: max(20px, 4vmin);
+  /*
+   * O teto de 40px nao e enfeite. Sem ele, `--pad` era `max(20px, 4vmin)` e
+   * crescia sem limite: num 2560x1600 dava 64px, e como o conteudo paga
+   * `2 * --pad` de cada lado mais `--nav-col`, sobravam 528px de coluna util
+   * contra 640px num laptop de 1440x900. **Tela maior entregava conteudo mais
+   * estreito**, o que e o oposto do esperado, e foi o que fez a metrica "144+"
+   * estourar a celula em telas grandes e o titulo de case estourar em desktop.
+   *
+   * O piso de 20px continua sendo o minimo para a moldura nao encostar na
+   * borda no celular.
+   */
+  --pad: clamp(20px, 4vmin, 40px);
   --c-bg: #f0f0f0;
   --c-ink: #0d0d0d;
   --shell-fade: 900ms;
@@ -96,7 +107,15 @@
    * Escala tipográfica fluida da v3. Só três degraus: hierarquia se faz por
    * tamanho e opacidade, não por cor nem por caixa (seção 8 do plano).
    */
-  --text-display: clamp(2.75rem, 1.15rem + 6.6vw, 7rem);
+  /*
+   * O teto era 7rem, dimensionado na v3, quando o container ocupava a largura
+   * inteira. A V3.5 reservou `--nav-col` para a coluna da nav e comeu 15rem
+   * dele, mas a escala nao acompanhou: em 1440px a maior palavra de titulo de
+   * case, "Progressivo", pedia 702px numa caixa de 640. Estourava em TODO
+   * desktop, e passou despercebido porque a auditoria nao visitava as rotas
+   * de case. 6rem e o maior valor que cabe.
+   */
+  --text-display: clamp(2.75rem, 1.15rem + 6.6vw, 6rem);
   --text-display--line-height: 0.95;
   --text-display--letter-spacing: -0.03em;
 

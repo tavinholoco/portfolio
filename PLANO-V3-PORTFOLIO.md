@@ -1139,3 +1139,199 @@ Ou seja, a translucidez não produzia o efeito que a justificava, e a única coi
 O teste em `e2e/shell.spec.ts` trava as duas coisas juntas, porque uma sustenta a outra: as barras opacas **e** o canvas contido dentro delas. Se um dia o canvas deixar de ser recuado, a barra opaca passa a cobrir fundo de verdade, e o teste avisa.
 
 Verificação: lint e typecheck limpos, **144 unitários**, **169 E2E**.
+
+---
+
+## 13. Plano de aperfeiçoamento (28/08/2026)
+
+Auditoria da `main` depois da V3.5 fechada, e o plano de milestones que sai dela. **Tudo abaixo é medido**, com o número e o método ao lado; nada aqui é impressão.
+
+### 13.1 Linha de base
+
+Lighthouse mobile, **mediana de 3 rodadas por rota**, contra o build de produção. Rodada única não serve: o spread de `/clientes/` foi de 79 a 93 na mesma configuração, e foi uma amostra azarada dessas que produziu o "74" da §12.10.
+
+| Rota | Perf | Spread | LCP | TBT | Bootup de JS |
+|---|---|---|---|---|---|
+| `/` | 90 | 90 a 92 | 2847 ms | 261 ms | 1410 ms |
+| `/clientes/` | 92 | 79 a 93 | 3030 ms | 190 ms | 1182 ms |
+| `/projetos/` | 91 | 91 a 92 | 3292 ms | 137 ms | 1468 ms |
+| `/info/` | 90 | 90 a 92 | 2891 ms | 262 ms | 1465 ms |
+| `/contato/` | 88 | 86 a 90 | 2834 ms | 319 ms | 1345 ms |
+
+Desktop entre 99 e 100. **A11y, Best Practices e SEO em 100**, CLS zero em todas. O adiamento do `ogl` da §12.11 tirou o site da faixa de 74 a 89 e colocou em 88 a 92.
+
+JS servido ao cliente, **270 KB gzip no total**:
+
+| Chunk | Bruto | Gzip | Conteúdo |
+|---|---|---|---|
+| `2opyvl7` | 223 KB | 70 KB | framework |
+| `2h64m1u` | 156 KB | 42 KB | framework |
+| `0cz1d0m` | 110 KB | 39 KB | framework |
+| `09ketmo` | 128 KB | 38 KB | `ogl` e shaders (já adiado) |
+| **`2vrc77u`** | **107 KB** | **36 KB** | **os dois dicionários de i18n** |
+| `1hlzxtx` | 27 KB | 9 KB | ícones lucide |
+
+### 13.2 O que a auditoria encontrou
+
+**A. Os dois dicionários vão inteiros para o cliente.** 36 KB gzip, **13% de todo o JS**, e o visitante brasileiro baixa o dicionário em inglês junto. A causa é única: `site-header.tsx` é o único client component que importa `dictionaries`, e faz `dictionaries[lang]`, o que impede o bundler de descartar qualquer um dos dois. O header precisa de **umas dez strings curtas**.
+
+**B. `text-display` estoura a caixa nas duas pontas.** A auditoria atual cobre 390, 768, 1024 e 1440, e passa. Fora dessa faixa:
+
+| Viewport | Fonte | Precisa | Cabe | Resultado |
+|---|---|---|---|---|
+| 320 px | 44 px (piso do clamp) | 251 px | 240 px | **estoura 11 px** |
+| 844 px paisagem | 74 px | 764 px | 764 px | passa raspando |
+| 2560 px | 112 px (teto do clamp) | 638 px | 611 px | **estoura 27 px** |
+
+O piso de `2.75rem` é grande demais para 320px, e o teto de `7rem` não cabe no container, que é `max-w-5xl` e ainda perde `--nav-col` para a coluna da nav. As duas pontas do `clamp()` discordam da largura real disponível.
+
+**C. O showcase carrega todas as imagens de uma vez.** As quatro previews de `/projetos/` são empilhadas em `absolute inset-0`, então **estão todas na viewport** e o `loading="lazy"` do Next não as adia. Só a primeira tem `priority`, mas as outras três competem pela banda na mesma janela do LCP, que ali é o pior do site: 3292 ms.
+
+**D. Duplicação nos pares espelhados por idioma.** `layout.tsx` difere em 4 linhas entre `(home)` e `en`, e `opengraph-image.tsx` também. São cerca de 180 linhas duplicadas, e é exatamente o risco que a regra 4 do `CLAUDE.md` descreve: mexer num e esquecer o outro não gera erro.
+
+**E. O markup de cabeçalho de seção voltou a ser copiado.** Título mais descrição aparece igual em `about`, `career`, `process`, `skills` e `project-detail`. O `<SectionHeading>` foi deletado na §12.5 porque seus dois consumidores sumiram, mas o padrão continuou vivo em outros cinco lugares.
+
+**F. 15 chaves de dicionário sem consumidor**, de 75 declaradas: o `label` de todas as seções, `clients.description`, `projects.description`, `hero.bio`, `hero.viewProjects`, `hero.socials`, `meta.title`, `meta.description`, `meta.ogDescription`. Resíduo das rodadas da V3.5.
+
+**G. Código morto de baixo impacto.** `composedLuminance` e `lerpPalette` são exportados e usados **só pelos próprios testes**, e a variante `Section variant="solid"` está sem consumidor desde a §12.5.
+
+### 13.3 Milestones
+
+Ordenados por retorno sobre risco. **Cada um fecha sozinho**, com critério de aceite medível, e nenhum depende do seguinte.
+
+#### M1. Os extremos de viewport (achado B) ✅
+
+**Concluído. Encontrou quatro defeitos, e três estavam no ar sem ninguém ver.**
+
+**1. A escala tipográfica nunca foi retunada depois da V3.5.** O teto de `--text-display` era `7rem`, dimensionado na v3 quando o container tinha a largura toda. A V3.5 reservou `--nav-col` e comeu 15rem dele, mas a escala não acompanhou: "Progressivo" pedia 702px numa caixa de 640, ou seja, **estourava em todo desktop de 1440 para cima**, e também em 320px. Teto para `6rem`, mais `break-words` e `hyphens-auto` como rede.
+
+**2. A auditoria não visitava as páginas de case,** que é justamente onde vive o título mais longo do site. Rota que não é visitada não é testada. `/projetos/repertorio-progressivo/` entrou na lista.
+
+**3. A coluna de tecnologias esmagava o título do showcase.** Ela é `auto` e não encolhe, e em 1024px, com `--nav-col` já cobrando 15rem, sobravam uns 30px para o título: os nomes saíam **por cima** das tecnologias. A coluna passou de `lg` para `xl`, onde há largura para as duas.
+
+**4. O `truncate` do card de contato cortava o email com reticências** em 320 e 390px, o mesmo defeito que a lista de fatos teve na §12.5. Os cards passaram a empilhar abaixo de `sm`.
+
+**E um quinto, que era regressão minha e o mais grave de todos.** Com o "Baixar CV" no header, identidade mais controles pedem 368px, e sobram 310 num celular de 390px: os controles saíam da tela e **o botão do menu ficava inalcançável em 320, 360 e 390px**, que é a maioria dos celulares. O header ganhou `flex-wrap`.
+
+> ⚠️ **Nenhuma auditoria pegou isso, e a razão é estrutural:** o header é `fixed`, e o que transborda de um elemento `fixed` **não entra no `scrollWidth` do documento**. A asserção de rolagem horizontal não tinha como ver. Entrou uma quinta asserção que mede o header contra a viewport.
+
+A auditoria foi reescrita: **6 rotas × 7 larguras** (320, 390, 844 em paisagem, 768, 1024, 1440, 2560), com as cinco asserções rodando **num carregamento só**. Antes eram quatro `goto` por combinação, o que fazia cada largura nova custar 4x e desestimulava exatamente o que faltava. O E2E caiu de 169 para 135 testes **com mais cobertura**.
+
+**6. E o CI achou a causa raiz de tudo isso, que eu tinha tratado só nos sintomas.**
+
+A auditoria passou aqui e **reprovou no CI**: a métrica "144+" pedia 116px numa célula de 114px em 2560x1440. Dois pixels, e a diferença entre passar e falhar era a renderização de fonte do Linux contra a do Windows.
+
+Investigando, a célula mais estreita **não acontecia na tela mais estreita, e sim na mais larga**. `--pad` era `max(20px, 4vmin)`, sem teto, e o conteúdo paga o dobro dele de cada lado, mais `--nav-col`:
+
+| Viewport | `--pad` | Coluna de conteúdo |
+|---|---|---|
+| 1440x900 | 36 px | 640 px |
+| 2560x1440 | 57.6 px | 554 px |
+| 2560x1600 | 64 px | 528 px |
+
+**Tela maior entregava conteúdo mais estreito**, que é o oposto do esperado, e é a mesma causa do estouro do título de case do achado 1. Tratar cada estouro com `break-words` teria escondido isso indefinidamente.
+
+`--pad` virou `clamp(20px, 4vmin, 40px)`. A coluna de conteúdo passou a ser **estável em 1024px** de 1440 até 3840, e a folga da métrica foi de -1px para 22px. O `pr-6` de cada célula virou `gap-x-6` no grid, porque com padding a última coluna desperdiçava 24px que ninguém usava.
+
+> **Aceite atingido:** 42 combinações verdes, 144 unitários e 135 E2E.
+
+#### M2. Tirar os dicionários do cliente (achado A) ✅
+
+**Concluído**, com uma correção importante ao número que eu mesmo tinha estimado.
+
+`SiteHeader` continua client component, porque depende de `usePathname()` para o item ativo, mas **parou de importar `dictionaries`**: as nove strings que ele usa (`hero.name`, `hero.role`, `hero.downloadCv`, o bloco `nav` e o `controls`) chegam por prop, montadas no `<SiteShell>`, que roda no servidor. `Dict` passou a ser exportado como tipo, e import de tipo é apagado no build.
+
+> ⚠️ **O ganho real é 7 KB gzip, não os 36 KB que a §13.1 previa.** O erro foi meu e vale registrar: eu atribuí ao dicionário o **gzip do chunk inteiro**, quando aquele chunk de 107 KB carregava o dicionário **e mais código**. Texto natural repetido comprime muito bem, então 19 KB brutos de dicionário viram uns 6 a 7 KB depois do gzip. A lição é medir o delta entre dois builds, e não o tamanho do chunk que contém a coisa.
+
+| | Antes | Depois |
+|---|---|---|
+| JS do cliente, gzip | 270 KB | **263 KB** |
+| JS do cliente, bruto | 860 KB | **841 KB** |
+| Chunks com texto de dicionário | 1 | **0** |
+
+O que continua valendo, e não é pouco: **cada página passou a carregar só o idioma dela**. Antes, o visitante brasileiro baixava o dicionário inglês inteiro para ler uma página em português, e isso é defeito de correção antes de ser de peso.
+
+**Descoberta paralela:** o `ogl` aparece em dois chunks, e isso **já era assim antes do M2**. Não é regressão desta mudança, e fica anotado como candidato do M3.
+
+> **Aceite atingido:** `e2e/bundle.spec.ts` varre os chunks e o HTML das duas rotas, lendo a maior string literal de cada dicionário em vez de fixar texto que envelhece. Controle negativo conferido: reinstalando o `dictionaries[lang]` no header, o teste reprova nomeando o chunk e os dois idiomas.
+
+#### M3. Imagens do showcase fora do caminho crítico (achado C) ⚠️
+
+**A premissa estava errada, e o aceite não foi atingido.** Fica registrado porque saber o que não funciona vale tanto quanto saber o que funciona, e porque duas das tentativas são ideias que qualquer pessoa teria de novo.
+
+**As imagens nunca estiveram no caminho crítico.** O achado C dizia que as quatro previews competiam pela banda na janela do LCP. Medindo o breakdown, elas carregam em **15 ms** e o que domina é `Element render delay`, de 169 ms:
+
+| Fase do LCP em `/projetos/` | Mediana |
+|---|---|
+| Time to first byte | 7 ms |
+| Resource load delay | 8 ms |
+| Resource load duration | **15 ms** |
+| Element render delay | **209 ms** |
+
+Três hipóteses testadas, **na mesma sessão de medição**, porque comparar entre sessões é ruído:
+
+| Tentativa | `/projetos/` | Decisão |
+|---|---|---|
+| Base (com M1 e M2) | 92 / 3250 ms | |
+| Adiar imagens inativas para a ociosidade | **81 / 4133 ms** | revertida |
+| `experimental.inlineCss` | 90 / 3493 ms | revertida |
+| `fetchPriority="high"` na imagem de LCP | 91 / 3340 ms | **mantida** |
+
+**Por que o adiamento piorou:** as três imagens continuam sendo baixadas, porque a ociosidade chega antes de o Lighthouse terminar o traço. Não se economizou byte nenhum, e o re-render que monta as outras duas empurrou o `Element render delay` de 169 para 231 ms. A ideia gastava trabalho de main thread para não economizar rede.
+
+**Por que o `inlineCss` piorou:** ele resolve o que promete, e o audit `render-blocking` passou a marcar zero (eram 156 ms de bloqueio por um CSS de 9.8 KB, custo de round trip e não de tamanho). Só que inlinar 9.8 KB em **cada** resposta engorda o HTML, e sob a simulação de rede do Lighthouse isso custa mais do que o round trip economizado. Piorou o LCP nas cinco rotas.
+
+**O que ficou:** `fetchPriority="high"` na imagem de LCP. O `priority` do Next gera o `<link rel="preload">` mas **não** põe `fetchpriority` nele, e o `lcp-discovery-insight` cobrava isso em `priorityHinted`. O audit passou a marcar `true`. No LCP o efeito é neutro dentro do ruído, mas é correção real, de um atributo, sem risco.
+
+> **Aceite não atingido, e por um motivo estrutural:** o LCP deste site é dominado por `Element render delay`, que é trabalho de main thread durante a hidratação. Os três chunks de framework somam 151 KB gzip, e é ali que está a alavanca. Não há ganho grande em imagens, CSS ou atributos: isso já foi medido, e está tudo aqui para não ser remedido.
+
+#### M4. Fim da duplicação por idioma (achado D) ✅
+
+**Concluído.** O corpo do documento foi para `<RootDocument lang>` e o desenho da imagem de link para `ogImage(lang)`. Os arquivos por idioma ficaram só com o que o Next exige no módulo do segmento.
+
+| | Antes | Depois |
+|---|---|---|
+| `layout.tsx`, cada um | 60 linhas | **17 linhas** |
+| `opengraph-image.tsx`, cada um | 109 linhas | **10 linhas** |
+| Total dos quatro | 338 linhas | 54, mais 207 de código compartilhado |
+| Superfície duplicada | ~330 linhas | **~27 linhas de boilerplate** |
+
+**`metadata` e `viewport` são reexportados**, e isso é o único ponto que exigiu cuidado: o Next lê os dois no módulo do segmento, não no componente. `export { metadata, viewport }` funciona, e foi verificado no HTML servido, não só no build: `<html lang>`, `theme-color`, `og:image` e `og:image:alt` continuam corretos e **diferentes** nos dois idiomas, e as duas imagens renderizam em 200 com o texto do idioma certo.
+
+> ⚠️ **O `diff` entre os pares não desapareceu por completo, e não deveria.** Sobraram 6 linhas nos layouts e 4 nas OG, e são exatamente as que precisam diferir: o `lang`, o nome da função e o `alt`. O que sumiu foi a cópia de fontes, script de tema, `<html>`, `<body>` e o desenho inteiro da imagem, que é onde o risco morava.
+
+**Um efeito colateral de mover código para fora de `app/`:** o `@next/next/no-head-element` passou a avisar sobre o `<head>` do documento. A regra é do Pages Router, onde `<head>` competia com o `next/head`, e o plugin isenta por caminho, não por conteúdo. O aviso está silenciado com a justificativa no lugar; o script de tema precisa rodar antes do primeiro paint e por isso não pode virar `<Script>`.
+
+O `brand-assets.test.ts` passou a varrer `src/components/og-image.tsx`, que é onde as cores agora vivem. São 143 unitários em vez de 144 porque o teste itera dois arquivos em vez de três.
+
+> **Aceite atingido:** 17 e 10 linhas por idioma, `html-lang.spec.ts` e `brand-assets.test.ts` verdes, e 137 E2E.
+
+#### M5. Limpeza (achados E, F, G) ✅
+
+**Concluído.**
+
+**As 15 chaves órfãs saíram**, dos dois dicionários e do tipo `Dict`, no mesmo commit: `meta.title`, `meta.description`, `meta.ogDescription`, `hero.bio`, `hero.viewProjects`, `hero.socials` e o `label` de sete seções, mais `clients.description` e `projects.description`. O `Dict` foi de 75 para 60 folhas.
+
+> ⚠️ **A varredura volta 8, e os 8 são falso positivo.** São os campos de `nav` e `controls`, que desde o M2 viajam como **objeto inteiro** na prop `labels` do header, e o script procura acesso `dictionaries[lang].grupo.campo`. Conferido no HTML servido: os seis textos de `nav` e `controls` aparecem no DOM. Órfãos reais: **zero**.
+
+**O `<SectionIntro>` voltou, com escopo menor que o do antigo `<SectionHeading>`.** Aquele carregava rótulo, título, descrição e alinhamento, e morreu na §12.5 quando seus dois consumidores perderam o cabeçalho. Este é só o par título mais descrição, usado por `career`, `process` e `skills`. **`About` e a página de case ficaram de fora de propósito:** lá o título é `h1` e a escala é outra, e forçar os cinco no mesmo componente foi exatamente o que inchou o anterior.
+
+Ele também unificou uma divergência que já existia: `career` pintava a descrição com `text-muted-foreground` enquanto os outros dois usavam `opacity-70`. A lei 6 pede hierarquia por opacidade, e cor que não herda ainda inverteria sozinha se a seção virasse `blend`. Ficou `opacity-70` nos três.
+
+**O código morto saiu:**
+
+| Item | Destino |
+|---|---|
+| `lerpPalette` | Removido. Servia ao crossfade de paleta, que saiu na V3.5 |
+| `composedLuminance` | Removido. Não dava para reaproveitar no teste de contraste, que aplica vinheta e grão entre a mistura e a luminância |
+| `Section variant="solid"` | Removido. A `plain` resolveu o mesmo problema sem cobrir o fundo, e a `solid` ficou sem consumidor desde a §12.5 |
+
+Os dois helpers eram exportados e testados **só pelos próprios testes**, que saíram junto: 143 unitários viraram 141, sem perder cobertura de nada real. `CLAUDE.md` e `README.md` acompanharam a saída da variante.
+
+> **Aceite atingido:** paridade dos dicionários verde, órfãos reais em zero, e `pnpm look` sem regressão na seção que mudou de cor.
+
+### 13.4 O que ficou de fora, e por quê
+
+- **`legacy-javascript` (13 KiB) e `render-blocking` (~110 ms)** reprovam em todas as rotas, mas são do framework, não do código do site. Sem alavanca sem trocar de versão do Next.
+- **Subir o mobile de 90 para 95+** exigiria atacar os 3 chunks de framework, que somam 151 KB gzip. Não há ganho fácil ali.
+- **O tema claro** continua com o campo a `FIELD_MIX.light` de 0.20, que é o teto medido com margem. Melhorar exige repensar a faixa proibida, não ajustar uma constante.

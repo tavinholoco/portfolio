@@ -163,24 +163,12 @@ export function lerpRgb(from: Rgb, to: Rgb, t: number): Rgb {
 }
 
 /** Interpola as 3 cores do ramp de uma vez, para o tween de hover da lista. */
-export function lerpPalette(from: Palette, to: Palette, t: number): Palette {
-  return [
-    lerpRgb(from[0], to[0], t),
-    lerpRgb(from[1], to[1], t),
-    lerpRgb(from[2], to[2], t),
-  ];
-}
-
 /**
  * Reproduz em JS o que o passe de composição faz com a cor: mistura o fundo com
  * a cor do campo em espaço sRGB (é assim que o `mix` do GLSL opera aqui, sem
  * workflow linear) e devolve a luminância do resultado. É a função que o teste
  * de contraste usa para provar que nenhuma paleta cai na faixa proibida.
  */
-export function composedLuminance(back: Rgb, field: Rgb, mix: number): number {
-  return relativeLuminance(lerpRgb(back, field, mix));
-}
-
 /** Reproduz a vinheta do passe de composição: puxa a cor para o alvo do tema. */
 export function applyVignette(color: Rgb, target: number, amount: number): Rgb {
   return lerpRgb(color, [target, target, target], amount);
