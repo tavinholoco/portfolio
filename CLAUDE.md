@@ -4,9 +4,19 @@
 
 Este portfólio está na **V3.5** (visual minimalista, identidade fixa no canto esquerdo e fundo WebGL em ondas de praia, sem troca de paleta e sem rolagem suave). A V3 subiu em 27/08/2026 e está **no ar** em https://portfolio-tau-five-f86nc5khr8.vercel.app; a V3.5 é o passe de refinamento em cima dela.
 
-Antes de mexer no frontend, leia a **seção 0 do `PLANO-V3-PORTFOLIO.md`** e depois a **seção 12**, que é a V3.5 e revoga várias decisões das anteriores (o `>_`, a Home com os 5 passos, os cabeçalhos de Clientes e Projetos, o campo de noise, o Lenis e as trocas de paleta). A avaliação final está na **§12.10**. O `README.md` documenta a arquitetura de camadas. Os três estão em dia. Os planos V1 e V2 na raiz são histórico.
+Antes de mexer no frontend, leia a **seção 0 do `PLANO-V3-PORTFOLIO.md`** e depois a **seção 12**, que é a V3.5 e revoga várias decisões das anteriores (o `>_`, a Home com os 5 passos, os cabeçalhos de Clientes e Projetos, o campo de noise, o Lenis e as trocas de paleta). A avaliação da V3.5 está na **§12.10**.
 
-Estado: **144 unitários e 168 E2E** passando. Lighthouse com A11y, Best Practices e SEO em 100 nas 5 rotas e CLS zero; Perf 99 a 100 no desktop e 74 a 89 no mobile, sendo `/clientes/` o pior e o único que merece investigação.
+Depois dela veio a **seção 13**, o passe de aperfeiçoamento, com os cinco milestones fechados em 31/08/2026. **Leia a §13.3 antes de tentar otimizar performance:** o M3 mediu três hipóteses plausíveis e duas pioraram o site, e a §13.4 lista o que ficou de fora e por quê. Repetir aquilo é gastar tempo num caminho já medido.
+
+O `README.md` documenta a arquitetura de camadas. Os três estão em dia. Os planos V1 e V2 na raiz são histórico.
+
+Estado: **141 unitários e 137 E2E** passando. A queda de 168 para 137 é do M1 e não é perda de cobertura: cinco asserções passaram a rodar num carregamento só, e a auditoria responsiva subiu de 5 rotas × 4 larguras para **6 × 7**.
+
+Lighthouse com A11y, Best Practices e SEO em 100 nas 5 rotas e CLS zero. Perf 99 a 100 no desktop e, **em produção, 96 a 98 no mobile**, mediana de 3 rodadas por rota.
+
+> ⚠️ **Meça contra a URL de produção, não contra `localhost`.** O mesmo build no `next start` local dá **80 a 94**, com spread de até 14 pontos, e é esse número local que esta documentação registrou por dias como se fosse o estado do site. A Vercel entrega com CDN, HTTP/2 e Brotli, e o LCP cai quase pela metade (1.7 a 2.4s contra 2.9 a 3.7s). Detalhes e a tabela lado a lado na §13.6 do plano.
+
+> ⚠️ **Nunca use `--preset=perf`.** Ele troca o `throttlingMethod` para `devtools` sem avisar, e o resultado não é comparável com nenhum número deste projeto. O padrão do Lighthouse é `simulate`, e é o que a §13.1 e a §13.6 usam. Rodada única também não serve: use mediana de 3.
 
 ## Regras que valem sempre
 
@@ -32,8 +42,11 @@ Estas não geram erro no console. Se forem violadas, o site parece funcionar e o
 10. **A direção da onda é o sinal do termo de tempo no `field.ts`.** `sin(z*k + t*w)` traz a crista para a praia; com `-` ela corre para o horizonte, e **nada acusa**: o fundo continua animado e sem erro. Rode `pnpm waves`.
 11. **Cada tema tem o seu conjunto de paletas.** O claro usa `palettesLight`, pálidas, porque sobre `#f0f0f0` só há 0.22 de luminância até a faixa proibida, e paleta escura ali obriga o campo a quase sumir. A paleta viaja no mesmo tween da cor de fundo, nunca num paralelo.
 12. **`icon.svg` e `favicon.ico` vivem em `src/app/`, nunca dentro de um grupo de rota.** Convenção de metadado vale para o segmento e os descendentes: em `(home)/` o ícone não alcança `/en/`, e o `favicon.ico` nem chega a ser servido. Teste em `e2e/marca.spec.ts`.
-13. **Ícone de aba e imagem de link envelhecem sem ninguém ver.** Não aparecem em captura, em teste de DOM nem no Lighthouse. `src/app/brand-assets.test.ts` exige que as cores deles saiam da paleta; se você acrescentar uma cor de propósito, ela entra na lista de permitidas junto.
+13. **Ícone de aba e imagem de link envelhecem sem ninguém ver.** Não aparecem em captura, em teste de DOM nem no Lighthouse. `src/app/brand-assets.test.ts` exige que as cores deles saiam da paleta; se você acrescentar uma cor de propósito, ela entra na lista de permitidas junto. Desde o M4 ele varre `src/app/icon.svg` e `src/components/og-image.tsx`, que é onde o desenho das duas OG passou a morar.
 14. **O campo do shader precisa devolver `v` em `[0,1]`.** O ramp de 3 cores no fim de `field.ts` é o que garante o contraste, e o teste de `background-config.test.ts` prova isso varrendo o ramp, não o campo. Trocar o gerador é seguro; mudar o contradomínio ou o ramp não é.
+15. **`--pad` precisa de teto no `clamp()`.** Sem teto, tela maior dá conteúdo mais estreito, porque o recuo cresce sem limite enquanto o container tem largura máxima. Isso foi a causa raiz comum de dois estouros de texto que pareciam defeitos separados, e só o CI do Linux pegou, por 2px. Mesma família: o teto de `--text-display` precisa caber no container **já descontado o `--nav-col`**.
+16. **`metadata` e `viewport` têm que ser reexportados pelo `layout.tsx` de cada idioma.** O Next lê os dois no módulo do segmento, não no componente, então movê-los para dentro do `<RootDocument>` sem o `export { metadata, viewport }` faz o site perder os metadados **sem erro nenhum**: o build passa e a página serve. **Esta é a única lei da lista sem teste que a prove.** O `html-lang.spec.ts` cobre o `<html lang>`, que vem do componente e não do `metadata`, e o `marca.spec.ts` cobre o `<link rel="icon">`. Ninguém verifica `theme-color` nem `og:image`, e os dois foram conferidos à mão no HTML de produção em 31/08/2026 (§13.5). Se for mexer em `root-document.tsx` ou nos layouts, confira à mão ou feche essa lacuna primeiro.
+17. **Medir performance em `localhost` mede a sua máquina, não o site.** O mesmo build dá 80 a 94 no `next start` e **96 a 98 em produção**, porque a Vercel serve com CDN, HTTP/2 e Brotli. Pior: o spread local chega a 14 pontos numa rota, e foi ruído desse tipo que produziu o "74" que a documentação carregou por dias. Este projeto gastou uma auditoria inteira e um milestone perseguindo um LCP que a CDN já resolvia. **Meça contra a URL de produção, com `--only-categories=performance` (nunca `--preset=perf`, que troca o throttling para `devtools` calado) e mediana de 3.** Tabela lado a lado na §13.6 do plano.
 
 ## Ferramentas do projeto
 
@@ -41,7 +54,7 @@ Estas não geram erro no console. Se forem violadas, o site parece funcionar e o
 - **`pnpm capture`** gera os previews do showcase em `public/projects/`. Sob demanda, nunca no CI.
 - **`pnpm waves`** mede para que lado as cristas do fundo viajam, compilando o GLSL real num contexto próprio. Existe porque a direção invertida não gera erro nenhum.
 - **`pnpm favicon`** regrava o `favicon.ico` a partir do `icon.svg`. Rode sempre que mexer no ícone, senão os dois divergem.
-- **`e2e/responsivo.spec.ts`** varre 5 rotas × 4 larguras: rolagem horizontal, colisão com o bloco de identidade fixo e texto vazando a moldura. Roda no `pnpm test:e2e`.
+- **`e2e/responsivo.spec.ts`** varre 6 rotas × 7 larguras (320 a 2560, mais paisagem) com 5 asserções por carregamento: rolagem horizontal, colisão com o bloco de identidade fixo, texto vazando a moldura, texto truncado e **o header medido contra a viewport**. Essa quinta existe porque o header é `fixed`, e o que transborda de um `fixed` não entra no `scrollWidth` do documento: era assim que o menu ficava inalcançável em 320, 360 e 390px sem nenhuma auditoria acusar. A rota de case entra na lista porque é onde vive o título mais longo do site. Roda no `pnpm test:e2e`.
 - **Lighthouse** precisa de `CHROME_PATH` apontando para o Chromium do Playwright: a máquina não tem Chrome instalado.
 
 > ⚠️ O `reuseExistingServer` do Playwright aproveita qualquer servidor na porta 3000, **inclusive um iniciado antes do último build**. O sintoma é teste falhando por uma correção que já está no código, ou captura sem CSS nenhum. Derrube a porta 3000 antes de testar ou capturar depois de um `pnpm build`.

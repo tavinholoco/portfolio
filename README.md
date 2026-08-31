@@ -8,12 +8,16 @@ Portfólio minimalista com fundo WebGL próprio, tipografia fluida e navegação
 
 | | Desktop | Mobile |
 |---|---|---|
-| Performance | 99 a 100 | 74 a 89 |
+| Performance | 99 a 100 | 96 a 98 |
 | Acessibilidade, Best Practices e SEO | 100 | 100 |
 
-CLS zero nas 5 rotas. **144 testes unitários e 168 E2E.**
+CLS zero nas 5 rotas. O mobile é **medido contra a URL de produção**, mediana de 3 rodadas por rota: o mesmo build no `next start` local dá 80 a 94, porque não tem CDN, HTTP/2 nem Brotli. Rodada única não serve como medida em nenhum dos dois ambientes.
 
-> A referência estrutural foi [p5aholic.me](https://p5aholic.me), **sem reúso de código**: shader, paleta, composição e CSS foram escritos do zero. O plano completo está em [PLANO-V3-PORTFOLIO.md](PLANO-V3-PORTFOLIO.md): a V3 nas seções 0 a 11 e a **V3.5 na seção 12**, rodada por rodada.
+**141 testes unitários e 137 E2E.** A auditoria responsiva sozinha cobre 6 rotas × 7 larguras (320 a 2560) com 5 asserções cada.
+
+> A referência estrutural foi [p5aholic.me](https://p5aholic.me), **sem reúso de código**: shader, paleta, composição e CSS foram escritos do zero. O plano completo está em [PLANO-V3-PORTFOLIO.md](PLANO-V3-PORTFOLIO.md): a V3 nas seções 0 a 11, a **V3.5 na seção 12** rodada por rodada, e o **passe de aperfeiçoamento na seção 13**.
+
+> ⚡ **Antes de tentar otimizar performance, leia a §13.3 e a §13.4.** Três hipóteses plausíveis foram medidas e duas pioraram o site (adiar as imagens do showcase e o `experimental.inlineCss`). O gargalo do LCP é `Element render delay`, ou seja, trabalho de main thread na hidratação, e não imagens, CSS ou atributos. Isso já está medido para não ser remedido.
 
 ## ✨ Stack
 
@@ -112,7 +116,7 @@ Captura as telas em `.captures/` (ignorada pelo git). Parametrizável por `LOOK_
 │   │   ├── globals.css           # tokens de shell, escala tipográfica e as leis em comentário
 │   │   ├── robots.ts             # fora do route group de propósito (ver nota abaixo)
 │   │   ├── (home)/               # árvore do português, com root layout próprio
-│   │   │   ├── layout.tsx        # <html lang="pt"> + script anti-flash + <SiteShell>
+│   │   │   ├── layout.tsx        # 17 linhas: <RootDocument lang="pt"> + reexporta metadata
 │   │   │   ├── page.tsx  clientes/  projetos/  info/  contato/
 │   │   │   ├── projetos/[slug]/  # páginas de case
 │   │   │   └── sitemap.ts        # dentro do group, também de propósito
@@ -122,14 +126,14 @@ Captura as telas em `.captures/` (ignorada pelo git). Parametrizável por `LOOK_
 │   │   │   ├── renderer.ts       # BackgroundRenderer, sem React
 │   │   │   ├── background-config.ts  # paletas, contraste, tweens e o singleton
 │   │   │   ├── background-canvas.tsx # componente cliente, carrega o ogl no efeito
-│   │   │   ├── background-palette.tsx # define a paleta da rota
 │   │   │   ├── grain-texture.ts  # buffer puro + wrapper de Texture
 │   │   │   └── shaders/          # vertex, campo de ondas e composição, em template literal
-│   │   ├── shell/                # site-shell, frame, viewport-mask, smooth-scroll
+│   │   ├── shell/                # root-document (o <html> dos dois idiomas), site-shell, frame, viewport-mask
 │   │   ├── showcase/             # lista com preview trocando no hover, e a legenda fora da moldura
 │   │   ├── pages/                # o conteúdo de cada rota, compartilhado pelos dois idiomas
-│   │   ├── home/manifesto.tsx    # a home: só a tese, a bio e dois links
 │   │   ├── process.tsx           # os 5 passos, hoje em /info/
+│   │   ├── section-intro.tsx     # título + descrição de seção, usado por career, process e skills
+│   │   ├── og-image.tsx          # o desenho da imagem de link, um só para os dois idiomas
 │   │   ├── site-header.tsx       # identidade fixa no topo esquerdo + nav vertical
 │   │   ├── section.tsx           # Section, com a lei F1 no topo
 │   │   └── ui/sheet.tsx          # Base UI, usado pelo menu mobile
@@ -141,8 +145,10 @@ Captura as telas em `.captures/` (ignorada pelo git). Parametrizável por `LOOK_
 │       ├── metadata.ts           # metadados por rota e por idioma
 │       ├── json-ld.ts            # dados estruturados
 │       └── utils.ts              # helper cn()
-├── e2e/                          # Playwright: shell, showcase, navegação e html lang
-├── capture/                      # `pnpm look`, config própria fora do CI
+├── e2e/                          # Playwright: shell, showcase, navegação, html lang,
+│                                 #   responsivo, marca e bundle
+├── capture/                      # `pnpm look`, `pnpm capture`, `pnpm waves` e `pnpm favicon`,
+│                                 #   config própria, fora do CI
 └── PLANO-V3-PORTFOLIO.md         # o plano, as auditorias e as notas de cada fase
 ```
 

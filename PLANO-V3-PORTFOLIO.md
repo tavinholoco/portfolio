@@ -4,7 +4,7 @@
 >
 > **Base:** v2 publicada (Next 16.3 + React 19, Tailwind v4, bilíngue com paridade testada, 36 unit + 6 E2E, Lighthouse 95/100/100/100).
 > **Referência de inspiração:** [p5aholic.me](https://p5aholic.me) (Keita Yamada). Inspiração estrutural, **não cópia**. Ver seção 0.3.
-> **Status:** ✅ **V3.5 no ar.** As 7 fases da v3 fechadas em 27/08/2026 (avaliação na seção 11), e o refinamento **V3.5** mergeado pelo PR #4, em 6 rodadas de ajuste. Avaliação completa na **seção 12.10**.
+> **Status:** ✅ **V3.5 no ar, com o passe de aperfeiçoamento fechado.** As 7 fases da v3 fechadas em 27/08/2026 (avaliação na seção 11), o refinamento **V3.5** mergeado pelo PR #4 em 6 rodadas de ajuste (avaliação na **§12.10**), e os **5 milestones da seção 13** mergeados pelo PR #7 em 31/08/2026 (fechamento na **§13.5**).
 >
 > **Produção:** https://portfolio-tau-five-f86nc5khr8.vercel.app
 > **Versão do documento:** V3.5
@@ -1335,3 +1335,106 @@ Os dois helpers eram exportados e testados **só pelos próprios testes**, que s
 - **`legacy-javascript` (13 KiB) e `render-blocking` (~110 ms)** reprovam em todas as rotas, mas são do framework, não do código do site. Sem alavanca sem trocar de versão do Next.
 - **Subir o mobile de 90 para 95+** exigiria atacar os 3 chunks de framework, que somam 151 KB gzip. Não há ganho fácil ali.
 - **O tema claro** continua com o campo a `FIELD_MIX.light` de 0.20, que é o teto medido com margem. Melhorar exige repensar a faixa proibida, não ajustar uma constante.
+
+
+### 13.5 Fechamento (31/08/2026)
+
+O PR #7 foi mergeado na `main` pelo commit `b3ce36a`, com os 6 commits dos milestones. CI e Vercel verdes na `main`, e o site republicado.
+
+**Verificação depois do merge**, na `main` sincronizada:
+
+| Passo | Resultado |
+|---|---|
+| `pnpm lint` | limpo |
+| `pnpm typecheck` | limpo |
+| `pnpm test` | **141 unitários**, 15 arquivos |
+| `pnpm build` | 24 rotas na árvore, **26 páginas prerenderizadas**, nenhuma dinâmica |
+| `pnpm test:e2e` | **137 E2E**, 7 arquivos |
+| `pnpm waves` | cristas vêm para a praia, erro 1.65 |
+| 10 rotas em produção | 200 |
+| `favicon.ico` e `icon.svg` | 200, tipo correto |
+
+**A contagem de E2E caiu de 169 para 137, e isso não é perda de cobertura.** O M1 juntou cinco asserções num carregamento só e ao mesmo tempo subiu a auditoria responsiva de 5 rotas × 4 larguras para **6 × 7**. As combinações passaram de 20 para 42, e as asserções de 60 para 210. O número de `test()` caiu porque a unidade mudou, não o que é verificado.
+
+Os unitários foram de 144 para 141 pelo mesmo tipo de motivo: o M4 fez `brand-assets.test.ts` iterar 2 arquivos em vez de 3, e o M5 levou junto os testes de `lerpPalette` e `composedLuminance`, que só existiam para os próprios helpers removidos.
+
+#### O que foi conferido no site publicado, e não só no build
+
+Build verde prova que compila, não que o efeito chegou ao visitante. Três coisas foram medidas contra a URL de produção:
+
+**M2, a separação dos dicionários.** Baixando os 10 chunks que a home em português referencia: **nenhum contém texto de nenhum dos dois dicionários**, nem o inglês nem o próprio português. As dez strings do header viajam no payload RSC embutido no HTML, por página e já no idioma certo. Contaminação cruzada em zero nos dois sentidos: `"Full Stack Developer"` não aparece na home PT, `"Desenvolvedor Full Stack"` não aparece na EN. O chunk de 107 KB que carregava os dois dicionários deixou de existir no conjunto servido, e a home PT fica em **212 KB gzip** em 10 chunks.
+
+**M4, os metadados por idioma.** É o ponto de maior risco do M4, porque `metadata` e `viewport` são reexportados e o Next os lê no módulo do segmento, não no componente. No HTML servido, os dois idiomas diferem corretamente: `lang="pt"` contra `lang="en"`, `/opengraph-image-12gd74` contra `/en/opengraph-image`, e o `og:image:alt` em `"Pedro Levi | Desenvolvedor Full Stack"` contra `"Pedro Levi | Full Stack Developer"`. O `theme-color` é o mesmo nos dois, e deve ser.
+
+**As 10 rotas e os assets de marca.** Todas em 200, com `favicon.ico` em `image/vnd.microsoft.icon` e `icon.svg` em `image/svg+xml`. Vale a lei 13 do `CLAUDE.md`: esses dois envelhecem sem aparecer em captura, em teste de DOM nem no Lighthouse.
+
+#### O placar do plano de aperfeiçoamento
+
+| Milestone | Aceite | Observação |
+|---|---|---|
+| M1. Extremos de viewport | ✅ | 5 defeitos, **3 já estavam no ar** |
+| M2. Dicionários fora do cliente | ✅ | verificado no bundle de produção |
+| M3. Imagens fora do caminho crítico | ❌ | **premissa refutada**, ver §13.3 |
+| M4. Fim da duplicação por idioma | ✅ | ~330 linhas duplicadas viraram ~27 |
+| M5. Limpeza | ✅ | 15 chaves órfãs, órfãos reais em zero |
+
+**Quatro de cinco aceites atingidos.** O M3 é o único em aberto, e continua aberto de propósito: a §13.3 registra que o gargalo do LCP é `Element render delay`, trabalho de main thread na hidratação, e que as duas otimizações plausíveis foram medidas e **pioraram** o site. Reabrir o M3 sem antes atacar os 151 KB gzip de framework é repetir um caminho já andado.
+
+**Três dos cinco milestones corrigiram defeito real que estava em produção**, não fizeram melhoria cosmética: o menu inalcançável em 320, 360 e 390px (que foi regressão introduzida por mim ao pôr o Baixar CV no header), o título de case estourando a caixa em todo desktop de 1440 para cima, e o email com reticências nos cards de contato.
+
+#### Uma lacuna encontrada na própria verificação
+
+Conferir os metadados à mão em produção revelou que **nenhum teste cobre `theme-color` nem `og:image`**. O `html-lang.spec.ts` verifica o `<html lang>`, que vem do componente e não do `metadata`, e o `marca.spec.ts` verifica o `<link rel="icon">` e os dois arquivos servidos. O resto dos metadados não tem guarda.
+
+Isso importa mais depois do M4 do que antes dele: `metadata` e `viewport` agora são **reexportados** pelos layouts, porque o Next os lê no módulo do segmento e não no componente. Quem mexer em `root-document.tsx` e esquecer o `export { metadata, viewport }` derruba os metadados dos dois idiomas de uma vez, **sem erro, com build verde e página servindo normalmente**.
+
+É exatamente a família de defeito que já mordeu este projeto duas vezes: o `icon.svg` dentro do grupo de rota (lei 12 do `CLAUDE.md`) e o ícone virando o padrão ao trocar de idioma. As duas foram descobertas pelo Pedro olhando o site, não por teste.
+
+> **Recomendação:** acrescentar a `e2e/marca.spec.ts` a verificação de `theme-color` e de `og:image` por idioma, incluindo o `og:image:alt`, que é o campo que difere entre pt e en. São poucas linhas na suíte que já visita as duas árvores. Está registrado como o único item de código em aberto.
+
+#### O que sobra, e a recomendação
+
+Fora essa lacuna de teste, nada do plano de aperfeiçoamento está pendente de execução. O que resta é escolha de escopo novo, e está na §13.4: os 151 KB de framework, o `legacy-javascript` do Next e o teto do tema claro. **Nenhum dos três é ajuste de constante**, e os três já foram medidos o bastante para se saber que não têm ganho fácil.
+
+A recomendação é **não abrir M6 por enquanto**, e a §13.6 reforça isso: o site está em **96 a 98 no mobile em produção** e 99 a 100 no desktop, com A11y, Best Practices e SEO em 100 e CLS zero. O próximo ganho real de performance depende de uma versão do Next que reduza o custo de hidratação, o que é espera e não trabalho. Se for para investir esforço agora, ele rende mais em conteúdo (o deploy do Netsheet Engine da §0.4, que ainda usa o mockup de janela) do que em performance.
+
+
+### 13.6 A medição estava sendo feita no lugar errado (31/08/2026)
+
+Ao fechar a verificação pós-merge, a medição contra a URL de produção deu números muito acima dos documentados. Investigando, **o site sempre foi melhor do que este plano registrou**, e o erro é de método, não de código.
+
+#### O primeiro erro: `--preset=perf`
+
+A primeira rodada usou `--preset=perf`. Esse preset **troca o `throttlingMethod` de `simulate` para `devtools` sem avisar**, e os números deixam de ser comparáveis com qualquer coisa medida antes. Foi pego conferindo o `configSettings` do JSON, não pelo resultado parecer estranho.
+
+> **Regra:** nunca usar `--preset=perf` neste projeto. Use `--only-categories=performance`, que preserva o padrão `simulate`. E confira `configSettings.throttlingMethod` no JSON antes de comparar duas medições.
+
+#### O erro de fundo: `localhost` não é o site
+
+Refeita com `simulate` nos dois ambientes, mediana de 3 rodadas por rota, mesma máquina e mesma sessão:
+
+| Rota | Produção (Vercel) | Spread | LCP | Build local | Spread | LCP |
+|---|---|---|---|---|---|---|
+| `/` | **96** | 95 a 96 | 1818 ms | 88 | 86 a 88 | 3406 ms |
+| `/clientes/` | **98** | 96 a 99 | 1658 ms | 80 | 80 a 94 | 3711 ms |
+| `/projetos/` | **97** | 96 a 98 | 2421 ms | 91 | 80 a 92 | 3328 ms |
+| `/info/` | **97** | 95 a 97 | 2260 ms | 94 | 93 a 94 | 2878 ms |
+| `/contato/` | **96** | 96 a 96 | 1664 ms | 88 | 88 a 94 | 3387 ms |
+
+CLS zero em produção nas cinco rotas.
+
+**A coluna local reproduz a linha de base da §13.1 dentro do ruído**, o que confirma que aquela tabela foi medida no `next start` e não em produção. O plano então descreveu como "o estado do site" um número que nenhum visitante jamais viu.
+
+**A diferença é infraestrutura, não código:** a Vercel serve com CDN na borda, HTTP/2 e Brotli; o `next start` local serve de um processo Node no Windows, sem compressão e com um round trip por recurso. O LCP cai quase pela metade.
+
+**O spread também é outro.** Em produção os cinco spreads somam 7 pontos no total (o maior é 96 a 99). Localmente, `/clientes/` varia **80 a 94** e `/projetos/` **80 a 92**. Ou seja: a instabilidade que a §13.1 tratou como característica do site é característica do **ambiente de medição**. Aquele "74" que assombrou a §12.10 e o `CLAUDE.md` era ruído de localhost.
+
+#### O que isso muda, e o que não muda
+
+**Não muda as conclusões do M3.** As três hipóteses da §13.3 foram comparadas entre si **na mesma sessão e no mesmo ambiente**, que é o método correto para um A/B. O que dizia qual opção era melhor continua valendo, e as duas revertidas continuam revertidas. O que não vale são os **valores absolutos** de LCP daquela tabela: eles descrevem o build local.
+
+**Não muda a §13.4.** Os 151 KB gzip de framework e o `legacy-javascript` continuam sendo os itens sem alavanca fácil.
+
+**Muda a prioridade.** Com o site real em 96 a 98, **não existe problema de performance para resolver**. A recomendação de não abrir M6 deixa de ser "o custo não compensa" e passa a ser "não há o que consertar". O esforço rende mais em conteúdo.
+
+> **A lição que fica, e que virou lei no `CLAUDE.md`:** medir performance contra `localhost` mede a máquina de desenvolvimento, não o produto. Este plano gastou uma auditoria inteira, uma linha de base e um milestone (o M3) perseguindo um LCP que a CDN já resolvia.
