@@ -1382,19 +1382,13 @@ Build verde prova que compila, não que o efeito chegou ao visitante. Três cois
 
 **Três dos cinco milestones corrigiram defeito real que estava em produção**, não fizeram melhoria cosmética: o menu inalcançável em 320, 360 e 390px (que foi regressão introduzida por mim ao pôr o Baixar CV no header), o título de case estourando a caixa em todo desktop de 1440 para cima, e o email com reticências nos cards de contato.
 
-#### Uma lacuna encontrada na própria verificação
+#### Uma lacuna encontrada na própria verificação, e o defeito que ela escondia
 
-Conferir os metadados à mão em produção revelou que **nenhum teste cobre `theme-color` nem `og:image`**. O `html-lang.spec.ts` verifica o `<html lang>`, que vem do componente e não do `metadata`, e o `marca.spec.ts` verifica o `<link rel="icon">` e os dois arquivos servidos. O resto dos metadados não tem guarda.
-
-Isso importa mais depois do M4 do que antes dele: `metadata` e `viewport` agora são **reexportados** pelos layouts, porque o Next os lê no módulo do segmento e não no componente. Quem mexer em `root-document.tsx` e esquecer o `export { metadata, viewport }` derruba os metadados dos dois idiomas de uma vez, **sem erro, com build verde e página servindo normalmente**.
-
-É exatamente a família de defeito que já mordeu este projeto duas vezes: o `icon.svg` dentro do grupo de rota (lei 12 do `CLAUDE.md`) e o ícone virando o padrão ao trocar de idioma. As duas foram descobertas pelo Pedro olhando o site, não por teste.
-
-> **Recomendação:** acrescentar a `e2e/marca.spec.ts` a verificação de `theme-color` e de `og:image` por idioma, incluindo o `og:image:alt`, que é o campo que difere entre pt e en. São poucas linhas na suíte que já visita as duas árvores. Está registrado como o único item de código em aberto.
+Conferir os metadados à mão em produção revelou que **nenhum teste cobria `theme-color` nem `og:image`**. Escrever esse teste **encontrou um defeito de produto que estava no ar**, e está registrado na §13.7.
 
 #### O que sobra, e a recomendação
 
-Fora essa lacuna de teste, nada do plano de aperfeiçoamento está pendente de execução. O que resta é escolha de escopo novo, e está na §13.4: os 151 KB de framework, o `legacy-javascript` do Next e o teto do tema claro. **Nenhum dos três é ajuste de constante**, e os três já foram medidos o bastante para se saber que não têm ganho fácil.
+Com a §13.7 fechada, nada do plano de aperfeiçoamento está pendente de execução. O que resta é escolha de escopo novo, e está na §13.4: os 151 KB de framework, o `legacy-javascript` do Next e o teto do tema claro. **Nenhum dos três é ajuste de constante**, e os três já foram medidos o bastante para se saber que não têm ganho fácil.
 
 A recomendação é **não abrir M6 por enquanto**, e a §13.6 reforça isso: o site está em **96 a 98 no mobile em produção** e 99 a 100 no desktop, com A11y, Best Practices e SEO em 100 e CLS zero. O próximo ganho real de performance depende de uma versão do Next que reduza o custo de hidratação, o que é espera e não trabalho. Se for para investir esforço agora, ele rende mais em conteúdo (o deploy do Netsheet Engine da §0.4, que ainda usa o mockup de janela) do que em performance.
 
@@ -1438,3 +1432,47 @@ CLS zero em produção nas cinco rotas.
 **Muda a prioridade.** Com o site real em 96 a 98, **não existe problema de performance para resolver**. A recomendação de não abrir M6 deixa de ser "o custo não compensa" e passa a ser "não há o que consertar". O esforço rende mais em conteúdo.
 
 > **A lição que fica, e que virou lei no `CLAUDE.md`:** medir performance contra `localhost` mede a máquina de desenvolvimento, não o produto. Este plano gastou uma auditoria inteira, uma linha de base e um milestone (o M3) perseguindo um LCP que a CDN já resolvia.
+
+
+### 13.7 As oito rotas sem imagem de link (31/08/2026)
+
+**Escrever o teste que faltava encontrou um defeito de produto**, e ele estava em produção havia meses. É o melhor argumento possível a favor de fechar lacunas de teste em vez de conferir à mão.
+
+#### O sintoma
+
+Das 12 rotas do site, **só `/` e `/en/` tinham `og:image` e `twitter:image`**. As outras dez, incluindo as quatro páginas de case nos dois idiomas, não tinham imagem nenhuma. Compartilhar `/projetos/` ou `/contato/` no WhatsApp, no LinkedIn ou no Slack não gerava preview.
+
+Conferido em produção antes de mexer em qualquer linha:
+
+| Rota | Antes | Depois |
+|---|---|---|
+| `/` e `/en/` | ✅ | ✅ |
+| `/clientes/`, `/projetos/`, `/info/`, `/contato/` | ❌ | ✅ |
+| os espelhos em `/en/` | ❌ | ✅ |
+| as 4 páginas de case, nos 2 idiomas | ❌ | ✅ |
+
+#### A causa, que está na documentação do Next
+
+O merge de metadados é **raso**. Quando um segmento exporta `openGraph`, ele **substitui o objeto inteiro** do ancestral, e não faz merge campo a campo. A documentação do Next diz isso com todas as letras e prescreve o remédio: extrair o campo compartilhado para uma variável e espalhá-la.
+
+Todas as rotas passam por `buildRouteMetadata` ou `buildProjectMetadata`, e as duas definem `openGraph`. O `opengraph-image.tsx` injeta as imagens no segmento onde mora, que é a raiz de cada idioma. Resultado: em `/` e `/en/` a convenção de arquivo e a página são **o mesmo segmento** e a imagem sobrevive; em qualquer descendente, o `openGraph` da página apaga a imagem herdada.
+
+**Não foi regressão do M4.** O layout anterior tinha a mesma estrutura de `metadata`, conferido no git. O defeito é anterior, e nasceu junto com a divisão em cinco rotas.
+
+#### A correção
+
+`ogImageMeta(lang)` em `src/lib/metadata.ts`, espalhado em `openGraph` e `twitter` das duas fábricas. O `alt` passou a viver em `src/components/og-image.tsx` como fonte única, consumido tanto pelo `alt` que o Next exige no segmento quanto pelo bloco de imagem, para não haver duas verdades divergindo em silêncio.
+
+> ⚠️ **Um literal que precisa de guarda.** O caminho da imagem em português é `/opengraph-image-12gd74`: o sufixo é gerado pelo Next porque `(home)` é grupo de rota, e **não é derivável do código**. Foi verificado que é estável entre builds e máquinas (o que muda a cada build é a query de cache, que não escrevemos). Como é literal, um teste busca as duas URLs e exige 200 com `image/png`. Se o Next mudar o esquema, o teste falha alto em vez de o site servir imagem quebrada sem ninguém ver.
+
+#### Os testes, com controle negativo
+
+Entraram em `e2e/marca.spec.ts`, contra o **HTML bruto servido** e não contra o DOM: o script de tema reescreve o `theme-color` no primeiro paint e mascararia a ausência do `viewport`.
+
+Por rota (12): `theme-color` correto, `og:image` presente, apontando para o idioma certo, sem cair em `localhost:0` (que é o sintoma de `metadataBase` ausente), e `twitter:image` presente. Mais dois testes: o `alt` difere entre os idiomas, e as duas imagens respondem 200 com `image/png`.
+
+**Controle negativo executado:** removendo a correção de `src/lib/metadata.ts` e reconstruindo, **10 dos 27 testes de `marca.spec.ts` falham**. A suíte pega o defeito, não apenas acompanha a correção.
+
+E2E foram de 137 para **151**.
+
+> **O que fica de lição:** a §13.5 tratou "nenhum teste cobre `og:image`" como dívida de teste, de prioridade baixa, e a recomendação era "poucas linhas na suíte". Eram poucas linhas mesmo, e elas revelaram que **dez de doze rotas estavam quebradas para compartilhamento**. Lacuna de teste não é risco futuro: costuma ser defeito presente que ninguém olhou.
