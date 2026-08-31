@@ -1463,7 +1463,19 @@ Todas as rotas passam por `buildRouteMetadata` ou `buildProjectMetadata`, e as d
 
 `ogImageMeta(lang)` em `src/lib/metadata.ts`, espalhado em `openGraph` e `twitter` das duas fábricas. O `alt` passou a viver em `src/components/og-image.tsx` como fonte única, consumido tanto pelo `alt` que o Next exige no segmento quanto pelo bloco de imagem, para não haver duas verdades divergindo em silêncio.
 
-> ⚠️ **Um literal que precisa de guarda.** O caminho da imagem em português é `/opengraph-image-12gd74`: o sufixo é gerado pelo Next porque `(home)` é grupo de rota, e **não é derivável do código**. Foi verificado que é estável entre builds e máquinas (o que muda a cada build é a query de cache, que não escrevemos). Como é literal, um teste busca as duas URLs e exige 200 com `image/png`. Se o Next mudar o esquema, o teste falha alto em vez de o site servir imagem quebrada sem ninguém ver.
+#### O literal deixou de ser um ponto cego
+
+O caminho em português é `/opengraph-image-12gd74`, e no primeiro passe isto ficou registrado como "não derivável do código". **Estava errado, e a fonte estava a um arquivo de distância.** Em `next/dist/lib/metadata/get-metadata-route.js`:
+
+```js
+suffix = djb2Hash(parentPathname).toString(36).slice(0, 6);
+```
+
+O Next só acrescenta hash quando o **caminho pai contém grupo de rota** `(...)` ou rota paralela `@...`. Daí a assimetria que parecia arbitrária: o pai do português é `/(home)` e ganha sufixo; o do inglês é `/en` e não ganha.
+
+Há uma sutileza que erra fácil, e que errei na primeira tentativa: o **hash é calculado sobre o caminho pai com o grupo**, e a **URL é montada sem ele**. Trocar a ordem dá o hash certo no lugar errado.
+
+`src/lib/metadata.test.ts` reimplementa a regra de propósito e confere o literal contra ela, em vez de contra si mesmo. **Controle negativo executado:** adulterando o literal, o teste falha. São duas guardas independentes, em camadas diferentes: o unitário prova que o valor obedece à regra do Next, o E2E prova que a URL responde 200 com `image/png`. Se o Next mudar o esquema, o unitário falha primeiro, barato e cedo.
 
 #### Os testes, com controle negativo
 
@@ -1473,6 +1485,6 @@ Por rota (12): `theme-color` correto, `og:image` presente, apontando para o idio
 
 **Controle negativo executado:** removendo a correção de `src/lib/metadata.ts` e reconstruindo, **10 dos 27 testes de `marca.spec.ts` falham**. A suíte pega o defeito, não apenas acompanha a correção.
 
-E2E foram de 137 para **151**.
+E2E foram de 137 para **151**, e os unitários de 141 para **145**.
 
 > **O que fica de lição:** a §13.5 tratou "nenhum teste cobre `og:image`" como dívida de teste, de prioridade baixa, e a recomendação era "poucas linhas na suíte". Eram poucas linhas mesmo, e elas revelaram que **dez de doze rotas estavam quebradas para compartilhamento**. Lacuna de teste não é risco futuro: costuma ser defeito presente que ninguém olhou.
