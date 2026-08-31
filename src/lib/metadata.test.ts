@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { getSiteUrl } from "./metadata";
+import { getSiteUrl, ogImageMeta } from "./metadata";
+import { ogImageAlt, size as ogImageSize } from "@/components/og-image";
 
 function setEnv(vars: Record<string, string | undefined>) {
   for (const [key, value] of Object.entries(vars)) {
@@ -168,5 +169,77 @@ describe("buildProjectMetadata", () => {
       en: "https://pedrolevi.dev/en/projects/netsheet-engine/",
       "x-default": "https://pedrolevi.dev/projetos/netsheet-engine/",
     });
+  });
+});
+
+/**
+ * O caminho da imagem de link é literal em `metadata.ts`, e este teste é o que
+ * o impede de apodrecer sem ninguém ver.
+ *
+ * **De onde vem o sufixo.** O Next só acrescenta hash ao caminho de uma rota de
+ * metadado quando o **caminho pai contém grupo de rota** `(...)` ou rota
+ * paralela `@...`, e o hash é `djb2Hash(caminhoPai).toString(36).slice(0, 6)`.
+ * Está em `next/dist/lib/metadata/get-metadata-route.js`.
+ *
+ * Daí a assimetria que parece arbitrária ao ler o fonte: o português mora em
+ * `src/app/(home)/opengraph-image.tsx`, cujo pai é `/(home)`, e ganha sufixo;
+ * o inglês mora em `src/app/en/opengraph-image.tsx`, cujo pai é `/en`, e não
+ * ganha. Não é escolha nossa, e não dá para renomear para fugir dela sem tirar
+ * o português do grupo de rota.
+ *
+ * A função abaixo **reimplementa o algoritmo do Next de propósito**, para o
+ * literal ser conferido contra a regra e não contra si mesmo. Se o Next mudar
+ * o esquema, este teste falha aqui, barato e cedo, antes do E2E que busca a
+ * URL de verdade em `e2e/marca.spec.ts`.
+ */
+function djb2Hash(str: string): number {
+  let hash = 5381;
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) + hash + str.charCodeAt(i)) & 0xffffffff;
+  }
+  return hash >>> 0;
+}
+
+/**
+ * O caminho que o Next gera para um `opengraph-image.tsx` num dado pai.
+ *
+ * Duas regras, e elas se cruzam: o **hash** é calculado sobre o caminho pai
+ * **com** o grupo, e a **URL** é montada **sem** ele, porque grupo de rota não
+ * aparece em URL nenhuma. Trocar a ordem dá o hash certo no lugar errado.
+ */
+function rotaDeImagem(caminhoPai: string): string {
+  const segmentos = caminhoPai.split("/").filter(Boolean);
+  const ehGrupo = (seg: string) => seg.startsWith("(") || seg.startsWith("@");
+
+  const sufixo = segmentos.some(ehGrupo)
+    ? `-${djb2Hash(caminhoPai).toString(36).slice(0, 6)}`
+    : "";
+
+  /* O grupo some da URL, mas não some do hash. */
+  const url = segmentos.filter((seg) => !ehGrupo(seg)).join("/");
+  return `${url ? `/${url}` : ""}/opengraph-image${sufixo}`;
+}
+
+describe("ogImageMeta: a imagem de link", () => {
+  it("o caminho do português bate com o que o Next gera para /(home)", () => {
+    expect(ogImageMeta("pt").url).toBe(rotaDeImagem("/(home)"));
+  });
+
+  it("o do inglês não leva sufixo, porque /en não é grupo de rota", () => {
+    expect(ogImageMeta("en").url).toBe(rotaDeImagem("/en"));
+    expect(ogImageMeta("en").url).toBe("/en/opengraph-image");
+  });
+
+  it("os dois caminhos são diferentes, senão os idiomas compartilhariam imagem", () => {
+    expect(ogImageMeta("pt").url).not.toBe(ogImageMeta("en").url);
+  });
+
+  it("dimensões e alt saem de og-image.tsx, sem segunda verdade", () => {
+    for (const lang of ["pt", "en"] as const) {
+      const meta = ogImageMeta(lang);
+      expect(meta.width).toBe(ogImageSize.width);
+      expect(meta.height).toBe(ogImageSize.height);
+      expect(meta.alt).toBe(ogImageAlt[lang]);
+    }
   });
 });

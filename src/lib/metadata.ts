@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { ogImageAlt, size as ogImageSize } from "@/components/og-image";
 import { dictionaries, type Locale } from "@/i18n";
 import { pathFor, type RouteId } from "@/lib/routes";
 
@@ -38,6 +39,47 @@ export const languageUrls: Record<string, string> =
   languageUrlsForRoute("home");
 
 /**
+ * Caminho da imagem de link gerada por `opengraph-image.tsx`, por idioma.
+ *
+ * **Por que isto existe, e por que é literal.** O merge de metadados do Next é
+ * **raso**: quando uma página exporta `openGraph`, ela substitui o objeto
+ * inteiro do layout, imagens inclusive. Como todas as rotas passam por
+ * `buildRouteMetadata`, que define `openGraph`, só `/` e `/en/` ficavam com
+ * imagem de link: nelas o `opengraph-image.tsx` é do **mesmo segmento** e a
+ * convenção de arquivo ganha. As outras oito rotas e as páginas de case eram
+ * compartilhadas sem imagem nenhuma. Estava assim em produção.
+ *
+ * A saída é a que a própria documentação do Next prescreve: extrair o campo
+ * para uma variável e espalhá-la em cada `openGraph`.
+ *
+ * O sufixo de `pt` é gerado pelo Next porque `(home)` é grupo de rota. É
+ * **estável entre builds e máquinas** (o que muda a cada build é a query de
+ * cache, que não escrevemos aqui), mas não é derivável do código: por isso
+ * `e2e/marca.spec.ts` busca as duas URLs e exige 200 com `image/png`. Se um
+ * dia o Next mudar o esquema, o teste falha alto em vez de o site passar a
+ * servir uma imagem de link quebrada em silêncio.
+ */
+const ogImagePath: Record<Locale, string> = {
+  pt: "/opengraph-image-12gd74",
+  en: "/en/opengraph-image",
+};
+
+/**
+ * O bloco de imagem para espalhar em `openGraph` e `twitter`.
+ *
+ * Dimensões e `alt` saem de `src/components/og-image.tsx`, que é quem desenha,
+ * para não existirem duas verdades sobre a mesma imagem.
+ */
+export function ogImageMeta(lang: Locale) {
+  return {
+    url: ogImagePath[lang],
+    width: ogImageSize.width,
+    height: ogImageSize.height,
+    alt: ogImageAlt[lang],
+  };
+}
+
+/**
  * Metadados de uma rota do manifesto, num idioma.
  *
  * Cada rota tem título e descrição próprios, que é o que faz dividir a página
@@ -67,11 +109,13 @@ export function buildRouteMetadata(id: RouteId, lang: Locale): Metadata {
       siteName: d.meta.ogSiteName,
       title: route.title,
       description: route.description,
+      images: [ogImageMeta(lang)],
     },
     twitter: {
       card: "summary_large_image",
       title: route.title,
       description: route.description,
+      images: [ogImageMeta(lang)],
     },
     robots: {
       index: true,
@@ -118,11 +162,13 @@ export function buildProjectMetadata(slug: string, lang: Locale): Metadata {
       siteName: d.meta.ogSiteName,
       title: project.title,
       description: project.tagline,
+      images: [ogImageMeta(lang)],
     },
     twitter: {
       card: "summary_large_image",
       title: project.title,
       description: project.tagline,
+      images: [ogImageMeta(lang)],
     },
     robots: {
       index: true,

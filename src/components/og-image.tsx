@@ -17,6 +17,19 @@ import { dictionaries, type Locale } from "@/i18n";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
+/**
+ * O texto alternativo da imagem, por idioma.
+ *
+ * Mora aqui, e não nos dois `opengraph-image.tsx`, porque agora tem dois
+ * consumidores: o `alt` que o Next exige no módulo do segmento e o
+ * `openGraph.images` que o `metadata.ts` monta para as demais rotas. Duas
+ * cópias divergindo em silêncio era o defeito que o M4 veio resolver.
+ */
+export const ogImageAlt: Record<Locale, string> = {
+  pt: "Pedro Levi | Desenvolvedor Full Stack",
+  en: "Pedro Levi | Full Stack Developer",
+};
+
 export function ogImage(lang: Locale): ImageResponse {
   const d = dictionaries[lang];
 
