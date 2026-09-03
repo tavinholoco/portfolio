@@ -24,7 +24,7 @@ export function Identity({ lang }: { lang: Locale }) {
     <Section id="identidade" variant="plain">
       <div className="grid gap-10 sm:grid-cols-[auto_minmax(0,1fr)] sm:items-start sm:gap-14">
         <Image
-          src={profile.avatarUrl}
+          src={profile.avatar}
           alt={profile.name}
           width={160}
           height={160}
