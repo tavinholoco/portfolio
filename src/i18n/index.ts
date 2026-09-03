@@ -1,3 +1,5 @@
+import type { StaticImageData } from "next/image";
+
 import type { ProjectCategory } from "@/data/projects";
 import type { RouteId } from "@/lib/routes";
 import type { TimelineChapter } from "@/data/career";
@@ -58,7 +60,8 @@ export type ClientProject = {
   /** Ano de entrega, exibido como coluna na linha do showcase. */
   year: string;
   url: string;
-  image: string;
+  /* Import, nunca caminho em string: ver a nota em src/data/projects.ts. */
+  image: StaticImageData;
 };
 
 export type SkillBlock = {

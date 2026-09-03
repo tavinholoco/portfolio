@@ -212,7 +212,7 @@ Ordem da nav: Home, Clientes, Projetos, Info, Contato.
 - Viewport 1440x900, `deviceScaleFactor: 2`, `colorScheme: "dark"`
 - `waitForLoadState("networkidle")` + espera fixa para animações de entrada assentarem
 - Oculta banners e barras de dev via `page.addStyleTag`
-- Salva em `public/projects/<slug>.webp`
+- Salva em `src/assets/projects/<slug>.webp` (era `public/`, ver §15.4)
 - Roda sob demanda (`pnpm capture`), **nunca no CI**, para não deixar o pipeline dependente de sites de terceiros
 
 ### 4.3 Correção de dados descoberta na investigação
@@ -1595,3 +1595,102 @@ Três guardas antigas eram as que importavam aqui, e passaram:
 
 Movimento reduzido continua coberto pelo `@media (prefers-reduced-motion)` global,
 mais o `motion-reduce:animate-none` que subiu junto com o fade.
+
+---
+
+## 15. As prévias que não carregavam na primeira visita (03/09/2026)
+
+Relato do Pedro: entrando pela primeira vez, as imagens dos projetos não
+carregavam, e depois de recarregar voltavam. É o tipo de defeito que custa caro,
+porque quem avalia o portfólio vê a primeira visita e não a segunda.
+
+### 15.1 O que não reproduz
+
+Contra a URL de produção, em Chromium de verdade e sempre com cache frio:
+
+| Cenário | Resultado |
+|---|---|
+| `/projetos/` por carregamento direto, desktop | 3 de 3, prioritária pedida aos 158ms |
+| Navegação interna clicando "Projetos" | 3 de 3 |
+| Mobile 390x844 | 3 de 3, moldura vazia por 65ms |
+| Mobile em **Slow 4G + CPU 4x** | 3 de 3, moldura vazia por 506ms |
+| `/clientes/` em Slow 4G | 1 de 1 |
+
+Duas medições minhas se mostraram erradas no caminho, e ficam registradas porque
+são armadilhas repetíveis. O `X-Vercel-Cache: MISS` inicial era artefato de
+`curl` sem `Accept: image/webp`, pedindo uma variante JPEG que navegador nenhum
+pede; com o header certo é HIT de 7 dias. E um "+3140ms" era relógio de parede
+incluindo a subida do browser, não tempo de página.
+
+### 15.2 Defeito 1: as prévias inativas ficavam em `lazy`
+
+Reproduzido por acidente, medindo com o pane do navegador **oculto**: a primeira
+imagem carregava e as outras duas ficavam com `currentSrc` vazio, sem pedir nada,
+mesmo depois de 3s. Chrome não busca imagem `lazy` em aba de segundo plano, e
+abrir link em aba de fundo é exatamente o que alguém faz ao comparar vários
+candidatos. Mesmo efeito com Memory Saver e Data Saver.
+
+O que torna isto um defeito, e não uma escolha, é que a **regra 2** do próprio
+componente diz montar tudo de uma vez para não haver "flash de carregamento no
+primeiro hover de cada item". A montagem era adiantada; a **busca** continuava
+preguiçosa, porque `lazy` é o padrão do `next/image` sem `priority`. A regra
+estava metade implementada.
+
+### 15.3 Defeito 2: toda imagem revalidava na rede a cada visita
+
+| Origem | `Cache-Control` da imagem otimizada |
+|---|---|
+| `next start` local, mesmo build | `public, max-age=14400, must-revalidate` |
+| **Produção na Vercel** | `public, max-age=0, must-revalidate` |
+
+Medido o efeito: ao recarregar, **três respostas 304**, uma por imagem. O
+navegador tinha os bytes no disco e ainda assim perguntava ao servidor antes de
+usar. São três round trips antes de qualquer prévia pintar.
+
+A causa está na doc do Next em `node_modules`: o max-age da imagem otimizada é o
+maior entre `minimumCacheTTL` e o `Cache-Control` do upstream. Arquivo em
+`public/` é servido pela URL literal, não tem como ser versionado por conteúdo, e
+sai com `max-age=0`. A mesma doc prescreve a saída, que é o Static Image Import.
+
+**A Vercel não zera tudo, e isso foi conferido antes de escolher o caminho:**
+asset com hash em `/_next/static/` volta de produção com
+`max-age=31536000, immutable`. O problema é do que não tem hash.
+
+### 15.4 As correções
+
+1. **As prévias inativas passam a ser buscadas.** Só a primeira leva `priority`,
+   que é o que gera o `<link rel="preload">`: dar preload a todas colocaria
+   concorrentes na frente do candidato a LCP, que é justamente a primeira. As
+   demais vão em `loading="eager"` com `fetchPriority="low"`, buscadas sem
+   disputar banda. São 3 imagens de 14 a 27KB, todas dentro da viewport.
+2. **Os arquivos saíram de `public/` para `src/assets/projects/`** e passaram a
+   ser importados. A URL vira `/_next/static/media/<hash>.webp` e o
+   `Cache-Control` da imagem otimizada vira `max-age=315360000, immutable`,
+   medido no build local. Acaba a revalidação por visita. O `pnpm capture`
+   grava no caminho novo, e a URL antiga em `/projects/` passou a devolver 404,
+   o que confirma que não sobrou cópia sendo servida sem hash.
+
+O `image` deixou de ser string e virou `StaticImageData` em `ProjectMeta`, no
+`ShowcaseItem` e no `Dict`, então os dois dicionários importam o mesmo arquivo.
+
+### 15.5 Verificação
+
+146 unitários e **154 E2E**, com três guardas novas em `e2e/showcase.spec.ts`:
+nenhuma prévia em `lazy` nas duas rotas, todas terminando carregadas, e a imagem
+otimizada respondendo com `immutable` a partir de um upstream com hash.
+
+**Controle negativo executado**, e ele revelou o alcance real de cada rota:
+devolvendo o `lazy`, `/projetos/` falha e `/clientes/` não, porque hoje aquela
+rota tem uma prévia só e ela é justamente a `priority`. A guarda de `/clientes/`
+fica latente, valendo a partir do segundo cliente com imagem. Isso está escrito
+no teste, para ninguém ler o verde dele como prova.
+
+> ⚠️ A primeira tentativa de controle negativo deu falso verde, e vale o
+> registro: o `reuseExistingServer` do Playwright pegou o servidor que eu tinha
+> subido **antes** do rebuild, exatamente a armadilha que o `CLAUDE.md` já
+> documenta. O sintoma foi o teste passar com o defeito de volta, mais quatro
+> falhas sem relação. Derrubar a porta 3000 antes resolveu.
+
+O que não deu para verificar daqui é o header em produção, que só muda depois do
+deploy. A previsão é `immutable`, e ela é falseável: basta repetir o `curl` do
+§15.3 contra a URL de produção depois que subir.

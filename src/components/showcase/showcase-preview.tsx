@@ -33,6 +33,31 @@ export function ShowcasePreview({
   activeIndex: number;
   alt: string;
 }) {
+  /*
+   * A regra 2 aplicada também à busca, e não só à montagem.
+   *
+   * Montar tudo de uma vez não adianta se o navegador não baixar as imagens:
+   * com `loading="lazy"`, que é o padrão do `next/image` sem `priority`, as
+   * três inativas ficavam à mercê da heurística do Chrome. Em aba de segundo
+   * plano ele simplesmente não busca, e foi assim que apareceram com
+   * `currentSrc` vazio depois de 3s numa medição. Quem abre o portfólio em aba
+   * de fundo, que é o que um recrutador faz com vários candidatos de uma vez,
+   * passava o mouse na lista e via moldura vazia. Mesmo efeito com Memory
+   * Saver e Data Saver.
+   *
+   * São 3 imagens de 14 a 27KB, todas dentro da viewport desde o primeiro
+   * paint. Buscar as três é mais barato do que a troca falhar.
+   *
+   * Só a primeira leva `priority`, que é o que gera o `<link rel="preload">`.
+   * Dar preload às quatro colocaria três concorrentes na frente do candidato a
+   * LCP, que é justamente a primeira. As outras vão em `eager` com
+   * `fetchPriority="low"`: buscadas sem disputar banda com ela.
+   */
+  const carga = (index: number) =>
+    index === 0
+      ? ({ priority: true, fetchPriority: "high" } as const)
+      : ({ loading: "eager", fetchPriority: "low" } as const);
+
   return (
     <div className="lg:sticky lg:top-[calc(var(--pad)*3)]">
       <div className="relative aspect-16/10 w-full overflow-hidden rounded-md border border-current/15">
@@ -62,7 +87,7 @@ export function ShowcasePreview({
                     fill
                     sizes="200px"
                     className="object-cover object-top"
-                    priority={index === 0}
+                    {...carga(index)}
                   />
                 </div>
               </div>
@@ -87,10 +112,9 @@ export function ShowcasePreview({
                   `priority` já gera o `<link rel="preload">`, mas **não** põe
                   `fetchpriority` nele, e é isso que o `lcp-discovery-insight`
                   do Lighthouse cobra em `priorityHinted`. Explicitar custa um
-                  atributo.
+                  atributo. As demais vão em `eager`: ver `carga` acima.
                 */
-                priority={index === 0}
-                fetchPriority={index === 0 ? "high" : "auto"}
+                {...carga(index)}
               />
             )}
           </div>

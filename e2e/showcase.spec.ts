@@ -170,3 +170,87 @@ test.describe("showcase: toque", () => {
     }
   });
 });
+
+/**
+ * As propriedades das imagens do preview que quebram em silêncio.
+ *
+ * Nenhuma das duas aparece em captura, em asserção de DOM comum ou no
+ * Lighthouse: o site parece funcionar, e a diferença só aparece na primeira
+ * visita de alguém com aba em segundo plano ou conexão ruim.
+ */
+test.describe("as imagens do preview", () => {
+  for (const rota of ["/projetos/", "/clientes/"]) {
+    test(`${rota}: nenhuma prévia fica em lazy`, async ({ page }) => {
+      await page.goto(rota);
+
+      /*
+       * A regra 2 do showcase manda montar tudo de uma vez para a troca no
+       * hover ser instantânea, mas montar não é buscar. Com o `lazy` que o
+       * `next/image` põe por padrão, o Chrome não busca imagem de aba em
+       * segundo plano, e a troca caía numa moldura vazia. Medido: com a aba
+       * oculta, 1 de 3 carregava.
+       *
+       * A primeira não declara `loading` porque leva `priority`, que já
+       * implica eager. As demais precisam declarar.
+       *
+       * **Controle negativo executado**, e ele revela o alcance real de cada
+       * rota: devolvendo o `lazy`, `/projetos/` falha, e `/clientes/` não,
+       * porque hoje aquela rota tem uma prévia só e ela é justamente a
+       * `priority`. A guarda de `/clientes/` fica latente, valendo a partir do
+       * segundo cliente com imagem.
+       */
+      /* Sem isto o teste passaria numa página que perdeu as imagens. */
+      expect(await page.locator("img").count()).toBeGreaterThan(0);
+
+      const preguicosas = await page.evaluate(() =>
+        [...document.querySelectorAll("img")]
+          .filter((img) => img.loading === "lazy")
+          .map((img) => img.alt)
+      );
+      expect(preguicosas, "prévia em lazy volta a falhar em aba de fundo").toEqual(
+        []
+      );
+
+      /* E todas precisam de fato terminar carregadas. */
+      const falharam = await page.evaluate(() =>
+        [...document.querySelectorAll("img")]
+          .filter((img) => !img.complete || img.naturalWidth === 0)
+          .map((img) => img.alt)
+      );
+      expect(falharam).toEqual([]);
+    });
+  }
+
+  test("são servidas com immutable, sem revalidar a cada visita", async ({
+    page,
+    request,
+  }) => {
+    await page.goto("/projetos/");
+
+    /*
+     * Enquanto os arquivos viviam em `public/`, a URL era literal, não dava
+     * para versionar por conteúdo, e a Vercel entregava
+     * `max-age=0, must-revalidate`: o navegador tinha os bytes no disco e
+     * ainda assim revalidava na rede a cada visita, três 304 por
+     * carregamento. Importados de `@/assets/`, viram
+     * `/_next/static/media/<hash>.webp` e ganham `immutable`.
+     *
+     * O teste ancora no `url=` da query, que é o que denuncia um caminho de
+     * `public/` voltando por engano.
+     */
+    const src = await page.evaluate(
+      () => document.querySelector("img")?.currentSrc ?? ""
+    );
+    expect(src, "a prévia precisa passar pelo otimizador").toContain(
+      "/_next/image"
+    );
+    expect(
+      decodeURIComponent(src),
+      "o upstream precisa ser um asset com hash, não um caminho de public/"
+    ).toContain("/_next/static/media/");
+
+    const resposta = await request.get(src);
+    expect(resposta.status()).toBe(200);
+    expect(resposta.headers()["cache-control"]).toContain("immutable");
+  });
+});

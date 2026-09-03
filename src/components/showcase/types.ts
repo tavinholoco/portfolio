@@ -1,4 +1,6 @@
 
+import type { StaticImageData } from "next/image";
+
 /**
  * Um item do showcase, servindo tanto Projetos quanto Clientes.
  *
@@ -26,7 +28,7 @@ export type ShowcaseItem = {
   category: string;
   year: string;
   /** Ausente cai no mockup CSS de janela de browser (seção 4.4). */
-  image?: string;
+  image?: StaticImageData;
   /**
    * Como enquadrar a imagem no slot 16:10.
    *
