@@ -190,7 +190,7 @@ Dois lugares, nesta ordem:
 - A **ordem** de `projectMetas` é curadoria, não cronologia: o ano é apenas mais uma coluna.
 - O `problem` aparece junto do preview: é ele que faz a lista argumentar em vez de só catalogar.
 - Sem `image`, o preview cai no **mockup de janela em CSS**, que é o placeholder oficial. Preencher `image` depois não exige mudar componente nenhum.
-- Para gerar a imagem: acrescente o alvo em `capture/previews.spec.ts` e rode `pnpm capture`. O script fotografa o site publicado em 16:10, converte para WebP pelo próprio Chromium (sem dependência de processamento de imagem) e salva em `public/projects/`. Projeto **mobile** não tem página web: aponte para uma print já existente na lista `imagens` do mesmo arquivo, e o preview a enquadra como tela de celular.
+- Para gerar a imagem: acrescente o alvo em `capture/previews.spec.ts` e rode `pnpm capture`. O script fotografa o site publicado em 16:10, converte para WebP pelo próprio Chromium (sem dependência de processamento de imagem) e salva em `src/assets/projects/`, de onde os dados o importam (lei 19 do CLAUDE.md). Projeto **mobile** não tem página web: aponte para uma print já existente na lista `imagens` do mesmo arquivo, e o preview a enquadra como tela de celular.
 - A linha mostra as **3 primeiras** tecnologias da stack; a lista completa fica na página do case.
 
 ### 3. Acrescentar um trabalho de cliente
@@ -302,7 +302,7 @@ pnpm deploy
 | `pnpm test` | Testes unitários (Vitest) |
 | `pnpm test:e2e` | Testes E2E (Playwright), requer `pnpm build` antes |
 | `pnpm look` | Captura telas do site em `.captures/`, requer `pnpm build` antes |
-| `pnpm capture` | Gera os previews do showcase em `public/projects/`, sob demanda |
+| `pnpm capture` | Gera os previews do showcase em `src/assets/projects/`, sob demanda |
 | `pnpm waves` | Mede para que lado as cristas do fundo viajam, compilando o GLSL real |
 | `pnpm favicon` | Regrava o `favicon.ico` a partir do `icon.svg`, em 6 tamanhos |
 | `pnpm deploy` | Deploy de produção na Vercel |

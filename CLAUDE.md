@@ -6,11 +6,11 @@ Este portfólio está na **V3.5** (visual minimalista, identidade fixa no canto 
 
 Antes de mexer no frontend, leia a **seção 0 do `PLANO-V3-PORTFOLIO.md`** e depois a **seção 12**, que é a V3.5 e revoga várias decisões das anteriores (o `>_`, a Home com os 5 passos, os cabeçalhos de Clientes e Projetos, o campo de noise, o Lenis e as trocas de paleta). A avaliação da V3.5 está na **§12.10**.
 
-Depois dela veio a **seção 13**, o passe de aperfeiçoamento, com os cinco milestones fechados em 31/08/2026, e a **seção 14**, que levou a entrada suave do bloco de introdução para a seção inteira. **Leia a §13.3 antes de tentar otimizar performance:** o M3 mediu três hipóteses plausíveis e duas pioraram o site, e a §13.4 lista o que ficou de fora e por quê. Repetir aquilo é gastar tempo num caminho já medido.
+Depois dela veio a **seção 13**, o passe de aperfeiçoamento, com os cinco milestones fechados em 31/08/2026, a **seção 14**, que levou a entrada suave do bloco de introdução para a seção inteira, e a **seção 15**, que consertou as prévias do showcase que não carregavam na primeira visita. **Leia a §13.3 antes de tentar otimizar performance:** o M3 mediu três hipóteses plausíveis e duas pioraram o site, e a §13.4 lista o que ficou de fora e por quê. Repetir aquilo é gastar tempo num caminho já medido.
 
 O `README.md` documenta a arquitetura de camadas. Os três estão em dia. Os planos V1 e V2 na raiz são histórico.
 
-Estado: **146 unitários e 151 E2E** passando. O salto de 137 para 151 é da §13.7, que cobriu a imagem de link nas 12 rotas. A queda anterior, de 168 para 137, foi do M1 e não é perda de cobertura: cinco asserções passaram a rodar num carregamento só, e a auditoria responsiva subiu de 5 rotas × 4 larguras para **6 × 7**.
+Estado: **146 unitários e 154 E2E** passando. O salto de 137 para 151 é da §13.7, que cobriu a imagem de link nas 12 rotas, e as três últimas são as guardas de imagem da §15. A queda anterior, de 168 para 137, foi do M1 e não é perda de cobertura: cinco asserções passaram a rodar num carregamento só, e a auditoria responsiva subiu de 5 rotas × 4 larguras para **6 × 7**.
 
 Lighthouse com A11y, Best Practices e SEO em 100 nas 5 rotas e CLS zero. Perf 99 a 100 no desktop e, **em produção, 96 a 98 no mobile**, mediana de 3 rodadas por rota.
 
@@ -53,10 +53,12 @@ Estas não geram erro no console. Se forem violadas, o site parece funcionar e o
    > **E os dois caminhos terminam em barra.** Com `trailingSlash: true`, URL sem barra devolve 308 antes de servir a imagem. O E2E exige 200 com `maxRedirects: 0`, porque seguir redirecionamento é o padrão do Playwright, do `curl -L` e dos scrapers: era assim que o salto ficava invisível.
 18. **Medir performance em `localhost` mede a sua máquina, não o site.** O mesmo build dá 80 a 94 no `next start` e **96 a 98 em produção**, porque a Vercel serve com CDN, HTTP/2 e Brotli. Pior: o spread local chega a 14 pontos numa rota, e foi ruído desse tipo que produziu o "74" que a documentação carregou por dias. Este projeto gastou uma auditoria inteira e um milestone perseguindo um LCP que a CDN já resolvia. **Meça contra a URL de produção, com `--only-categories=performance` (nunca `--preset=perf`, que troca o throttling para `devtools` calado) e mediana de 3.** Tabela lado a lado na §13.6 do plano.
 
+19. **Imagem de prévia vive em `src/assets/`, importada, nunca em `public/`.** As duas metades disto quebram caladas. Arquivo em `public/` é servido pela URL literal, não tem como ser versionado por conteúdo, e a Vercel entrega com `max-age=0, must-revalidate`: o navegador tem os bytes no disco e revalida na rede a cada visita, três 304 por carregamento. Importado de `@/assets/`, vira `/_next/static/media/<hash>.webp` e ganha `immutable`. E toda prévia do showcase precisa de `loading="eager"`, menos a primeira, que leva `priority`: com o `lazy` que o `next/image` põe por padrão, o Chrome não busca imagem de aba em segundo plano e a troca no hover cai numa moldura vazia. Nada disso aparece em captura nem no Lighthouse. Guardas em `e2e/showcase.spec.ts`, e a §15 do plano tem as medições.
+
 ## Ferramentas do projeto
 
 - **`pnpm look`** captura telas do site em `.captures/`, para inspecionar o resultado visual. Parametrizado por `LOOK_PATHS`, `LOOK_THEMES`, `LOOK_FULL`, `LOOK_SCROLL`, `LOOK_HOVER`, `LOOK_WIDTH`, `LOOK_HEIGHT`. No Git Bash do Windows, prefixe com `MSYS_NO_PATHCONV=1`.
-- **`pnpm capture`** gera os previews do showcase em `public/projects/`. Sob demanda, nunca no CI.
+- **`pnpm capture`** gera os previews do showcase em `src/assets/projects/` (era `public/`, ver lei 19). Sob demanda, nunca no CI.
 - **`pnpm waves`** mede para que lado as cristas do fundo viajam, compilando o GLSL real num contexto próprio. Existe porque a direção invertida não gera erro nenhum.
 - **`pnpm favicon`** regrava o `favicon.ico` a partir do `icon.svg`. Rode sempre que mexer no ícone, senão os dois divergem.
 - **`e2e/responsivo.spec.ts`** varre 6 rotas × 7 larguras (320 a 2560, mais paisagem) com 5 asserções por carregamento: rolagem horizontal, colisão com o bloco de identidade fixo, texto vazando a moldura, texto truncado e **o header medido contra a viewport**. Essa quinta existe porque o header é `fixed`, e o que transborda de um `fixed` não entra no `scrollWidth` do documento: era assim que o menu ficava inalcançável em 320, 360 e 390px sem nenhuma auditoria acusar. A rota de case entra na lista porque é onde vive o título mais longo do site. Roda no `pnpm test:e2e`.
