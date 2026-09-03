@@ -221,36 +221,56 @@ test.describe("as imagens do preview", () => {
     });
   }
 
-  test("são servidas com immutable, sem revalidar a cada visita", async ({
-    page,
-    request,
-  }) => {
-    await page.goto("/projetos/");
+  /*
+   * Nome de arquivo com hash sob `/_next/static/`, que é o que separa um asset
+   * do pipeline de um caminho de `public/`.
+   *
+   * O segmento `immutable/` é opcional porque **as duas formas existem**: o
+   * `next start` local serve `/_next/static/media/`, e a Vercel serve
+   * `/_next/static/immutable/media/`. A primeira versão desta asserção exigia
+   * o caminho local e teria acusado falha à toa em quem apontasse a suíte para
+   * produção. Foi conferido nos dois.
+   */
+  const COM_HASH =
+    /^\/_next\/static\/(immutable\/)?media\/.+\.[a-z0-9_-]{6,}\.(webp|avif|png|jpe?g)$/i;
 
-    /*
-     * Enquanto os arquivos viviam em `public/`, a URL era literal, não dava
-     * para versionar por conteúdo, e a Vercel entregava
-     * `max-age=0, must-revalidate`: o navegador tinha os bytes no disco e
-     * ainda assim revalidava na rede a cada visita, três 304 por
-     * carregamento. Importados de `@/assets/`, viram
-     * `/_next/static/media/<hash>.webp` e ganham `immutable`.
-     *
-     * O teste ancora no `url=` da query, que é o que denuncia um caminho de
-     * `public/` voltando por engano.
-     */
-    const src = await page.evaluate(
-      () => document.querySelector("img")?.currentSrc ?? ""
-    );
-    expect(src, "a prévia precisa passar pelo otimizador").toContain(
-      "/_next/image"
-    );
-    expect(
-      decodeURIComponent(src),
-      "o upstream precisa ser um asset com hash, não um caminho de public/"
-    ).toContain("/_next/static/media/");
+  for (const rota of ["/projetos/", "/clientes/", "/info/"]) {
+    test(`${rota}: imagens com hash, servidas com immutable`, async ({
+      page,
+      request,
+    }) => {
+      await page.goto(rota);
 
-    const resposta = await request.get(src);
-    expect(resposta.status()).toBe(200);
-    expect(resposta.headers()["cache-control"]).toContain("immutable");
-  });
+      /*
+       * `src` e não `currentSrc`: o avatar de `/info/` é lazy e fica abaixo da
+       * dobra, então `currentSrc` vem vazio até ele carregar. O atributo está
+       * sempre lá, e serve para o que este teste quer provar.
+       *
+       * `/info/` entra na lista por causa desse avatar, que ficou em `public/`
+       * quando as prévias saíram e continuou revalidando na rede a cada visita.
+       */
+      const fontes = await page.evaluate(() =>
+        [...document.querySelectorAll("img")].map((i) => i.currentSrc || i.src)
+      );
+      expect(fontes.length, "a rota precisa ter imagem para o teste valer").toBeGreaterThan(0);
+
+      for (const src of fontes) {
+        expect(src, "a imagem precisa passar pelo otimizador").toContain(
+          "/_next/image"
+        );
+
+        const upstream = decodeURIComponent(
+          new URL(src).searchParams.get("url") ?? ""
+        );
+        expect(
+          upstream,
+          "o upstream precisa ser asset com hash, não um caminho de public/"
+        ).toMatch(COM_HASH);
+
+        const resposta = await request.get(src);
+        expect(resposta.status()).toBe(200);
+        expect(resposta.headers()["cache-control"]).toContain("immutable");
+      }
+    });
+  }
 });
