@@ -1748,3 +1748,79 @@ entrar na rede de segurança. E2E foram de 154 para **156**.
 **Controle negativo executado:** devolvendo o avatar para `public/`, só `/info/`
 falha, e as outras duas rotas seguem verdes, que é exatamente o alcance
 esperado.
+
+### 15.7 A cota do otimizador, e a saída dela (03/09/2026)
+
+A validação pós-merge da §15.6 encontrou o avatar de `/info/` e `/en/info/`
+respondendo **`402 Payment Required`** em produção, com
+`X-Vercel-Error: OPTIMIZED_IMAGE_REQUEST_PAYMENT_REQUIRED`. A cota de otimização
+de imagem da conta tinha acabado.
+
+O padrão era nítido: variante já transformada servia 200, variante nova voltava
+402.
+
+| Imagem | w=256 | w=384 | w=640 | w=828 | w=1080 | w=3840 |
+|---|---|---|---|---|---|---|
+| avatar | **402** | **402** | **402** | | | 200 |
+| newra-news | 200 | **402** | 200 | **402** | **402** | 200 |
+
+O avatar aparece em 160px e pede `w=256`, justamente uma das que faltavam.
+
+#### A causa foi a própria correção da §15
+
+Trocar `public/` por import muda a URL, porque ela passa a carregar hash. **Toda
+transformação em cache foi invalidada de uma vez**, para cada largura e cada
+formato das cinco imagens, e a regeneração esgotou o que restava da cota. O
+raciocínio de cache continua certo e as prévias seguiram funcionando; o que não
+foi avaliado foi o custo de migração num plano com cota.
+
+#### A saída, e por que ela é boa e não um remendo
+
+As cinco imagens são do projeto e aparecem em **tamanho conhecido e fixo**. O
+otimizador existia para adivinhar tamanho, e não havia o que adivinhar. Então a
+origem foi reduzida para o que a tela usa e o `/_next/image` saiu do caminho com
+`images.unoptimized`.
+
+| Arquivo | Antes | Depois |
+|---|---|---|
+| `newra-news.webp` | 1440x900, 96.3 KB | 1000x625, **47.9 KB** |
+| `dandarkness.webp` | 1440x900, 51.5 KB | 1000x625, **23.9 KB** |
+| `trak-assessoria.webp` | 1440x900, 44.2 KB | 1000x625, **23.3 KB** |
+| `repertorio-progressivo.webp` | 385x814, 16.4 KB | inalterado, já menor que o alvo |
+| `avatar` | 460x460 JPEG, 49.3 KB | 320x320 **WebP**, **20.5 KB** |
+
+Mil pixels cobrem os cerca de 500px de CSS que a prévia ocupa em 1440 e os cerca
+de 350px num celular de 390, com densidade 2 nos dois casos. A qualidade do WebP
+caiu de 0.82 para 0.75, medido em `newra-news`: 57.2 KB contra 47.9 KB, mesma
+dimensão.
+
+#### O trade-off, dito com número e não com adjetivo
+
+Em `/projetos/` são **87.7 KB** de imagem agora, contra **49 KB** que o
+otimizador entregava numa tela de densidade 1 e cerca de **109 KB** numa de
+densidade 2. Ou seja: **tela 1x paga quase o dobro, tela 2x sai na frente**, e
+não existe mais o modo de falha por cota nem o salto extra pelo `/_next/image`.
+Foi escolha deliberada, e é reversível: basta desligar `unoptimized`, aceitando
+a cota de volta.
+
+O que se perde de fato é AVIF automático e variante por largura. Reconstruir
+isso à mão, com `<picture>` e vários arquivos, seria refazer o otimizador dentro
+do repositório, e não paga.
+
+#### Efeito colateral: `sizes` virou prop morta
+
+Sem otimizador o Next não gera `srcset`, e **descarta o `sizes` calado**. Ele
+saiu dos três `<Image>`, e a razão que ele documentava (a largura de exibição)
+mudou de casa para `LARGURA_MAXIMA` em `capture/previews.spec.ts`, que é onde
+ela agora decide de fato, porque o arquivo versionado é o que chega ao
+navegador.
+
+#### As guardas
+
+As três da §15.6 foram reescritas em torno da nova invariante, e a principal é
+contraintuitiva: a imagem **não pode** passar pelo otimizador. É o que impede
+alguém de religar `images.unoptimized` por parecer otimização e trazer o 402 de
+volta.
+
+**Controle negativo executado:** com `unoptimized: false`, as três rotas falham.
+E2E seguem em **156**.
