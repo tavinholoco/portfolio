@@ -220,4 +220,37 @@ test.describe("as imagens do preview", () => {
       expect(falharam).toEqual([]);
     });
   }
+
+  test("são servidas com immutable, sem revalidar a cada visita", async ({
+    page,
+    request,
+  }) => {
+    await page.goto("/projetos/");
+
+    /*
+     * Enquanto os arquivos viviam em `public/`, a URL era literal, não dava
+     * para versionar por conteúdo, e a Vercel entregava
+     * `max-age=0, must-revalidate`: o navegador tinha os bytes no disco e
+     * ainda assim revalidava na rede a cada visita, três 304 por
+     * carregamento. Importados de `@/assets/`, viram
+     * `/_next/static/media/<hash>.webp` e ganham `immutable`.
+     *
+     * O teste ancora no `url=` da query, que é o que denuncia um caminho de
+     * `public/` voltando por engano.
+     */
+    const src = await page.evaluate(
+      () => document.querySelector("img")?.currentSrc ?? ""
+    );
+    expect(src, "a prévia precisa passar pelo otimizador").toContain(
+      "/_next/image"
+    );
+    expect(
+      decodeURIComponent(src),
+      "o upstream precisa ser um asset com hash, não um caminho de public/"
+    ).toContain("/_next/static/media/");
+
+    const resposta = await request.get(src);
+    expect(resposta.status()).toBe(200);
+    expect(resposta.headers()["cache-control"]).toContain("immutable");
+  });
 });

@@ -16,7 +16,7 @@ import { expect, test, type Page } from "@playwright/test";
  *   Progressivo, que é app React Native: a imagem vem das prints da V2 no
  *   próprio repositório, e o preview a trata como tela de celular.
  *
- * As duas terminam em WebP versionado em `public/projects/<slug>.webp`. Depois
+ * As duas terminam em WebP versionado em `src/assets/projects/<slug>.webp`. Depois
  * de rodar, aponte `image` em `src/data/projects.ts` (ou no dicionário, para
  * clientes) para o arquivo gerado. Nenhum componente muda.
  */
@@ -76,7 +76,7 @@ async function paraWebp(
   );
 
   const buffer = Buffer.from(base64, "base64");
-  mkdirSync("public/projects", { recursive: true });
+  mkdirSync("src/assets/projects", { recursive: true });
   writeFileSync(destino, buffer);
   return buffer.length;
 }
@@ -129,7 +129,7 @@ for (const alvo of sites) {
          estilo nem script do site capturado. */
       const conversor = await context.newPage();
       esperaTamanhoSao(
-        await paraWebp(conversor, png, `public/projects/${alvo.slug}.webp`)
+        await paraWebp(conversor, png, `src/assets/projects/${alvo.slug}.webp`)
       );
     } finally {
       await context.close();
@@ -149,7 +149,7 @@ for (const alvo of imagens) {
         await paraWebp(
           conversor,
           await resposta.body(),
-          `public/projects/${alvo.slug}.webp`
+          `src/assets/projects/${alvo.slug}.webp`
         )
       );
     } finally {

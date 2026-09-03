@@ -1,3 +1,5 @@
+import dandarkness from "@/assets/projects/dandarkness.webp";
+
 import type { Dict } from "./index";
 
 /** Textos do site em português (Brasil). */
@@ -198,7 +200,7 @@ export const pt: Dict = {
         stack: ["Next.js", "Tailwind CSS", "Vercel"],
         year: "2026",
         url: "https://dandarkness.vercel.app/",
-        image: "/projects/dandarkness.webp",
+        image: dandarkness,
       },
     ],
   },
