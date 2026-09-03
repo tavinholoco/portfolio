@@ -227,15 +227,15 @@ test.describe("as imagens do preview", () => {
    *
    * O segmento `immutable/` é opcional porque **as duas formas existem**: o
    * `next start` local serve `/_next/static/media/`, e a Vercel serve
-   * `/_next/static/immutable/media/`. A primeira versão desta asserção exigia
-   * o caminho local e teria acusado falha à toa em quem apontasse a suíte para
-   * produção. Foi conferido nos dois.
+   * `/_next/static/immutable/media/`. Uma versão anterior desta asserção
+   * exigia o caminho local e teria acusado falha à toa em quem apontasse a
+   * suíte para produção. Foi conferido nos dois.
    */
   const COM_HASH =
-    /^\/_next\/static\/(immutable\/)?media\/.+\.[a-z0-9_-]{6,}\.(webp|avif|png|jpe?g)$/i;
+    /\/_next\/static\/(immutable\/)?media\/.+\.[a-z0-9_-]{6,}\.(webp|avif|png|jpe?g)$/i;
 
   for (const rota of ["/projetos/", "/clientes/", "/info/"]) {
-    test(`${rota}: imagens com hash, servidas com immutable`, async ({
+    test(`${rota}: imagens com hash, sem otimizador, com immutable`, async ({
       page,
       request,
     }) => {
@@ -245,26 +245,36 @@ test.describe("as imagens do preview", () => {
        * `src` e não `currentSrc`: o avatar de `/info/` é lazy e fica abaixo da
        * dobra, então `currentSrc` vem vazio até ele carregar. O atributo está
        * sempre lá, e serve para o que este teste quer provar.
-       *
-       * `/info/` entra na lista por causa desse avatar, que ficou em `public/`
-       * quando as prévias saíram e continuou revalidando na rede a cada visita.
        */
       const fontes = await page.evaluate(() =>
         [...document.querySelectorAll("img")].map((i) => i.currentSrc || i.src)
       );
-      expect(fontes.length, "a rota precisa ter imagem para o teste valer").toBeGreaterThan(0);
+      expect(
+        fontes.length,
+        "a rota precisa ter imagem para o teste valer"
+      ).toBeGreaterThan(0);
 
       for (const src of fontes) {
-        expect(src, "a imagem precisa passar pelo otimizador").toContain(
-          "/_next/image"
-        );
-
-        const upstream = decodeURIComponent(
-          new URL(src).searchParams.get("url") ?? ""
-        );
+        /*
+         * A asserção mais importante das três, e a mais contraintuitiva: a
+         * imagem **não** pode passar pelo otimizador.
+         *
+         * O otimizador da Vercel tem cota, e quando ela acaba as
+         * transformações que ainda não existem respondem 402, não 404 e não
+         * 500. Foi o que derrubou o avatar de `/info/` em produção depois que
+         * o hash das URLs mudou e invalidou todas as variantes em cache de uma
+         * vez. As cinco imagens do site já são do tamanho da tela, então o
+         * `/_next/image` só acrescentaria um salto e um modo de falha. Ver
+         * §15.7 e `images.unoptimized` em next.config.ts.
+         */
         expect(
-          upstream,
-          "o upstream precisa ser asset com hash, não um caminho de public/"
+          src,
+          "imagem passando pelo otimizador volta a depender de cota (402)"
+        ).not.toContain("/_next/image");
+
+        expect(
+          decodeURIComponent(new URL(src).pathname),
+          "a imagem precisa ser asset com hash, não um caminho de public/"
         ).toMatch(COM_HASH);
 
         const resposta = await request.get(src);
