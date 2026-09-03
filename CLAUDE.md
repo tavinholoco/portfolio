@@ -6,11 +6,11 @@ Este portfólio está na **V3.5** (visual minimalista, identidade fixa no canto 
 
 Antes de mexer no frontend, leia a **seção 0 do `PLANO-V3-PORTFOLIO.md`** e depois a **seção 12**, que é a V3.5 e revoga várias decisões das anteriores (o `>_`, a Home com os 5 passos, os cabeçalhos de Clientes e Projetos, o campo de noise, o Lenis e as trocas de paleta). A avaliação da V3.5 está na **§12.10**.
 
-Depois dela veio a **seção 13**, o passe de aperfeiçoamento, com os cinco milestones fechados em 31/08/2026. **Leia a §13.3 antes de tentar otimizar performance:** o M3 mediu três hipóteses plausíveis e duas pioraram o site, e a §13.4 lista o que ficou de fora e por quê. Repetir aquilo é gastar tempo num caminho já medido.
+Depois dela veio a **seção 13**, o passe de aperfeiçoamento, com os cinco milestones fechados em 31/08/2026, e a **seção 14**, que levou a entrada suave do bloco de introdução para a seção inteira. **Leia a §13.3 antes de tentar otimizar performance:** o M3 mediu três hipóteses plausíveis e duas pioraram o site, e a §13.4 lista o que ficou de fora e por quê. Repetir aquilo é gastar tempo num caminho já medido.
 
 O `README.md` documenta a arquitetura de camadas. Os três estão em dia. Os planos V1 e V2 na raiz são histórico.
 
-Estado: **141 unitários e 137 E2E** passando. A queda de 168 para 137 é do M1 e não é perda de cobertura: cinco asserções passaram a rodar num carregamento só, e a auditoria responsiva subiu de 5 rotas × 4 larguras para **6 × 7**.
+Estado: **146 unitários e 151 E2E** passando. O salto de 137 para 151 é da §13.7, que cobriu a imagem de link nas 12 rotas. A queda anterior, de 168 para 137, foi do M1 e não é perda de cobertura: cinco asserções passaram a rodar num carregamento só, e a auditoria responsiva subiu de 5 rotas × 4 larguras para **6 × 7**.
 
 Lighthouse com A11y, Best Practices e SEO em 100 nas 5 rotas e CLS zero. Perf 99 a 100 no desktop e, **em produção, 96 a 98 no mobile**, mediana de 3 rodadas por rota.
 
@@ -30,7 +30,7 @@ Lighthouse com A11y, Best Practices e SEO em 100 nas 5 rotas e CLS zero. Perf 99
 
 Estas não geram erro no console. Se forem violadas, o site parece funcionar e o efeito principal some.
 
-1. **Nenhum ancestral de uma seção `blend` pode criar contexto de empilhamento** (`z-index`, `position` com z, `transform`, `opacity < 1`, `filter`, `isolation`, `contain: paint`). Nem o `<body>`, nem o `<main>`, nem wrapper nenhum. Detalhes na seção 6.1 do plano, e teste com controle negativo em `e2e/shell.spec.ts`.
+1. **Nenhum ancestral de uma seção `blend` pode criar contexto de empilhamento** (`z-index`, `position` com z, `transform`, `opacity < 1`, `filter`, `isolation`, `contain: paint`). Nem o `<body>`, nem o `<main>`, nem wrapper nenhum. Detalhes na seção 6.1 do plano, e teste com controle negativo em `e2e/shell.spec.ts`. É por isso que a entrada suave vive no container **dentro** do `<Section>` e nunca num wrapper acima dele: durante o fade a opacidade é menor que 1, e ali em cima isso mataria a mistura de todas as seções (§14.2).
 2. **O fundo da página vive no `:root`, nunca no `body`.**
 3. **Nada pode aplicar `transform` em `html`, `body` ou `main`.** Era a lei do Lenis, que saiu na V3.5. A lei fica: qualquer lib de rolagem suave que envolva o conteúdo num wrapper com `transform` mata o blend de todas as seções de uma vez. Teste em `e2e/shell.spec.ts`.
 4. **Não dê fundo opaco a elemento `sticky`** na mesma página de uma seção `blend`: pinta um retângulo dentro da seção misturada, longe dali.

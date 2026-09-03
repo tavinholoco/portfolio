@@ -33,14 +33,13 @@ export function Contact({ lang }: { lang: Locale }) {
 
   return (
     <Section id="contato" variant="blend">
-      <div className="animate-fade-in motion-reduce:animate-none">
-        <h1 className="mt-4 text-display font-semibold text-balance break-words hyphens-auto">
-          {d.title}
-        </h1>
-        <p className="font-body mt-8 max-w-2xl text-lede opacity-80 text-pretty">
-          {d.description}
-        </p>
-      </div>
+      {/* A entrada suave não está mais aqui: é do container do <Section>. */}
+      <h1 className="mt-4 text-display font-semibold text-balance break-words hyphens-auto">
+        {d.title}
+      </h1>
+      <p className="font-body mt-8 max-w-2xl text-lede opacity-80 text-pretty">
+        {d.description}
+      </p>
 
       {/* Os dois caminhos, em escala grande e separados só por uma linha. */}
       {/*

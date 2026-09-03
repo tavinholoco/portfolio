@@ -39,6 +39,8 @@ O que resta está listado no fim daquela seção, e nada é código.
 
 **A V3.5 veio depois.** O site rodando mostrou o que captura nenhuma mostra: a home ocupava altura demais, o `>_` repetido em 12 lugares destoava, a identidade não tinha âncora fixa e o campo de noise lia como líquido em vez de forma. A seção 12 registra esse passe, com as fases 8 a 13. Se você vai mexer no header, na home, no showcase ou no shader, **leia a seção 12 antes desta**: várias decisões aqui foram revogadas por ela.
 
+**Depois dela vieram a seção 13**, o passe de aperfeiçoamento com os cinco milestones fechados em 31/08/2026, **e a seção 14**, que levou a entrada suave do bloco de introdução para a seção inteira. Antes de tentar otimizar performance, leia a §13.3: três hipóteses plausíveis foram medidas e duas pioraram o site.
+
 ### 0.2 As três coisas que mais quebram este plano
 
 Se você só puder guardar três fatos antes de codar, guarde estes:
@@ -1500,3 +1502,96 @@ Corrigido com barra final nos dois caminhos, e a guarda passou a exigir **200 co
 > **A lição, que é a mesma da §13.6 noutra roupa:** a ferramenta de verificação tinha um padrão conveniente que escondia o defeito. Lá era o `--preset=perf` trocando o throttling; aqui é o "seguir redirecionamento" ligado por toda parte. Vale desconfiar do default quando ele é o que torna o teste fácil de passar.
 
 > **O que fica de lição:** a §13.5 tratou "nenhum teste cobre `og:image`" como dívida de teste, de prioridade baixa, e a recomendação era "poucas linhas na suíte". Eram poucas linhas mesmo, e elas revelaram que **dez de doze rotas estavam quebradas para compartilhamento**. Lacuna de teste não é risco futuro: costuma ser defeito presente que ninguém olhou.
+---
+
+## 14. A entrada suave em toda a seção (03/09/2026)
+
+O Pedro reparou, com o site rodando, que em Info e Contato a entrada suave só
+valia para o título. Está certo, e a causa é maior do que parecia.
+
+### 14.1 O que estava acontecendo
+
+O `animate-fade-in` não estava no título: estava num `<div>` de introdução colado
+à mão em quatro arquivos (`about.tsx`, `contact.tsx`, `project-detail.tsx` e
+`section-intro.tsx`), e cada um desses divs envolvia só o `h1` e o parágrafo de
+abertura. O corpo das seções nunca teve entrada nenhuma.
+
+Medido no navegador contra o build de produção, viewport 1440x900, contando
+elementos de texto acima da dobra no carregamento:
+
+| Rota | Animavam antes | Animam depois |
+|---|---|---|
+| `/info/` | 2 de 16 | 16 de 16 |
+| `/contato/` | 2 de 8 | 8 de 8 |
+| `/clientes/` e `/projetos/` | nenhum: as duas rotas não tinham fade | tudo |
+| `/projetos/[slug]/` | só o cabeçalho do case | 8 de 8 |
+
+Em `/info/` isso era visível de longe: "Sobre mim" e o primeiro parágrafo entravam
+suaves enquanto as quatro métricas e os interesses apareciam secos, na mesma tela.
+
+A home continua sem entrada, e está certo: ela não tem `<Section>`, só o campo.
+
+### 14.2 A correção
+
+O fade subiu para o container do `<Section>` ([src/components/section.tsx](src/components/section.tsx)),
+e os quatro wrappers manuais saíram. Toda seção do site passa por esse container,
+então Clientes, Projetos e o bloco `<Identity>` ganharam o efeito de graça, sem
+nenhuma linha por rota.
+
+O `<SectionIntro>` perdeu o fade próprio. Não era só redundância: duas opacidades
+aninhadas se multiplicam, e o intro chegaria ao fim da animação mais apagado que o
+resto do conteúdo, que é exatamente o descompasso que este passe corrige.
+
+**Onde o fade não pode ficar:** no `<main>` ou em qualquer wrapper acima da seção.
+Opacidade menor que 1 num ancestral de seção `blend` cria contexto de empilhamento
+e mata a mistura sem erro no console, que é a F1 da §6.1. O container é filho da
+seção, e o `<About>` já provava esse padrão em produção desde a V3.5.
+
+### 14.3 Por que isso não custa performance
+
+O pedido foi explícito: o efeito não podia cobrar nada. Não cobra.
+
+- **Nenhum byte novo.** O utilitário `animate-fade-in` e o keyframe já existiam em
+  `globals.css` desde a V3. O efeito mudou de elemento, não de tamanho. Zero JS,
+  zero dependência, e nada disso toca hidratação, que é onde a §13.3 localizou o
+  LCP deste projeto.
+- **Anima só `opacity`**, resolvido no compositor, sem layout nem repaint. CLS
+  medido em `/info/`, `/clientes/`, `/contato/` e na página de case: **zero nas
+  quatro**.
+- **Nenhum `animation-delay`.** O escalonamento entre blocos foi considerado e
+  descartado: atrasar o primeiro bloco seguraria o candidato a LCP, que foi medido
+  e é o próprio `h1` que já animava antes. Ganho estético pequeno, risco numa
+  métrica que a §13 gastou um milestone inteiro perseguindo.
+- **Nenhum `will-change`.** Manteria a camada de composição viva depois do fim da
+  animação, sem ganho nenhum, e ainda é um dos criadores de contexto de
+  empilhamento que o teste da F1 procura.
+- **O número de elementos animados praticamente não subiu**, porque o efeito subiu
+  de nível em vez de se multiplicar: `/info/` foi de 4 para 5, `/contato/` continua
+  em 1, `/clientes/` foi de 0 para 1.
+
+Lighthouse não foi rodado, e de propósito: pela §13.6 e pela lei 18 do
+[CLAUDE.md](CLAUDE.md), número de `localhost` mede a máquina e não o site. Como a
+mudança não acrescenta byte nem JS, não há hipótese a medir. Se alguém quiser o
+número, ele sai contra a URL de produção, com `--only-categories=performance` e
+mediana de 3.
+
+### 14.4 Verificação
+
+`pnpm typecheck` e `pnpm lint` limpos, **146 unitários** e **151 E2E** passando,
+sem mudança de contagem: a suíte que já existia é que cobre isto.
+
+Três guardas antigas eram as que importavam aqui, e passaram:
+
+1. O controle negativo da F1 em `e2e/shell.spec.ts`, que sobe a árvore de cada
+   seção `blend` procurando ancestral que crie contexto. Conferido também no
+   navegador: `#sobre` e `#contato` seguem em `mix-blend-difference` e a lista de
+   ancestrais culpados está vazia.
+2. O teste de opacidade efetiva mínima de 0.7 nas 4 rotas. Ele emula
+   `reduced-motion` de propósito, porque no meio do fade a opacidade está a caminho
+   do valor final e qualquer limiar acusaria falso positivo. A WCAG cobra o estado
+   assentado, e é ele que o teste mede.
+3. A auditoria responsiva de 6 rotas × 7 larguras, que é o que prova que remover os
+   quatro `<div>` de wrapper não mexeu em geometria nenhuma.
+
+Movimento reduzido continua coberto pelo `@media (prefers-reduced-motion)` global,
+mais o `motion-reduce:animate-none` que subiu junto com o fade.
