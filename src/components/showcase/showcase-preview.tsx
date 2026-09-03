@@ -45,8 +45,17 @@ export function ShowcasePreview({
    * passava o mouse na lista e via moldura vazia. Mesmo efeito com Memory
    * Saver e Data Saver.
    *
-   * São 3 imagens de 14 a 27KB, todas dentro da viewport desde o primeiro
+   * São 3 imagens de 16 a 48KB, todas dentro da viewport desde o primeiro
    * paint. Buscar as três é mais barato do que a troca falhar.
+   *
+   * Não há `sizes` aqui, e a ausência é deliberada: com `images.unoptimized`
+   * o Next não gera `srcset`, então `sizes` seria prop morta que ele descarta
+   * calado. A largura de exibição, que era o que ela declarava, passou a viver
+   * onde agora decide de fato: `LARGURA_MAXIMA` em `capture/previews.spec.ts`,
+   * porque o arquivo versionado é o que chega ao navegador. A prévia ocupa
+   * cerca de 500px de CSS em 1440 (5 de 12 colunas do container `max-w-7xl`) e
+   * cerca de 350px num celular de 390, e os arquivos têm 1000px para cobrir
+   * densidade 2.
    *
    * Só a primeira leva `priority`, que é o que gera o `<link rel="preload">`.
    * Dar preload às quatro colocaria três concorrentes na frente do candidato a
@@ -85,7 +94,6 @@ export function ShowcasePreview({
                     src={item.image}
                     alt={`${alt}: ${item.title}`}
                     fill
-                    sizes="200px"
                     className="object-cover object-top"
                     {...carga(index)}
                   />
@@ -96,16 +104,6 @@ export function ShowcasePreview({
                 src={item.image}
                 alt={`${alt}: ${item.title}`}
                 fill
-                /*
-                  Medido, não estimado. A partir de lg o preview ocupa 5 de 12
-                  colunas do container max-w-7xl, o que dá cerca de 31vw num
-                  viewport de 1440. Abaixo disso ele ocupa a largura do
-                  container, que é a viewport menos o padding de
-                  calc(var(--pad) * 2) de cada lado, cerca de 90vw num celular.
-                  O valor antigo (60vw e 100vw) fazia o Next servir uma variante
-                  maior do que a necessária.
-                */
-                sizes="(min-width: 1024px) 35vw, 90vw"
                 className="object-cover object-top"
                 /*
                   O primeiro é o que aparece no load e vale como LCP. O

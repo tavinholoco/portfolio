@@ -35,7 +35,27 @@ const imagens = [
 ] as const;
 
 /** Largura máxima da imagem versionada. O slot do preview tem cerca de 450px. */
-const LARGURA_MAXIMA = 1440;
+/*
+ * Largura de origem das prévias.
+ *
+ * Era 1440, a largura da captura, quando o otimizador da Vercel gerava as
+ * variantes por dispositivo. Com `images.unoptimized` ligado (ver
+ * next.config.ts e a §15.7), o arquivo versionado é o que chega ao navegador,
+ * então ele precisa ser do tamanho que a tela usa e não do tamanho da captura.
+ *
+ * A prévia ocupa cerca de 500px de CSS num viewport de 1440, e cerca de 350px
+ * num celular de 390. Mil pixels cobrem os dois com folga em telas de densidade
+ * 2, que é onde 1440 já era desperdício e 640 já era borrão.
+ */
+const LARGURA_MAXIMA = 1000;
+
+/*
+ * Qualidade do WebP. Era 0.82 quando o otimizador recodificava por cima; agora
+ * este é o arquivo que chega ao navegador, e 0.75 tira um quarto do peso sem
+ * diferença visível numa captura de tela reduzida. Medido em `newra-news`:
+ * 57.2 KB a 0.82 contra 47.9 KB a 0.75, os dois em 1000x625.
+ */
+const QUALIDADE = 0.75;
 
 /** Espera fixa para animações de entrada assentarem depois do networkidle. */
 const ASSENTAR_MS = 2500;
@@ -70,7 +90,7 @@ async function paraWebp(
       canvas.height = Math.round(img.naturalHeight * escala);
       canvas.getContext("2d")!.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-      return canvas.toDataURL("image/webp", 0.82).split(",")[1];
+      return canvas.toDataURL("image/webp", QUALIDADE).split(",")[1];
     },
     [origem.toString("base64"), LARGURA_MAXIMA] as const
   );

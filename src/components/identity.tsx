@@ -28,7 +28,6 @@ export function Identity({ lang }: { lang: Locale }) {
           alt={profile.name}
           width={160}
           height={160}
-          sizes="160px"
           className="size-32 rounded-full object-cover sm:size-40"
         />
 
