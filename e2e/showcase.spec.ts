@@ -170,3 +170,54 @@ test.describe("showcase: toque", () => {
     }
   });
 });
+
+/**
+ * As propriedades das imagens do preview que quebram em silêncio.
+ *
+ * Nenhuma das duas aparece em captura, em asserção de DOM comum ou no
+ * Lighthouse: o site parece funcionar, e a diferença só aparece na primeira
+ * visita de alguém com aba em segundo plano ou conexão ruim.
+ */
+test.describe("as imagens do preview", () => {
+  for (const rota of ["/projetos/", "/clientes/"]) {
+    test(`${rota}: nenhuma prévia fica em lazy`, async ({ page }) => {
+      await page.goto(rota);
+
+      /*
+       * A regra 2 do showcase manda montar tudo de uma vez para a troca no
+       * hover ser instantânea, mas montar não é buscar. Com o `lazy` que o
+       * `next/image` põe por padrão, o Chrome não busca imagem de aba em
+       * segundo plano, e a troca caía numa moldura vazia. Medido: com a aba
+       * oculta, 1 de 3 carregava.
+       *
+       * A primeira não declara `loading` porque leva `priority`, que já
+       * implica eager. As demais precisam declarar.
+       *
+       * **Controle negativo executado**, e ele revela o alcance real de cada
+       * rota: devolvendo o `lazy`, `/projetos/` falha, e `/clientes/` não,
+       * porque hoje aquela rota tem uma prévia só e ela é justamente a
+       * `priority`. A guarda de `/clientes/` fica latente, valendo a partir do
+       * segundo cliente com imagem.
+       */
+      /* Sem isto o teste passaria numa página que perdeu as imagens. */
+      expect(await page.locator("img").count()).toBeGreaterThan(0);
+
+      const preguicosas = await page.evaluate(() =>
+        [...document.querySelectorAll("img")]
+          .filter((img) => img.loading === "lazy")
+          .map((img) => img.alt)
+      );
+      expect(preguicosas, "prévia em lazy volta a falhar em aba de fundo").toEqual(
+        []
+      );
+
+      /* E todas precisam de fato terminar carregadas. */
+      const falharam = await page.evaluate(() =>
+        [...document.querySelectorAll("img")]
+          .filter((img) => !img.complete || img.naturalWidth === 0)
+          .map((img) => img.alt)
+      );
+      expect(falharam).toEqual([]);
+    });
+  }
+});
