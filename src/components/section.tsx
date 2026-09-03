@@ -104,6 +104,32 @@ export function Section({
       <div
         className={cn(
           "mx-auto w-full [padding-inline-end:calc(var(--pad)*2)]",
+          /*
+            A entrada da seção inteira, e não do bloco de introdução.
+
+            Antes disso o `animate-fade-in` era colado à mão em quatro lugares,
+            e cada um envolvia só o h1 e o parágrafo de abertura. Numa tela de
+            1440x900 em /info/ isso dava 2 de 16 elementos de texto acima da
+            dobra entrando suaves e 14 aparecendo secos, na mesma tela: as
+            métricas e os interesses. Clientes, Projetos e <Identity> não
+            tinham entrada nenhuma. Aqui o efeito passa a valer para toda rota
+            de graça, porque toda seção do site passa por este container.
+
+            Fica no container e nunca no <main> nem em wrapper acima da seção:
+            opacidade menor que 1 num ancestral de seção `blend` cria contexto
+            de empilhamento e mata a mistura sem erro no console (F1). Filho
+            pode, e é o que o <About> já fazia. Controle negativo em
+            e2e/shell.spec.ts.
+
+            Custo: nenhum. Anima só `opacity`, que o compositor resolve sem
+            layout nem repaint, então o CLS continua zero. Não é JS, não é
+            IntersectionObserver e não tem `animation-delay`: atrasar o
+            primeiro bloco seguraria o candidato a LCP, que nestas páginas é o
+            próprio h1 que já animava. E nada de `will-change`, que manteria a
+            camada viva depois do fim e ainda é um dos criadores de contexto
+            que o teste da F1 procura.
+          */
+          "animate-fade-in motion-reduce:animate-none",
           /* A coluna reservada para a nav vertical do header. O token é
              0px abaixo de lg, onde a nav vira Sheet, então esta linha vale
              nos dois lados sem variante de breakpoint. Padding é seguro

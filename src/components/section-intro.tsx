@@ -1,5 +1,3 @@
-import { cn } from "@/lib/utils";
-
 /**
  * Título e descrição de seção, o par que se repetia em três componentes.
  *
@@ -26,10 +24,15 @@ export function SectionIntro({
   description?: string;
   className?: string;
 }) {
+  /*
+   * A entrada suave saiu daqui e subiu para o container do <Section>, que
+   * cobre a seção inteira. Repetir o `animate-fade-in` aqui dentro não
+   * adiantaria nada e ainda atrapalharia: duas opacidades aninhadas se
+   * multiplicam, então o intro chegaria ao fim do fade mais apagado que o
+   * resto do conteúdo, que é justamente o descompasso que este passe corrige.
+   */
   return (
-    <div
-      className={cn("animate-fade-in motion-reduce:animate-none", className)}
-    >
+    <div className={className}>
       <h2 className="text-title font-semibold tracking-tight text-balance">
         {title}
       </h2>

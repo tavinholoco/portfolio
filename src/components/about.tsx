@@ -18,24 +18,23 @@ export function About({ lang }: { lang: Locale }) {
 
   return (
     <Section id="sobre" variant="blend">
-      <div className="animate-fade-in motion-reduce:animate-none">
-        <h1 className="text-title font-semibold tracking-tight text-balance">
-          {d.title}
-        </h1>
+      {/* A entrada suave não está mais aqui: é do container do <Section>. */}
+      <h1 className="text-title font-semibold tracking-tight text-balance">
+        {d.title}
+      </h1>
 
-        {d.summary.map((paragraph, index) => (
-          <p
-            key={paragraph}
-            className={
-              index === 0
-                ? "font-body mt-10 max-w-3xl text-lede leading-relaxed text-pretty"
-                : "font-body mt-5 max-w-3xl text-base leading-relaxed opacity-70 text-pretty"
-            }
-          >
-            {paragraph}
-          </p>
-        ))}
-      </div>
+      {d.summary.map((paragraph, index) => (
+        <p
+          key={paragraph}
+          className={
+            index === 0
+              ? "font-body mt-10 max-w-3xl text-lede leading-relaxed text-pretty"
+              : "font-body mt-5 max-w-3xl text-base leading-relaxed opacity-70 text-pretty"
+          }
+        >
+          {paragraph}
+        </p>
+      ))}
 
       {/* Métricas: grandes porque importam, não coloridas porque importam. */}
       <div className="mt-20">

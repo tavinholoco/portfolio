@@ -58,68 +58,67 @@ export async function ProjectDetailPage({
       {jsonLd && <JsonLd data={jsonLd} />}
 
       <Section id="projeto" variant="blend">
-        <div className="animate-fade-in motion-reduce:animate-none">
-          <Link
-            href={pathFor("projects", lang)}
-            className="focus-ring inline-flex items-center gap-2 text-sm opacity-70 transition-opacity hover:opacity-100"
-          >
-            <ArrowLeft className="size-4" aria-hidden />
-            {d.projects.backToProjects}
-          </Link>
+        {/* A entrada suave não está mais aqui: é do container do <Section>. */}
+        <Link
+          href={pathFor("projects", lang)}
+          className="focus-ring inline-flex items-center gap-2 text-sm opacity-70 transition-opacity hover:opacity-100"
+        >
+          <ArrowLeft className="size-4" aria-hidden />
+          {d.projects.backToProjects}
+        </Link>
 
-          <p className="mt-12 font-mono text-sm opacity-70">
-            {d.projects.categories[project.category]}
+        <p className="mt-12 font-mono text-sm opacity-70">
+          {d.projects.categories[project.category]}
+        </p>
+        <h1 className="mt-4 text-display font-semibold text-balance break-words hyphens-auto">
+          {project.title}
+        </h1>
+        <p className="font-body mt-8 max-w-2xl text-lede opacity-80 text-pretty">
+          {project.tagline}
+        </p>
+
+        {/* Stack em texto corrido: chip com fundo inverteria sozinho aqui. */}
+        <p className="mt-8 font-mono text-sm opacity-70">
+          {project.stack.join("  ·  ")}
+        </p>
+
+        {/*
+          Dado vivo do repositório, e a única coisa nesta página que não é
+          estática: é ele que dá sentido ao ISR de 1h de lib/github.ts. Some
+          quando a API falha, porque o merge cai no fallback curado.
+        */}
+        {(project.updatedAt || project.language) && (
+          <p className="mt-3 font-mono text-xs opacity-70">
+            {[
+              project.updatedAt && `${d.projects.updatedAt} ${project.updatedAt}`,
+              project.language,
+            ]
+              .filter(Boolean)
+              .join("  ·  ")}
           </p>
-          <h1 className="mt-4 text-display font-semibold text-balance break-words hyphens-auto">
-            {project.title}
-          </h1>
-          <p className="font-body mt-8 max-w-2xl text-lede opacity-80 text-pretty">
-            {project.tagline}
-          </p>
+        )}
 
-          {/* Stack em texto corrido: chip com fundo inverteria sozinho aqui. */}
-          <p className="mt-8 font-mono text-sm opacity-70">
-            {project.stack.join("  ·  ")}
-          </p>
-
-          {/*
-            Dado vivo do repositório, e a única coisa nesta página que não é
-            estática: é ele que dá sentido ao ISR de 1h de lib/github.ts. Some
-            quando a API falha, porque o merge cai no fallback curado.
-          */}
-          {(project.updatedAt || project.language) && (
-            <p className="mt-3 font-mono text-xs opacity-70">
-              {[
-                project.updatedAt && `${d.projects.updatedAt} ${project.updatedAt}`,
-                project.language,
-              ]
-                .filter(Boolean)
-                .join("  ·  ")}
-            </p>
-          )}
-
-          <div className="mt-10 flex flex-wrap items-center gap-3">
-            {project.demoUrl && (
-              <a
-                href={project.demoUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={actionClass}
-              >
-                {d.projects.demoLabel}
-                <ArrowUpRight className="size-4" aria-hidden />
-              </a>
-            )}
+        <div className="mt-10 flex flex-wrap items-center gap-3">
+          {project.demoUrl && (
             <a
-              href={project.repoUrl}
+              href={project.demoUrl}
               target="_blank"
               rel="noopener noreferrer"
               className={actionClass}
             >
-              {d.projects.github}
+              {d.projects.demoLabel}
               <ArrowUpRight className="size-4" aria-hidden />
             </a>
-          </div>
+          )}
+          <a
+            href={project.repoUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={actionClass}
+          >
+            {d.projects.github}
+            <ArrowUpRight className="size-4" aria-hidden />
+          </a>
         </div>
       </Section>
 
