@@ -1694,3 +1694,57 @@ no teste, para ninguém ler o verde dele como prova.
 O que não deu para verificar daqui é o header em produção, que só muda depois do
 deploy. A previsão é `immutable`, e ela é falseável: basta repetir o `curl` do
 §15.3 contra a URL de produção depois que subir.
+
+### 15.6 O que a validação pós-merge encontrou (03/09/2026)
+
+A previsão da §15.5 se confirmou em produção: a prévia otimizada saiu de
+`max-age=0, must-revalidate` para `public, max-age=31536000, immutable`, o
+upstream virou `/_next/static/immutable/media/<hash>.webp` e a URL antiga em
+`/projects/` passou a devolver 404. O efeito, medido por `transferSize` em
+Chromium real:
+
+| Momento | Imagens buscadas na rede |
+|---|---|
+| Primeira visita, cache frio | 3 de 3 |
+| Voltando por navegação normal | **0 de 3** |
+| Reload explícito (F5) | **0 de 3** |
+
+Antes eram três 304 por carregamento.
+
+> Uma armadilha de leitura, que quase virou um relato errado: no primeiro teste
+> o reload mostrou `200, 200, 200` e isso parecia piora. Eram respostas servidas
+> do cache, que o Playwright reporta como 200 do mesmo jeito. Quem separa rede
+> de cache é o `transferSize`, não o status. O 304 do estado anterior era rede
+> de verdade; estes 200 não são.
+
+A varredura das 11 rotas confirmou blend intacto, zero ancestrais violando a F1,
+nenhuma prévia em `lazy` e nenhum erro de console. E achou duas coisas.
+
+#### O avatar tinha o mesmo defeito, e ficou de fora
+
+`public/avatar.jpg` continuou em `public/` quando as prévias saíram, e produção
+o servia com `max-age=0, must-revalidate`: revalidação na rede a cada visita a
+`/info/`. Mesma causa, mesma correção, agora em `src/assets/avatar.jpg`
+importado por `profile.ts`. O `loading="lazy"` dele **está certo** e fica: é
+abaixo da dobra e não participa da troca no hover, então não é o caso da §15.2.
+
+**O currículo continua em `public/`, e de propósito.** É URL estável, que as
+pessoas guardam e compartilham. Dar hash a ela quebraria os links a cada troca
+do arquivo, e o ganho de cache não paga isso.
+
+#### A guarda de `immutable` estava presa ao caminho local
+
+A asserção exigia `/_next/static/media/`, que é o que o `next start` serve. A
+Vercel serve `/_next/static/immutable/media/`, com um segmento a mais. Como a
+suíte só roda contra `localhost`, ela passava e continuaria passando, mas quem
+apontasse o E2E para produção levaria uma falha que não é defeito. Virou regex
+com o segmento opcional, exigindo nome com hash sob `/_next/static/`, conferido
+nas duas formas.
+
+De quebra a guarda passou a varrer **todas** as imagens de `/projetos/`,
+`/clientes/` e `/info/`, e não só a primeira de uma rota. É o que faz o avatar
+entrar na rede de segurança. E2E foram de 154 para **156**.
+
+**Controle negativo executado:** devolvendo o avatar para `public/`, só `/info/`
+falha, e as outras duas rotas seguem verdes, que é exatamente o alcance
+esperado.
