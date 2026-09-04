@@ -10,9 +10,9 @@ Depois dela veio a **seção 13**, o passe de aperfeiçoamento, com os cinco mil
 
 O `README.md` documenta a arquitetura de camadas. Os três estão em dia. Os planos V1 e V2 na raiz são histórico.
 
-Estado: **146 unitários e 156 E2E** passando. O salto de 137 para 151 é da §13.7, que cobriu a imagem de link nas 12 rotas, e as três últimas são as guardas de imagem da §15. A queda anterior, de 168 para 137, foi do M1 e não é perda de cobertura: cinco asserções passaram a rodar num carregamento só, e a auditoria responsiva subiu de 5 rotas × 4 larguras para **6 × 7**.
+Estado: **158 unitários e 156 E2E** passando. O salto de 137 para 151 é da §13.7, que cobriu a imagem de link nas 12 rotas, e as três últimas são as guardas de imagem da §15. A queda anterior, de 168 para 137, foi do M1 e não é perda de cobertura: cinco asserções passaram a rodar num carregamento só, e a auditoria responsiva subiu de 5 rotas × 4 larguras para **6 × 7**.
 
-Lighthouse com A11y, Best Practices e SEO em 100 nas 5 rotas e CLS zero. Perf 99 a 100 no desktop e, **em produção, 96 a 98 no mobile**, mediana de 3 rodadas por rota.
+Lighthouse com A11y, Best Practices e SEO em 100 nas 5 rotas e CLS zero. Perf 99 a 100 no desktop e, **em produção, 98 a 100 no mobile** (§15.8, mediana de 3 rodadas por rota). O elemento de LCP é o mesmo nas cinco rotas e **não é imagem**: é o link de identidade do header, o que confirma a §13.3.
 
 > ⚠️ **Meça contra a URL de produção, não contra `localhost`.** O mesmo build no `next start` local dá **80 a 94**, com spread de até 14 pontos, e é esse número local que esta documentação registrou por dias como se fosse o estado do site. A Vercel entrega com CDN, HTTP/2 e Brotli, e o LCP cai quase pela metade (1.7 a 2.4s contra 2.9 a 3.7s). Detalhes e a tabela lado a lado na §13.6 do plano.
 
