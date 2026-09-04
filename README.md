@@ -108,10 +108,11 @@ Captura as telas em `.captures/` (ignorada pelo git). Parametrizável por `LOOK_
 
 ```
 ├── public/
-│   ├── cv/                       # currículo PDF
-│   ├── projects/                 # screenshots dos previews do showcase
-│   └── avatar.jpg                # foto do perfil
+│   └── cv/                       # currículo PDF (única coisa que fica aqui: URL estável)
 ├── src/
+│   ├── assets/                   # imagens importadas, versionadas por hash (lei 19)
+│   │   ├── avatar.webp           # foto do perfil, 320x320 (ver nota abaixo)
+│   │   └── projects/             # previews do showcase, 1000px de largura
 │   ├── app/
 │   │   ├── globals.css           # tokens de shell, escala tipográfica e as leis em comentário
 │   │   ├── robots.ts             # fora do route group de propósito (ver nota abaixo)
@@ -176,8 +177,10 @@ Dois lugares, nesta ordem:
 
 ```ts
 // src/data/projects.ts  (metadado neutro; a ordem daqui é a numeração 01..04)
+import meuProjeto from "@/assets/projects/meu-projeto.webp";  // import, nunca string
+
 { slug: "meu-projeto", repo: "MeuProjeto", year: "2026",
-  demoUrl: "https://…", image: "/projects/meu-projeto.webp" },
+  demoUrl: "https://…", image: meuProjeto },
 ```
 
 ```ts
@@ -190,8 +193,10 @@ Dois lugares, nesta ordem:
 - A **ordem** de `projectMetas` é curadoria, não cronologia: o ano é apenas mais uma coluna.
 - O `problem` aparece junto do preview: é ele que faz a lista argumentar em vez de só catalogar.
 - Sem `image`, o preview cai no **mockup de janela em CSS**, que é o placeholder oficial. Preencher `image` depois não exige mudar componente nenhum.
-- Para gerar a imagem: acrescente o alvo em `capture/previews.spec.ts` e rode `pnpm capture`. O script fotografa o site publicado em 16:10, converte para WebP pelo próprio Chromium (sem dependência de processamento de imagem) e salva em `src/assets/projects/`, de onde os dados o importam (lei 19 do CLAUDE.md). Projeto **mobile** não tem página web: aponte para uma print já existente na lista `imagens` do mesmo arquivo, e o preview a enquadra como tela de celular.
+- Para gerar a imagem: acrescente o alvo em `capture/previews.spec.ts` e rode `pnpm capture`. O script fotografa o site publicado em 16:10, converte para WebP pelo próprio Chromium (sem dependência de processamento de imagem) e salva em `src/assets/projects/` com 1000px de largura, de onde os dados o **importam**, nunca por caminho em string (lei 19 do CLAUDE.md). O arquivo versionado é o que chega ao navegador, porque `images.unoptimized` está ligado: ver §15.7 do plano antes de trocar tamanho ou qualidade. Projeto **mobile** não tem página web: aponte para uma print já existente na lista `imagens` do mesmo arquivo, e o preview a enquadra como tela de celular.
 - A linha mostra as **3 primeiras** tecnologias da stack; a lista completa fica na página do case.
+
+> **Trocar a foto do perfil.** Ela não sai de nenhum script: é a foto do GitHub, guardada à mão em `src/assets/avatar.webp` a **320x320** (o dobro dos 160px em que aparece, para cobrir densidade 2). Trocando, converta e redimensione antes de commitar, porque com `images.unoptimized` o arquivo versionado é o que a pessoa baixa. `src/assets/assets.test.ts` reprova o que passar do teto de peso ou de largura.
 
 ### 3. Acrescentar um trabalho de cliente
 
@@ -205,7 +210,7 @@ Em `src/i18n/*.ts` → `clients.projects`. Mesmo componente de lista dos projeto
   stack: ["Next.js", "Tailwind CSS", "Vercel"],  // colunas da linha
   year: "2026",
   url: "https://dandarkness.vercel.app/",
-  image: "/projects/dandarkness.webp",
+  image: dandarkness,   // import de @/assets/projects/, nos dois dicionários
 }
 ```
 

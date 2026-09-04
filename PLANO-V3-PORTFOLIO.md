@@ -1725,7 +1725,7 @@ nenhuma prévia em `lazy` e nenhum erro de console. E achou duas coisas.
 `public/avatar.jpg` continuou em `public/` quando as prévias saíram, e produção
 o servia com `max-age=0, must-revalidate`: revalidação na rede a cada visita a
 `/info/`. Mesma causa, mesma correção, agora em `src/assets/avatar.jpg`
-importado por `profile.ts`. O `loading="lazy"` dele **está certo** e fica: é
+importado por `profile.ts`. (Ele virou `avatar.webp`, e 320x320, na §15.7.) O `loading="lazy"` dele **está certo** e fica: é
 abaixo da dobra e não participa da troca no hover, então não é o caso da §15.2.
 
 **O currículo continua em `public/`, e de propósito.** É URL estável, que as
@@ -1824,3 +1824,76 @@ volta.
 
 **Controle negativo executado:** com `unoptimized: false`, as três rotas falham.
 E2E seguem em **156**.
+
+### 15.8 A medição depois de tudo, e a otimização que não se faz (03/09/2026)
+
+Lighthouse mobile contra a **URL de produção**, `--only-categories=performance`,
+throttling `simulate` (o padrão, nunca `--preset=perf`), **mediana de 3 rodadas
+por rota**.
+
+| Rota | Perf | Spread | LCP | TBT | CLS | FCP | Speed Index |
+|---|---|---|---|---|---|---|---|
+| `/` | **100** | 100 a 100 | 1361 ms | 45 ms | 0 | 911 ms | 911 ms |
+| `/clientes/` | **100** | 99 a 100 | 1812 ms | 22 ms | 0 | 912 ms | 912 ms |
+| `/projetos/` | **98** | 97 a 99 | 2412 ms | 51 ms | 0 | 912 ms | 912 ms |
+| `/info/` | **100** | 99 a 100 | 1811 ms | 49 ms | 0 | 918 ms | 918 ms |
+| `/contato/` | **100** | 100 a 100 | 1367 ms | 51 ms | 0 | 911 ms | 911 ms |
+
+Contra a linha de base da §13.1, que era de 88 a 92, e contra os 96 a 98 que a
+documentação registrava depois do aperfeiçoamento. **Nada do que foi feito nas
+§15.1 a §15.7 custou performance**, e o spread de 3 pontos em `/projetos/` é
+menor que o ruído que a §13.1 mediu.
+
+#### O elemento de LCP é o mesmo nas cinco rotas, e não é imagem
+
+```
+header.pointer-events-none > div.flex > div.flex > a.focus-ring
+```
+
+É o link de identidade do header. Em todas as rotas o LCP se decompõe em
+`Time to first byte` (93 a 97 ms) mais `Element render delay` (102 a 143 ms), e
+**não há fase de carregamento de imagem na conta**. Isso confirma e generaliza a
+§13.3: o gargalo é trabalho de main thread, não byte de imagem. Em `/projetos/`,
+que é a rota com três prévias, o LCP continua sendo um texto do header.
+
+#### A otimização que a medição mostra, e que mesmo assim não se faz
+
+O `image-delivery-insight` aponta **79 KiB** de economia possível: em mobile a
+prévia é exibida em 330x206 e o arquivo tem 1000x625, e o print de celular é
+exibido em 81x172 com 376x814 no arquivo.
+
+A economia é real, e mesmo assim não vale:
+
+- **Ela não move o número.** O LCP é texto do header, e as rotas já estão em 98
+  a 100 com CLS zero. Cortar byte de imagem não mexe em `Element render delay`.
+- **Os 1000px não são desperdício, são a outra ponta do trade-off da §15.7.** A
+  prévia ocupa cerca de 500px de CSS num desktop de 1440, e uma tela de
+  densidade 2 precisa exatamente de 1000. O que o Lighthouse mede é o celular,
+  onde sobra; no laptop retina do recrutador, falta se cortar.
+- **A saída correta seria `srcset` com dois tamanhos**, que é precisamente o que
+  o otimizador fazia e que a §15.7 tirou por causa da cota. Refazer aquilo à mão
+  significa `<img>` cru no lugar do `next/image`, perdendo o `width`/`height`
+  automático que hoje segura o CLS em zero, mais o dobro de arquivos versionados
+  e uma guarda nova para cada um. É muito risco para uma métrica que já está no
+  teto.
+
+Fica registrado como **decisão medida, não como esquecimento**. Se um dia o
+plano da Vercel mudar, o caminho é religar o otimizador (uma linha em
+`next.config.ts`), não construir um à mão.
+
+#### A brecha que o `unoptimized` abriu, e que foi fechada
+
+Enquanto o `/_next/image` existia, arquivo grande demais era aparado antes de
+chegar ao navegador. Sem ele, **o arquivo versionado é exatamente o que a pessoa
+baixa**: um preview exportado sem querer em 4000px passaria no build, no E2E, na
+captura e num Lighthouse rodado no desktop de quem fez a mudança.
+
+`src/assets/assets.test.ts` fecha isso com teto de peso por arquivo (80 KB),
+teto da soma (200 KB) e teto de largura (1000px), lendo a largura do cabeçalho
+WebP e JPEG sem acrescentar dependência, que é a mesma regra que o `pnpm
+capture` segue.
+
+**Controle negativo executado:** baixando o teto de largura para 319px, os cinco
+arquivos falham com as larguras reais (avatar 320, prévias 1000, print de
+celular 385), o que prova que o leitor lê o cabeçalho em vez de passar por
+vacuidade. Unitários de 146 para **158**.
