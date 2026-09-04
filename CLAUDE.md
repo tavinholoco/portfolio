@@ -2,7 +2,7 @@
 
 # Estado do projeto
 
-Este portfólio está na **V3.5** (visual minimalista, identidade fixa no canto esquerdo e fundo WebGL em ondas de praia, sem troca de paleta e sem rolagem suave). A V3 subiu em 27/08/2026 e está **no ar** em https://portfolio-tau-five-f86nc5khr8.vercel.app; a V3.5 é o passe de refinamento em cima dela.
+Este portfólio está na **V3.5** (visual minimalista, identidade fixa no canto esquerdo e fundo WebGL em ondas de praia, sem troca de paleta e sem rolagem suave). A V3 subiu em 27/08/2026 e está **no ar** em https://pedrolevi.vercel.app; a V3.5 é o passe de refinamento em cima dela.
 
 Antes de mexer no frontend, leia a **seção 0 do `PLANO-V3-PORTFOLIO.md`** e depois a **seção 12**, que é a V3.5 e revoga várias decisões das anteriores (o `>_`, a Home com os 5 passos, os cabeçalhos de Clientes e Projetos, o campo de noise, o Lenis e as trocas de paleta). A avaliação da V3.5 está na **§12.10**.
 

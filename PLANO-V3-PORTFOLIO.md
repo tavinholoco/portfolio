@@ -6,7 +6,7 @@
 > **Referência de inspiração:** [p5aholic.me](https://p5aholic.me) (Keita Yamada). Inspiração estrutural, **não cópia**. Ver seção 0.3.
 > **Status:** ✅ **V3.5 no ar, com o passe de aperfeiçoamento fechado.** As 7 fases da v3 fechadas em 27/08/2026 (avaliação na seção 11), o refinamento **V3.5** mergeado pelo PR #4 em 6 rodadas de ajuste (avaliação na **§12.10**), e os **5 milestones da seção 13** mergeados pelo PR #7 em 31/08/2026 (fechamento na **§13.5**).
 >
-> **Produção:** https://portfolio-tau-five-f86nc5khr8.vercel.app
+> **Produção:** https://pedrolevi.vercel.app
 > **Versão do documento:** V3.5
 
 ---
@@ -33,7 +33,7 @@ Da Fase 5 estão em pé Info, Contato e as páginas de case redesenhadas, e o **
 
 Da Fase 6 está em pé a auditoria inteira, agora automatizada, e da Fase 7 a limpeza final e a documentação.
 
-**A v3 está no ar**, em https://portfolio-tau-five-f86nc5khr8.vercel.app, com 141 testes unitários e 68 E2E passando no CI. A avaliação pós-deploy está na seção 11.
+**A v3 está no ar**, em https://pedrolevi.vercel.app, com 141 testes unitários e 68 E2E passando no CI. A avaliação pós-deploy está na seção 11.
 
 O que resta está listado no fim daquela seção, e nada é código.
 
