@@ -9,7 +9,7 @@ export const profile = {
   email: "pedrolevidiass@gmail.com",
   phoneRaw: "+5518996260781",
   github: "https://github.com/tavinholoco",
-  linkedin: "https://www.linkedin.com/in/pedro-levi-dias-96720126a/",
+  linkedin: "https://www.linkedin.com/in/pedrolevidias/",
   whatsapp: "https://wa.me/5518996260781",
   /**
    * Foto do perfil, o avatar do GitHub salvo no repositório.
