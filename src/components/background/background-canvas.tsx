@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { cn } from "@/lib/utils";
 
-import { DEFAULT_PALETTE } from "./background-config";
+import { DEFAULT_PALETTE, FUNDO_PRONTO } from "./background-config";
 import type { BackgroundRenderer } from "./renderer";
 
 /**
@@ -117,6 +117,16 @@ export function BackgroundCanvas() {
   }, []);
 
   /*
+   * Avisa que o fundo está de pé, ou que caiu no fallback: nos dois casos não
+   * há mais nada montando por trás. Quem escuta é a abertura (§16.9), que
+   * existe justamente para cobrir esta espera.
+   */
+  const assentado = pronto || degraded;
+  useEffect(() => {
+    if (assentado) window.dispatchEvent(new Event(FUNDO_PRONTO));
+  }, [assentado]);
+
+  /*
    * Ponte de tema. A classe .dark no <html> muda, lemos o --c-bg já resolvido e
    * entregamos ao motor, que interpola em rAF com a curva do CSS (F6). Ler o
    * computed style aqui custa uma vez por troca, não uma vez por frame.
@@ -157,6 +167,7 @@ export function BackgroundCanvas() {
   return (
     <div
       aria-hidden
+      data-fundo-pronto={assentado ? "" : undefined}
       className="pointer-events-none fixed z-[-1] inset-[var(--pad)]"
     >
       {/*

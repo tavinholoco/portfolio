@@ -1,5 +1,7 @@
 import { test } from "@playwright/test";
 
+import { INTRO } from "../src/components/shell/intro-config";
+
 /**
  * Captura de tela sob demanda, para inspecionar o site durante o desenvolvimento.
  *
@@ -55,13 +57,19 @@ for (const path of paths) {
     test(`captura ${path} no tema ${theme}`, async ({ page }) => {
       /* O tema é aplicado antes do primeiro paint pelo script inline dos
          layouts, que lê o localStorage. Semear aqui evita capturar o flash. */
-      await page.addInitScript((value) => {
-        try {
-          localStorage.setItem("theme", value);
-        } catch {
-          /* modo privado: cai no padrão escuro, e a captura ainda serve */
-        }
-      }, theme);
+      /* A chave da abertura também: sem ela a cortina preta (§16.9) cobriria
+         a captura, porque todo contexto nasce sem sessionStorage. */
+      await page.addInitScript(
+        ([value, chave]) => {
+          try {
+            localStorage.setItem("theme", value);
+            sessionStorage.setItem(chave, "1");
+          } catch {
+            /* modo privado: cai no padrão escuro, e a captura ainda serve */
+          }
+        },
+        [theme, INTRO.chave] as const
+      );
 
       await page.goto(path);
       await page.waitForLoadState("networkidle");

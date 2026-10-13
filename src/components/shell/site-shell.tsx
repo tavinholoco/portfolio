@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 
 import { BackgroundCanvas } from "@/components/background/background-canvas";
 import { Frame } from "@/components/shell/frame";
+import { Intro } from "@/components/shell/intro";
 import { ViewportMask } from "@/components/shell/viewport-mask";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
@@ -24,6 +25,10 @@ import { dictionaries, type Locale } from "@/i18n";
  * | Frame             | fixed                | 40      |
  * | SiteHeader        | fixed                | 50      |
  * | SiteFooter        | fixed                | 50      |
+ * | Intro             | fixed, inset 0       | 60      |
+ *
+ * A `Intro` é a cortina da abertura, uma vez por sessão (§16.9). Fica acima de
+ * tudo e é irmã do `<main>`, nunca ancestral: só cobre, e some.
  *
  * ⚠️ O `<main>` abaixo é deliberadamente pelado: sem `position`, sem `z-index`,
  * sem `transform`, sem `isolation`. Qualquer um desses transformaria o `<main>`
@@ -89,6 +94,7 @@ export function SiteShell({
       <SiteFooter />
       <ViewportMask />
       <Frame />
+      <Intro name={dictionaries[lang].hero.name} />
     </>
   );
 }

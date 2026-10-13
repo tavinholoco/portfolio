@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 
 /**
  * O ícone de aba precisa existir em toda rota, nos dois idiomas.

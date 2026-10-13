@@ -49,6 +49,13 @@ export const FIELD_MIX = { light: 0.4, dark: 0.55 } as const;
 export const VIGNETTE_STRENGTH = 0.1;
 export const GRAIN_AMOUNT = 0.04;
 
+/**
+ * Evento que o fundo dispara na `window` quando fica pronto, ou quando cai no
+ * fallback sem WebGL. A abertura espera por ele para subir a cortina (§16.9);
+ * quem chega depois confere o atributo `data-fundo-pronto` no wrapper.
+ */
+export const FUNDO_PRONTO = "fundo-pronto";
+
 /** Duração e curva do crossfade de tema, iguais a --shell-fade e --shell-ease. */
 export const SHELL_FADE_MS = 900;
 export const SHELL_EASE = [0.1, 0.4, 0.2, 1] as const;

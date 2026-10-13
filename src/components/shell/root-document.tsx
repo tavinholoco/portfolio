@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import type { Metadata, Viewport } from "next";
 import { Fira_Code, Open_Sans } from "next/font/google";
 
+import { INTRO } from "@/components/shell/intro-config";
 import { SiteShell } from "@/components/shell/site-shell";
 import type { Locale } from "@/i18n";
 import { getSiteUrl } from "@/lib/metadata";
@@ -52,6 +53,16 @@ export const metadata: Metadata = {
  */
 const themeScript = `(function(){try{var t=localStorage.getItem("theme");var dark=t?t==="dark":true;document.documentElement.classList.toggle("dark",dark);var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute("content",dark?"#0b0b0c":"#f0f0f0");}catch(e){document.documentElement.classList.add("dark");}})();`;
 
+/**
+ * Decide a abertura antes do primeiro paint (§16.9): uma vez por sessão, e
+ * nunca com movimento reduzido. Marca `data-intro` no <html>, que é o que o
+ * CSS usa para mostrar a cortina. Atributo e não classe, porque o fundo
+ * observa o `class` do <html> para trocar de tema, e uma classe nova dispararia
+ * uma transição à toa. Num try próprio: sem sessionStorage (modo privado
+ * restrito), a abertura simplesmente não aparece, e o tema não é afetado.
+ */
+const introScript = `(function(){try{if(!sessionStorage.getItem(${JSON.stringify(INTRO.chave)})&&!matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.setAttribute("data-intro","");}catch(e){}})();`;
+
 export function RootDocument({
   lang,
   children,
@@ -75,7 +86,7 @@ export function RootDocument({
       */}
       {/* eslint-disable-next-line @next/next/no-head-element */}
       <head>
-        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        <script dangerouslySetInnerHTML={{ __html: themeScript + introScript }} />
       </head>
       {/* Sem background e sem isolation no body: o fundo da página vive no
           :root, e qualquer contexto de empilhamento aqui mataria o blend das

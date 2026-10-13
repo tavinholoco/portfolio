@@ -103,8 +103,11 @@ export function SiteHeader({
       */}
       <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-3 [padding-block:calc(var(--pad)*1.5)] lg:[padding-block:calc(var(--pad)*2)] [padding-inline:calc(var(--pad)*2)]">
         <div className="flex shrink-0 flex-col">
+          {/* `data-intro-alvo`: é aqui que o nome da abertura pousa (§16.9).
+              Mudou tamanho, peso ou espaçamento daqui, mude no `intro.tsx`. */}
           <Link
             href={pathFor("home", lang)}
+            data-intro-alvo
             className="focus-ring pointer-events-auto self-start text-2xl font-medium tracking-tight lg:text-3xl"
           >
             {labels.name}
