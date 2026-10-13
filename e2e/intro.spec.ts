@@ -94,14 +94,22 @@ test.describe("a abertura", () => {
     page,
   }) => {
     /*
-     * Sem `pointer-events: none` na cortina, o Playwright acusaria que ela
-     * intercepta o clique, e a pessoa ficaria esperando a abertura acabar
-     * para conseguir navegar.
+     * Clique cru nas coordenadas do link, como o de uma pessoa. O `click()`
+     * do Playwright não serviria: ele espera o elemento ficar clicável, e
+     * nesse meio-tempo a abertura acaba sozinha e o teste passa com a cortina
+     * engolindo o clique (controle negativo executado).
      */
     await page.goto("/");
     await esperarHidratar(page);
     await expect(page.locator(".intro")).toBeVisible();
-    await page.locator('header nav a[href="/projetos/"]').click();
+    const caixa = await page
+      .locator('header nav a[href="/projetos/"]')
+      .boundingBox();
+    expect(caixa).not.toBeNull();
+    await page.mouse.click(
+      caixa!.x + caixa!.width / 2,
+      caixa!.y + caixa!.height / 2
+    );
     await expect(page).toHaveURL(/\/projetos\/$/);
     await expect(page.locator(".intro")).toBeHidden();
   });
