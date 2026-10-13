@@ -2035,3 +2035,19 @@ Números de `localhost`, que pela lei 18 não são o estado do site: a conferên
 Como a dose é uma só para todas as paletas claras, **as seis do vocabulário foram recalculadas** para 0.40, pela mesma conta do teste, com o matiz de cada uma. O teste de contraste passou a varrer sete presets nos dois temas. O ícone e a imagem de link usam só as cores escuras do grafite, que não mudaram, então a lei 13 continua de pé. O gradiente de reserva sem WebGL no claro passou a usar as cores da praia a 30%, com L de cerca de 0.77.
 
 Unitários de 166 para **177**, E2E de 157 para **158**.
+
+### 16.7 A medição em produção depois das etapas 2 e 3
+
+Lighthouse 13.4.1 mobile contra produção, `simulate`, `--only-categories=performance`, mediana de 3 por rota, com o build do PR #17 confirmado no ar (o canvas já trazia `data-quality`):
+
+| Rota | Perf | Spread | LCP | TBT | CLS | FCP | Speed Index |
+|---|---|---|---|---|---|---|---|
+| `/` | **100** | 99 a 100 | 1668 ms | 49 ms | 0 | 914 ms | 1089 ms |
+| `/clientes/` | **97** | 97 a 100 | 2406 ms | 73 ms | 0 | 910 ms | 1004 ms |
+| `/projetos/` | **99** | 99 a 100 | 1717 ms | 38 ms | 0 | 923 ms | 1162 ms |
+| `/info/` | **98** | 98 a 99 | 2256 ms | 71 ms | 0 | 914 ms | 1041 ms |
+| `/contato/` | **98** | 98 a 99 | 2265 ms | 69 ms | 0 | 915 ms | 1147 ms |
+
+**97 a 100 no mobile**, contra 94 a 95 depois da etapa 1 (§16.4) e os 98 a 100 da §15.8. O TBT foi de 150 a 250 ms para **38 a 73 ms**. O A/B local da §16.5 previa a direção, e produção confirmou: com sol, nuvens, onda, areia e o tema claro novos, o fundo ficou mais barato para o Lighthouse do que era antes da §16.
+
+Duas ressalvas, para a leitura ser honesta. O Lighthouse roda sem GPU, então mede o degrau `lite`, sem grão nem renda; quem visita com GPU vê o completo. E com a compilação em segundo plano o fundo aparece um pouco depois no carregamento, então parte da montagem pode cair depois do fim do trace (o Speed Index voltou a ficar perto do FCP).
