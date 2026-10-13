@@ -32,6 +32,7 @@ uniform float uTime;
 uniform float uSeed;
 uniform vec2 uResolution;
 uniform vec2 uPointer;
+uniform vec2 uSunPointer;
 uniform vec3 uPalette[3];
 
 vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
@@ -128,11 +129,12 @@ float fbm(vec3 p) {
  * **z grande é longe** (junto ao horizonte). A areia fica em z pequeno, o mar
  * em z grande, e a linha d'água é o z onde os dois se encontram.
  */
-float waveField(vec2 uv, vec2 aspect, float t, vec2 pointer) {
+float waveField(vec2 uv, vec2 aspect, float t, vec2 pointer, vec2 sunPointer) {
   float horizon = 0.62 + pointer.y * 0.01;
 
-  /* A coluna do rastro do sol, seguida de longe pelo ponteiro. */
-  float sunX = 0.5 + pointer.x * 0.06;
+  /* A coluna do rastro do sol, seguida de longe por um ponteiro próprio, bem
+     mais lento que o do horizonte (SUN_TIME_CONSTANT no renderer.ts). */
+  float sunX = 0.5 + sunPointer.x * 0.06;
 
   if (uv.y > horizon) {
     /* Céu: gradiente vertical, mais claro junto ao horizonte, com uma banda de
@@ -214,7 +216,7 @@ void main() {
 
   float t = uTime * 0.09 + uSeed;
 
-  float v = waveField(vUv, aspect, t, uPointer);
+  float v = waveField(vUv, aspect, t, uPointer, uSunPointer);
 
   /* Ramp de 3 cores, sem ramificação. */
   vec3 color = mix(uPalette[0], uPalette[1], smoothstep(0.0, 0.5, v));

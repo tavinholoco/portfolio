@@ -303,6 +303,59 @@ test.describe("o canvas do fundo", () => {
     expect(canvas.buffer).toBeGreaterThan(1);
     expect(canvas.css).toBeGreaterThan(1);
   });
+
+  test("desenha no máximo 30 quadros por segundo, e continua animando", async ({
+    page,
+  }) => {
+    /*
+     * O teto de MAX_FPS não aparece em captura nem no console: sem ele o fundo
+     * continua bonito e só passa a custar o dobro, ou o quádruplo numa tela de
+     * 120 Hz. A contagem é feita no próprio WebGL, embrulhando o drawArrays
+     * antes de a página carregar. Cada quadro são dois draws, o campo e a
+     * composição.
+     *
+     * Controle negativo conferido: com MAX_FPS em 60 este teste reprova.
+     */
+    await page.addInitScript(() => {
+      const contador = window as unknown as { __draws: number };
+      contador.__draws = 0;
+      for (const proto of [
+        WebGLRenderingContext.prototype,
+        WebGL2RenderingContext.prototype,
+      ]) {
+        const original = proto.drawArrays;
+        proto.drawArrays = function (
+          this: WebGLRenderingContext,
+          mode: number,
+          first: number,
+          count: number
+        ) {
+          contador.__draws++;
+          return original.call(this, mode, first, count);
+        };
+      }
+    });
+
+    const draws = () =>
+      page.evaluate(() => (window as unknown as { __draws: number }).__draws);
+
+    await page.goto("/");
+    /* O ogl só entra na primeira ociosidade, com teto de 2 s. */
+    await page.waitForFunction(
+      () => (window as unknown as { __draws: number }).__draws > 0,
+      null,
+      { timeout: 10_000 }
+    );
+    await page.waitForTimeout(500);
+
+    const inicio = await draws();
+    await page.waitForTimeout(2000);
+    const drawsEm2s = (await draws()) - inicio;
+    const fps = drawsEm2s / 2 / 2;
+
+    expect(fps).toBeGreaterThan(5);
+    expect(fps).toBeLessThanOrEqual(33);
+  });
 });
 
 test.describe("movimento reduzido", () => {
