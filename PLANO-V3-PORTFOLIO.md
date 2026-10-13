@@ -1937,7 +1937,7 @@ Custo por quadro no SwiftShader, mobile (canvas 350x804, campo 111x256): hoje **
 Três coisas medidas e descartadas, para ninguém refazer:
 
 1. **Detalhe em resolução cheia.** A primeira versão lia uma textura com mipmap na composição, em cada pixel da tela, e custou **4x** no SwiftShader (10.1 ms). Em GPU era de graça, que é justamente por que ninguém veria.
-2. **`OffscreenCanvas` num worker.** Suportado desde o Safari 16.4, mas tiraria do main thread só os 0.2 ms do callback, e não reduz a disputa por processador, que é o custo real.
+2. **`OffscreenCanvas` num worker.** Suportado desde o Safari 16.4, mas tiraria do main thread só os 0.2 ms do callback, e não reduz a disputa por processador, que é o custo real. A montagem é outra conversa (§16.5): ela bloqueia, mas a pré-compilação em paralelo resolveu quase tudo, e o que sobra (criar o contexto, ~21 ms) não paga a reescrita para um worker.
 3. **`failIfMajorPerformanceCaveat`.** O caminho oficial para recusar contexto sem GPU **não recusa** no SwiftShader daqui. Para degradar sem GPU, o nome em `WEBGL_debug_renderer_info` funciona.
 
 **A folga de contraste do tema claro é para cima.** A faixa proibida (0.35 a 0.65) só limita o ponto mais escuro do ramp; acima do fundo não há limite. Com o topo do ramp em branco, mais claro que `#f0f0f0`, e matizes que guardam luminância alta mesmo saturados (ciano e amarelo, não azul), a amplitude de luminância do campo sobe de **0.074 para 0.16** com a mesma margem de hoje (0.046 contra 0.65). Conta feita com a mesma função do teste de `background-config.test.ts`.
@@ -1946,9 +1946,9 @@ Três coisas medidas e descartadas, para ninguém refazer:
 
 Cada uma medida contra um preview da Vercel, mediana de 3 (lei 18), antes da próxima.
 
-1. **Teto de 30 fps e sol lento.** Feita, ver §16.4.
-2. **Elementos novos, todos no passe do campo:** textura 256x256 assada uma vez no mount (worley e fbm ladrilháveis, sem mipmap), sol que anda sozinho, nuvens, vaivém sincronizado com a chegada da crista, renda que se desfaz por limiar, areia molhada que escurece e reflete o sol, grão em perspectiva. A composição não muda, então a lei 14 e o teste de contraste continuam valendo por construção. Junto entram os degraus de qualidade: sem GPU, sem renda nem grão; e uma guarda que mede o tempo de quadro e desce um degrau quando estoura.
-3. **Paleta clara praia.** O teste de contraste valida sozinho.
+1. **Teto de 30 fps e sol lento.** Feita, ver §16.4. PR #16.
+2. **Feita, ver §16.5.** **Elementos novos, todos no passe do campo:** textura 256x256 assada uma vez no mount (worley e fbm ladrilháveis, sem mipmap), sol que anda sozinho, nuvens, vaivém sincronizado com a chegada da crista, renda que se desfaz por limiar, areia molhada que escurece e reflete o sol, grão em perspectiva. A composição não muda, então a lei 14 e o teste de contraste continuam valendo por construção. Junto entram os degraus de qualidade: sem GPU, sem renda nem grão; e uma guarda que mede o tempo de quadro e desce um degrau quando estoura.
+3. **Paleta clara praia.** O teste de contraste valida sozinho. **Feita, ver §16.6**, no mesmo PR da etapa 2.
 
 O contorno firme, que seria a etapa 4, saiu do plano (§16.1).
 
@@ -1964,4 +1964,74 @@ O rastro do sol ganhou ponteiro próprio (`uSunPointer`, `SUN_TIME_CONSTANT` de 
 
 **Testes:** 8 unitários em `renderer.test.ts`, que simulam o rAF em 60, 75, 90, 120, 144, 165 e 240 Hz, o jitter e a volta de uma pausa; e um E2E em `e2e/shell.spec.ts` que embrulha o `drawArrays` antes de a página carregar e conta os quadros. **Controle negativo executado:** com `MAX_FPS` em 60 o E2E mede 50 fps e reprova. `pnpm waves` igual ao de antes: −3 px, erro 1.65. Unitários de 158 para **166**, E2E de 156 para **157**.
 
-**Lighthouse: pendente.** Precisa de um preview da Vercel para comparar com produção; medir em `localhost` não vale (lei 18).
+**O preview da Vercel não serve para medir:** fica atrás do SSO do time (302 para `vercel.com/sso-api`). A medição foi contra produção, depois do merge.
+
+#### A medição em produção, e uma queda que não era da etapa 1
+
+Lighthouse 13.4.1 mobile contra produção, `simulate`, mediana de 3 (13/10/2026):
+
+| Rota | Perf | Spread | LCP | TBT | CLS | FCP | Speed Index |
+|---|---|---|---|---|---|---|---|
+| `/` | **95** | 95 a 95 | 2110 ms | 228 ms | 0 | 919 ms | 1476 ms |
+| `/clientes/` | **94** | 93 a 95 | 2407 ms | 218 ms | 0 | 912 ms | 1624 ms |
+| `/projetos/` | **95** | 89 a 96 | 2560 ms | 152 ms | 0 | 910 ms | 1672 ms |
+| `/info/` | **95** | 94 a 97 | 2254 ms | 221 ms | 0 | 907 ms | 1631 ms |
+| `/contato/` | **94** | 94 a 95 | 2252 ms | 253 ms | 0 | 906 ms | 1512 ms |
+
+Abaixo dos 98 a 100 da §15.8, com o TBT de 22 a 51 ms subindo para 150 a 250. **Não foi a etapa 1**, e isso foi provado, não suposto:
+
+- A versão do Lighthouse não explica: a 12.8.2 dá o mesmo (95 a 96, TBT ~230).
+- A/B na mesma sessão, `next start`, build de antes (`c9aff90`) contra o de depois (`c5c427d`), intercalados, 6 rodadas de `/` cada: TBT mediano de 238 ms antes e 264 depois, com faixas sobrepostas (231 a 345 contra 161 a 311). A tarefa longa está nos dois.
+- A tarefa longa é a **montagem do fundo**: o chunk do OGL e o motor, numa tarefa só, com 234 a 349 ms simulados.
+
+Na §15.8 o Speed Index era igual ao FCP, sinal de que o fundo nem aparecia durante a medição: a montagem caía depois do fim do trace. Agora cai dentro. É uma corrida de tempo do carregamento, e a etapa 2 a resolveu na origem (§16.5).
+
+### 16.5 Etapa 2: os elementos novos, e a montagem que deixou de bloquear
+
+**O que entrou**, tudo no passe do campo, em baixa resolução, com a composição intacta (lei 14 e teste de contraste valendo por construção):
+
+- **Sol que anda sozinho:** vai e volta num arco baixo, uma volta a cada 4 min. A fase sai de `uTime` em segundos. O mouse só empurra, pelo `uSunPointer` de 3 s.
+- **Nuvens** num teto em perspectiva, espelho do plano do mar, em contraluz perto do sol.
+- **Vaivém** sincronizado com a chegada da crista: sobe rápido e freia, deixa linha de espuma no alcance máximo, desce acelerando. Areia molhada que escurece, reflete o sol e seca.
+- **Renda de espuma** que se desfaz por limiar, uma escala só de células grandes, na frente da lâmina. **Grão de areia** em perspectiva.
+- **Textura de ruído** 256x256 assada uma vez no mount (`shaders/bake.ts`: fBm, Worley e grão, ladrilháveis, sem mipmap).
+- **Degraus de qualidade:** `full` e `lite`. Sem GPU, detectado pelo nome do renderizador, o motor nasce no `lite`: sem grão nem renda, DPR 1 e alvo pequeno. Com GPU, uma guarda mede o intervalo entre quadros depois de 3 s de aquecimento e desce para `lite` se a mediana de 60 quadros passar de 50 ms. O canvas leva o degrau em `data-quality`.
+
+**O que a primeira versão desta etapa fez com o Lighthouse**, e é o achado mais útil da seção: mesmo A/B, `/` caiu de 87 para **73**, com TBT de 868 ms. O trace do próprio Lighthouse (`--save-assets`) mostrou uma microtarefa de 213 ms reais sem script atribuído, e a causa estava num lugar que nenhuma medição anterior tinha olhado:
+
+1. **No `chrome.exe` que o Lighthouse usa, o SwiftShader compila o shader inteiro no link, de forma síncrona**, e o OGL confere o status do link na hora. O campo de hoje leva 88 ms reais, o primeiro campo novo levava **192 ms**. O Chromium "headless shell" do Playwright adia essa compilação, e por isso a medição de montagem feita nele dava 3.5 ms. **Meça montagem e compilação no mesmo executável do Lighthouse.**
+2. **O simulador do Lighthouse multiplica tarefa de CPU por 4, mas por 2 quando a tarefa também fez layout.** Na `main`, a montagem inteira caía na tarefa que fazia layout e contava ×2. Fatiar a montagem levou a compilação para uma tarefa sem layout, e ela passou a contar ×4.
+
+**As correções, cada uma medida:**
+
+| Mudança | Efeito |
+|---|---|
+| Uma chamada de `fbm` para céu e mar (coordenada escolhida antes) | Compilação do campo de 192 para 111 ms |
+| `snoise` do vaivém trocado por ruído de valor 2D | Incluso acima |
+| Bloco de grão e renda atrás de `#define DETAIL`, fora do degrau leve | 111 para 101 ms no leve |
+| `KHR_parallel_shader_compile` antes do OGL (`precompile`) | Bloqueio de compilação de ~100 ms para **~3 ms**: o shader compila fora do main thread e o OGL acha o programa no cache do Chrome |
+| Montagem fatiada (`yieldToMain` entre contexto, compilação e cena) | Maior tarefa do fundo: 21 ms reais, a criação do contexto |
+| Motor e shaders no mesmo `import()` do OGL | JS inicial da home de 217.8 para **212.1 KB** gzip, mesmo com os shaders maiores |
+
+O cache do programa sobrevive a apagar o programa pré-compilado (medido: 2.9 ms na segunda compilação), e o OGL passa o código ao WebGL sem prefixo nem `bindAttribLocation`, então o texto é idêntico e o cache bate. Sem a extensão, a pré-compilação não faz nada e tudo volta a ser como antes.
+
+**O A/B final**, mesma sessão, `next start`, 6 rodadas por rota, intercalado:
+
+| Rota | `main` | Etapa 2 |
+|---|---|---|
+| `/` | 87 (86 a 87), TBT 244 ms (234 a 265) | **93 (93 a 99), TBT 57 ms (43 a 75)** |
+| `/projetos/` | 85 (84 a 92), TBT 166 ms | **91 (87 a 93), TBT 78 ms** |
+
+Números de `localhost`, que pela lei 18 não são o estado do site: a conferência é em produção, depois do merge. Uma ressalva: com a compilação em segundo plano, o fundo aparece um pouco depois no carregamento (o Speed Index voltou a ser igual ao FCP), e parte disso pode cair depois do fim da medição. O TBT menor é real mesmo assim: no trace, a única tarefa do fundo que sobrou é a criação do contexto.
+
+**Testes:** 9 unitários novos (`isSoftwareRenderer` com nomes reais dos dois lados, `shouldDowngrade`, `DETAIL_SIZE` potência de 2, `yieldToMain`) e um E2E que confere que o canvas nasce no degrau que o renderizador pede, em DPR 1 numa tela de densidade 2. **Controle negativo executado:** com `isSoftwareRenderer` devolvendo sempre `false`, o E2E reprova (esperado `lite`, veio `full`). `pnpm waves`: −3 px, erro 2.22, as cristas vêm para a praia (o erro subiu de 1.65 porque a areia agora também se move).
+
+### 16.6 Etapa 3: o tema claro "praia"
+
+`DEFAULT_PALETTE` passou de `graphite` para `praia`, que no escuro é o grafite de sempre e no claro é `["#7ed4e0", "#f7dc9a", "#ffffff"]`. `FIELD_MIX.light` subiu de 0.20 para **0.40**.
+
+**A folga do tema claro é para cima.** A faixa proibida (0.35 a 0.65) só limita o ponto mais escuro do ramp; acima de `#f0f0f0` não há limite. Com o topo de cada paleta clara em branco, a espuma e o sol viram brilho, e matizes que guardam luminância alta mesmo saturados (ciano e amarelo, não azul) dão cor de verdade sem afundar o contraste. A amplitude de luminância do campo no claro dobrou, de 0.074 para ~0.16, com a mesma margem de antes: L mínimo de 0.695 a 0.697 nas sete paletas, contra o limite de 0.65.
+
+Como a dose é uma só para todas as paletas claras, **as seis do vocabulário foram recalculadas** para 0.40, pela mesma conta do teste, com o matiz de cada uma. O teste de contraste passou a varrer sete presets nos dois temas. O ícone e a imagem de link usam só as cores escuras do grafite, que não mudaram, então a lei 13 continua de pé. O gradiente de reserva sem WebGL no claro passou a usar as cores da praia a 30%, com L de cerca de 0.77.
+
+Unitários de 166 para **177**, E2E de 157 para **158**.
