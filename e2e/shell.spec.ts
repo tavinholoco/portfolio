@@ -356,6 +356,59 @@ test.describe("o canvas do fundo", () => {
     expect(fps).toBeGreaterThan(5);
     expect(fps).toBeLessThanOrEqual(33);
   });
+
+  test("nasce no degrau que o renderizador pede: sem GPU, o leve, em DPR 1", async ({
+    browser,
+  }) => {
+    /*
+     * Sem GPU o WebGL vira trabalho de processador, e é assim que o Lighthouse
+     * e este próprio teste rodam (SwiftShader). O degrau leve pula grão e
+     * renda e fica em DPR 1 e alvo pequeno. Nada disso aparece em captura: o
+     * fundo continua bonito, só mais caro. Por isso o motor marca o degrau no
+     * canvas, e o teste confere contra o nome do renderizador.
+     *
+     * Tela de densidade 2 de propósito: no degrau completo ela daria DPR 1.5.
+     * Controle negativo conferido: com isSoftwareRenderer devolvendo sempre
+     * false, este teste reprova.
+     */
+    const context = await browser.newContext({
+      viewport: { width: 1440, height: 900 },
+      deviceScaleFactor: 2,
+      baseURL: "http://localhost:3000",
+    });
+    const page = await context.newPage();
+
+    try {
+      await page.goto("/");
+      await page.waitForFunction(
+        () => !!document.querySelector("canvas")?.dataset.quality,
+        null,
+        { timeout: 10_000 }
+      );
+      await page.waitForTimeout(300);
+
+      const estado = await page.evaluate(() => {
+        const c = document.querySelector("canvas")!;
+        const gl = document.createElement("canvas").getContext("webgl");
+        const debug = gl?.getExtension("WEBGL_debug_renderer_info");
+        const nome = debug
+          ? String(gl!.getParameter(debug.UNMASKED_RENDERER_WEBGL))
+          : "";
+        return {
+          degrau: c.dataset.quality,
+          software: /swiftshader|llvmpipe|softpipe|software|basic render/i.test(
+            nome
+          ),
+          dpr: c.width / Math.max(c.clientWidth, 1),
+        };
+      });
+
+      expect(estado.degrau).toBe(estado.software ? "lite" : "full");
+      if (estado.degrau === "lite") expect(estado.dpr).toBeLessThanOrEqual(1.01);
+    } finally {
+      await context.close();
+    }
+  });
 });
 
 test.describe("movimento reduzido", () => {

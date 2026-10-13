@@ -8,6 +8,7 @@ import type {
 } from "ogl";
 
 import {
+  DEFAULT_PALETTE,
   GRAIN_AMOUNT,
   SHELL_FADE_MS,
   VIGNETTE_STRENGTH,
@@ -21,6 +22,7 @@ import {
   type Rgb,
 } from "./background-config";
 import { GRAIN_SIZE, createGrainTexture } from "./grain-texture";
+import { bakeFragment } from "./shaders/bake";
 import { compositeFragment } from "./shaders/composite";
 import { fieldFragment } from "./shaders/field";
 import { fullscreenVertex } from "./shaders/vertex";
@@ -132,6 +134,148 @@ export function shouldRenderFrame(
   return now - lastRenderAt >= 1000 / maxFps - FRAME_SLACK_MS;
 }
 
+/** Lado da textura de ruído assada no mount (shaders/bake.ts). */
+export const DETAIL_SIZE = 256;
+
+/**
+ * Degrau de qualidade do fundo (§16.3).
+ *
+ * `full` desenha o grão da areia e a renda de espuma e usa a resolução de
+ * sempre. `lite` pula as duas leituras de textura, fica em DPR 1 e no alvo
+ * pequeno. A troca é de mão única: o motor desce e não sobe, porque subir de
+ * novo faria o fundo pulsar entre os dois numa máquina no limite.
+ */
+export type Quality = "full" | "lite";
+
+/**
+ * Renderizador por software: sem GPU, o WebGL vira trabalho de processador.
+ *
+ * É onde o Lighthouse e o PageSpeed rodam (SwiftShader), e onde vive quem tem
+ * driver bloqueado ou máquina virtual. **O `failIfMajorPerformanceCaveat`, que
+ * seria o caminho oficial, não recusa o contexto no SwiftShader** (medido na
+ * §16.2), por isso o nome do renderizador.
+ */
+export function isSoftwareRenderer(name: string): boolean {
+  return /swiftshader|llvmpipe|softpipe|software|basic render/i.test(name);
+}
+
+/**
+ * A guarda de tempo de quadro.
+ *
+ * Com o teto de 30 fps o intervalo esperado entre quadros é de 33 ms. Se a
+ * mediana de uma janela inteira passa de 50 ms, a máquina não está dando conta
+ * e o motor desce para `lite`. Mediana, e não média, para um pico isolado de
+ * hidratação ou de troca de rota não derrubar a qualidade; e só depois do
+ * aquecimento, que é quando a página ainda está carregando o resto.
+ */
+export const FRAME_GUARD = {
+  warmupMs: 3000,
+  window: 60,
+  slowIntervalMs: 50,
+  /** Acima disto não é quadro lento, é pausa: aba oculta, canvas fora da tela. */
+  pauseMs: 250,
+} as const;
+
+/** Decide, sobre uma janela de intervalos entre quadros, se é hora de descer. */
+export function shouldDowngrade(intervals: readonly number[]): boolean {
+  if (intervals.length < FRAME_GUARD.window) return false;
+  const sorted = [...intervals].sort((a, b) => a - b);
+  return sorted[Math.floor(sorted.length / 2)] > FRAME_GUARD.slowIntervalMs;
+}
+
+/**
+ * Devolve o main thread ao navegador entre dois passos da montagem.
+ *
+ * A montagem inteira numa tarefa só (avaliar o chunk do OGL, criar o contexto,
+ * compilar, desenhar) dava uns 250 ms no Lighthouse mobile, todos contando no
+ * TBT. Criar o contexto sozinho já custa uns 24 ms reais no SwiftShader, então
+ * não há como ficar abaixo de 50 ms simulados nele; o resto, fatiado, sai da
+ * conta (§16.5).
+ */
+export function yieldToMain(): Promise<void> {
+  const scheduler = (
+    globalThis as unknown as { scheduler?: { yield?: () => Promise<void> } }
+  ).scheduler;
+  if (scheduler?.yield) return scheduler.yield();
+  return new Promise((resolve) => setTimeout(resolve, 0));
+}
+
+/** Intervalo entre consultas de "já compilou?" durante a pré-compilação. */
+const PRECOMPILE_POLL_MS = 16;
+
+/**
+ * Compila os programas em segundo plano, antes de o OGL compilar.
+ *
+ * O OGL compila e confere o status do link na hora, e essa conferência espera
+ * a compilação inteira no main thread. No Chrome sem GPU, que é onde o
+ * Lighthouse roda, o SwiftShader compila tudo no link: o campo leva uns 100 ms
+ * reais, e o simulador do Lighthouse ainda multiplica isso por quatro.
+ *
+ * Com `KHR_parallel_shader_compile` a compilação corre fora do main thread e o
+ * código só consulta se acabou, devolvendo o main thread entre as consultas. O
+ * Chrome guarda o programa ligado num cache por código-fonte, que sobrevive a
+ * apagar o programa: quando o OGL compila o mesmo texto em seguida, leva uns
+ * 3 ms (§16.5). Sem a extensão, não faz nada e o OGL compila como sempre.
+ *
+ * O texto tem que ser idêntico ao que o OGL vai compilar, e é: ele passa o
+ * código ao WebGL sem prefixo nem `bindAttribLocation`.
+ */
+async function precompile(
+  gl: WebGLRenderingContext,
+  pairs: ReadonlyArray<readonly [vertex: string, fragment: string]>,
+  cancelled: () => boolean
+): Promise<void> {
+  const parallel = gl.getExtension("KHR_parallel_shader_compile") as {
+    COMPLETION_STATUS_KHR: number;
+  } | null;
+  if (!parallel) return;
+
+  const programs = pairs.map(([vertex, fragment]) => {
+    const program = gl.createProgram();
+    if (!program) return null;
+    for (const [type, source] of [
+      [gl.VERTEX_SHADER, vertex],
+      [gl.FRAGMENT_SHADER, fragment],
+    ] as const) {
+      const shader = gl.createShader(type);
+      if (!shader) continue;
+      gl.shaderSource(shader, source);
+      gl.compileShader(shader);
+      gl.attachShader(program, shader);
+      /* Só marca: o shader vive até o programa ser apagado. */
+      gl.deleteShader(shader);
+    }
+    gl.linkProgram(program);
+    return program;
+  });
+
+  const ready = () =>
+    programs.every(
+      (program) =>
+        !program ||
+        gl.getProgramParameter(program, parallel.COMPLETION_STATUS_KHR)
+    );
+  while (!cancelled() && !ready()) {
+    await new Promise((resolve) => setTimeout(resolve, PRECOMPILE_POLL_MS));
+  }
+
+  for (const program of programs) if (program) gl.deleteProgram(program);
+}
+
+/**
+ * Nome do renderizador WebGL.
+ *
+ * O `RENDERER` simples já traz o nome real no Firefox, e só no Chrome e no
+ * Safari vem mascarado como "WebKit WebGL". Pedir a extensão só nesse caso
+ * evita o aviso de depreciação que o Firefox imprime ao vê-la.
+ */
+function rendererName(gl: WebGLRenderingContext): string {
+  const plain = String(gl.getParameter(gl.RENDERER) ?? "");
+  if (plain && !/webkit webgl/i.test(plain)) return plain;
+  const debug = gl.getExtension("WEBGL_debug_renderer_info");
+  return debug ? String(gl.getParameter(debug.UNMASKED_RENDERER_WEBGL)) : plain;
+}
+
 /**
  * Dimensões do RenderTarget preservando a proporção da tela.
  *
@@ -185,7 +329,8 @@ export type BackgroundRendererOptions = {
  * o componente só liga e desliga.
  *
  * Dois passes, um draw cada: o campo vai para um RenderTarget pequeno, e a
- * composição estica esse alvo na tela somando grain e vinheta.
+ * composição estica esse alvo na tela somando grain e vinheta. No mount, um
+ * terceiro desenho, único, assa a textura de ruído que o campo lê (§16).
  */
 export class BackgroundRenderer {
   private readonly ogl: OglModule;
@@ -197,6 +342,10 @@ export class BackgroundRenderer {
   private fieldMesh: Mesh | null = null;
   private compositeMesh: Mesh | null = null;
   private grain: Texture | null = null;
+  private detailTarget: RenderTarget | null = null;
+
+  private quality: Quality = "full";
+  private frameIntervals: number[] = [];
 
   private frameId = 0;
   private framePending = false;
@@ -213,7 +362,7 @@ export class BackgroundRenderer {
   private sunPointer: [number, number] = [0, 0];
   private pointerTarget: [number, number] = [0, 0];
 
-  private preset: PalettePreset = "graphite";
+  private preset: PalettePreset = DEFAULT_PALETTE;
   private themeTween: Tween | null = null;
 
   private resizeObserver: ResizeObserver | null = null;
@@ -226,10 +375,20 @@ export class BackgroundRenderer {
   }
 
   /**
-   * Cria o contexto e monta a cena. Devolve false quando o WebGL não está
-   * disponível, e aí o chamador mostra o fallback em gradiente CSS.
+   * Cria o contexto e monta a cena. Resolve false quando o WebGL não está
+   * disponível, e aí o chamador mostra o fallback em gradiente CSS, ou quando
+   * o motor foi destruído no meio do caminho.
+   *
+   * **É assíncrona de propósito**, em três tempos (§16.5): cria o contexto e
+   * devolve o main thread; compila os programas em segundo plano
+   * (`precompile`); e monta o resto, com o OGL compilando pelo cache. Depois de
+   * cada espera, `destroyed` é conferido de novo, porque o componente pode ter
+   * desmontado enquanto o motor esperava.
    */
-  mount(canvas: HTMLCanvasElement, preset: PalettePreset = "graphite"): boolean {
+  async mount(
+    canvas: HTMLCanvasElement,
+    preset: PalettePreset = DEFAULT_PALETTE
+  ): Promise<boolean> {
     if (this.destroyed) return false;
 
     const { Renderer, Program, Mesh, Triangle, RenderTarget } = this.ogl;
@@ -261,6 +420,40 @@ export class BackgroundRenderer {
     this.renderer = renderer;
     const gl = renderer.gl;
 
+    /*
+     * Sem GPU o motor já nasce no degrau leve. O DPR foi decidido antes de
+     * existir contexto para perguntar, então é refeito aqui.
+     */
+    if (isSoftwareRenderer(rendererName(gl))) {
+      this.quality = "lite";
+      renderer.dpr = this.currentDpr();
+      renderer.setSize(size.width, size.height);
+    }
+    canvas.dataset.quality = this.quality;
+
+    await yieldToMain();
+    if (this.destroyed) return false;
+
+    /*
+     * O campo só leva o bloco de grão e renda no degrau completo. No leve, que
+     * é o do Lighthouse, ele nem é compilado.
+     */
+    const fieldSource =
+      this.quality === "full" ? "#define DETAIL\n" + fieldFragment : fieldFragment;
+
+    await precompile(
+      gl,
+      [
+        [fullscreenVertex, fieldSource],
+        [fullscreenVertex, compositeFragment],
+        ...(this.quality === "full"
+          ? [[fullscreenVertex, bakeFragment] as const]
+          : []),
+      ],
+      () => this.destroyed
+    );
+    if (this.destroyed) return false;
+
     this.reducedMotion = this.prefersReducedMotion();
     this.documentHidden = document.visibilityState === "hidden";
 
@@ -288,11 +481,45 @@ export class BackgroundRenderer {
 
     const geometry = new Triangle(gl);
 
+    /*
+     * A textura de ruído do campo, desenhada uma vez. No degrau leve ela nem é
+     * lida, então não é desenhada: o grain ocupa o lugar só para o sampler ter
+     * textura válida. A guarda que desce de full para lite não volta, então
+     * nunca falta a textura assada para quem precisa dela.
+     */
+    if (this.quality === "full") {
+      this.detailTarget = new RenderTarget(gl, {
+        width: DETAIL_SIZE,
+        height: DETAIL_SIZE,
+        depth: false,
+        wrapS: gl.REPEAT,
+        wrapT: gl.REPEAT,
+        minFilter: gl.LINEAR,
+        magFilter: gl.LINEAR,
+      });
+      const bakeMesh = new Mesh(gl, {
+        geometry,
+        program: new Program(gl, {
+          vertex: fullscreenVertex,
+          fragment: bakeFragment,
+          depthTest: false,
+          depthWrite: false,
+        }),
+      });
+      renderer.render({
+        scene: bakeMesh,
+        target: this.detailTarget,
+        frustumCull: false,
+        sort: false,
+      });
+      bakeMesh.program.remove();
+    }
+
     this.fieldMesh = new Mesh(gl, {
       geometry,
       program: new Program(gl, {
         vertex: fullscreenVertex,
-        fragment: fieldFragment,
+        fragment: fieldSource,
         depthTest: false,
         depthWrite: false,
         uniforms: {
@@ -303,6 +530,8 @@ export class BackgroundRenderer {
           uPointer: { value: [0, 0] },
           uSunPointer: { value: [0, 0] },
           uPalette: { value: palette.map((color) => [...color]) },
+          uDetailTex: { value: this.detailTarget?.texture ?? this.grain },
+          uDetail: { value: this.quality === "full" ? 1 : 0 },
         },
       }),
     });
@@ -447,6 +676,7 @@ export class BackgroundRenderer {
     this.fieldMesh = null;
     this.compositeMesh = null;
     this.grain = null;
+    this.detailTarget = null;
     this.resizeObserver = null;
     this.intersectionObserver = null;
     this.motionQuery = null;
@@ -518,12 +748,14 @@ export class BackgroundRenderer {
   }
 
   private currentDpr(): number {
-    if (this.isSmallScreen()) return 1;
+    if (this.isSmallScreen() || this.quality === "lite") return 1;
     return Math.min(window.devicePixelRatio || 1, MAX_DPR);
   }
 
   private currentMaxSide(): number {
-    return this.isSmallScreen() ? FIELD_TARGET_MAX_SMALL : FIELD_TARGET_MAX;
+    return this.isSmallScreen() || this.quality === "lite"
+      ? FIELD_TARGET_MAX_SMALL
+      : FIELD_TARGET_MAX;
   }
 
   private canvasSize(): { width: number; height: number } {
@@ -643,8 +875,37 @@ export class BackgroundRenderer {
   private loop = (now: number): void => {
     this.frameId = requestAnimationFrame(this.loop);
     if (!shouldRenderFrame(now, this.lastFrameAt, MAX_FPS)) return;
+    this.watchFrameTime(now);
     this.renderFrame(now);
   };
+
+  /**
+   * Alimenta a guarda com o intervalo desde o último quadro. Só no degrau
+   * completo, só depois do aquecimento, e ignorando pausas, que não são
+   * lentidão de GPU (ver FRAME_GUARD).
+   */
+  private watchFrameTime(now: number): void {
+    if (this.quality !== "full" || this.lastFrameAt === 0) return;
+    if (now - this.startedAt < FRAME_GUARD.warmupMs) return;
+
+    const interval = now - this.lastFrameAt;
+    if (interval > FRAME_GUARD.pauseMs) return;
+
+    this.frameIntervals.push(interval);
+    if (this.frameIntervals.length < FRAME_GUARD.window) return;
+
+    const slow = shouldDowngrade(this.frameIntervals);
+    this.frameIntervals = [];
+    if (slow) this.downgrade();
+  }
+
+  /** Desce para o degrau leve: sem grão nem renda, DPR 1 e alvo pequeno. */
+  private downgrade(): void {
+    this.quality = "lite";
+    if (this.canvas) this.canvas.dataset.quality = this.quality;
+    if (this.fieldMesh) this.fieldMesh.program.uniforms.uDetail.value = 0;
+    this.resize();
+  }
 
   private renderFrame(now: number): void {
     this.framePending = false;
