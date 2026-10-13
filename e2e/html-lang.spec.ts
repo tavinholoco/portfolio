@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 
 /**
  * O <html lang> deve nascer correto no HTML servido (SSR) em cada rota, sem

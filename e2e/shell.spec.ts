@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, pularIntro, test, type Page } from "./fixtures";
 
 /**
  * As invariantes do shell da v3, que nenhum teste unitário alcança porque
@@ -102,6 +102,36 @@ test.describe("F1: o blend precisa alcançar o canvas", () => {
     const culpados = await ancestraisQueQuebramOBlend(page);
     expect(culpados.length).toBeGreaterThan(0);
     expect(culpados.join(" ")).toContain("isolation");
+  });
+
+  test.describe("com a abertura na tela", () => {
+    test.use({ intro: true });
+
+    test("a cortina só cobre: nenhum ancestral de seção blend muda", async ({
+      page,
+    }) => {
+      /*
+       * A abertura (§16.9) anima `opacity` e `transform`, as duas coisas que
+       * matam o blend se caírem num ancestral. Ela é irmã do `<main>`, e este
+       * caso confere isso com a cortina de fato na tela, onde um wrapper
+       * esquecido apareceria.
+       */
+      await page.goto("/info/");
+      await expect(page.locator("html")).toHaveAttribute("data-intro", "");
+      expect(await ancestraisQueQuebramOBlend(page)).toEqual([]);
+      expect(
+        await page.evaluate(() => {
+          const cortina = document.querySelector(".intro");
+          const main = document.querySelector("main");
+          return (
+            !!cortina &&
+            !!main &&
+            cortina.parentElement === main.parentElement &&
+            !cortina.contains(main)
+          );
+        })
+      ).toBe(true);
+    });
   });
 });
 
@@ -245,6 +275,7 @@ test.describe("o canvas do fundo", () => {
       deviceScaleFactor: 3,
       baseURL: "http://localhost:3000",
     });
+    await pularIntro(context);
     const page = await context.newPage();
 
     try {
@@ -376,6 +407,7 @@ test.describe("o canvas do fundo", () => {
       deviceScaleFactor: 2,
       baseURL: "http://localhost:3000",
     });
+    await pularIntro(context);
     const page = await context.newPage();
 
     try {

@@ -281,6 +281,53 @@
   animation: fade-in 0.8s ease-out both;
 }
 
+/*
+ * A abertura (§16.9 do plano, componente em shell/intro.tsx).
+ *
+ * Escondida por padrão, inclusive no HTML do servidor. Só aparece com
+ * `html[data-intro]`, que o script do <head> marca antes da primeira pintura
+ * quando a sessão ainda não viu a abertura e não há pedido de movimento
+ * reduzido. Atributo, nunca classe: o fundo observa o `class` do <html> para
+ * trocar de tema.
+ *
+ * A subida das letras é daqui, para começar na primeira pintura sem esperar a
+ * hidratação. `intro-reserva` tira a cortina sozinha aos 4 s se o JS nunca
+ * rodar; quando ele roda, cancela a reserva e assume.
+ */
+.intro {
+  display: none;
+}
+
+html[data-intro] .intro {
+  display: block;
+  animation: intro-reserva 0.4s ease-out 4s forwards;
+}
+
+.intro-caixa {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: top;
+}
+
+.intro-letra {
+  display: inline-block;
+  animation: intro-letra var(--intro-letra) cubic-bezier(0.2, 0.6, 0.3, 1)
+    calc(var(--i) * var(--intro-passo)) both;
+}
+
+@keyframes intro-letra {
+  from {
+    transform: translateY(110%);
+  }
+}
+
+@keyframes intro-reserva {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
 /* Acessibilidade: respeita preferência de movimento reduzido */
 @media (prefers-reduced-motion: reduce) {
   *,

@@ -1,4 +1,4 @@
-import { devices, expect, test, type Page } from "@playwright/test";
+import { devices, expect, pularIntro, test, type Page } from "./fixtures";
 
 /**
  * As regras da seção 3.1 do plano que só existem em runtime.
@@ -147,6 +147,7 @@ test.describe("showcase: toque", () => {
       ...devices["iPhone 13"],
       baseURL: "http://localhost:3000",
     });
+    await pularIntro(context);
     const page = await context.newPage();
 
     try {
