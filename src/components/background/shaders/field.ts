@@ -15,6 +15,11 @@
  * O alvo do RenderTarget subiu junto: com 320px a bilinear derretia a aresta
  * de espuma, que é exatamente a forma que a v3.5 foi buscar.
  *
+ * A §16 do plano acrescentou o sol que anda sozinho, as nuvens num teto em
+ * perspectiva, o vaivém sincronizado com a chegada da crista, a areia molhada e
+ * a renda de espuma que se desfaz. Tudo continua neste passe e devolve o mesmo
+ * `v`: a composição não mudou, e o ramp também não.
+ *
  * O simplex noise abaixo é o algoritmo canônico de Stefan Gustavson e Ashima
  * Arts (domínio público), reescrito aqui em vez de importado, porque é a forma
  * padrão do algoritmo e não queremos uma dependência de GLSL só para isso.
@@ -34,6 +39,17 @@ uniform vec2 uResolution;
 uniform vec2 uPointer;
 uniform vec2 uSunPointer;
 uniform vec3 uPalette[3];
+
+/*
+ * O detalhe fino (grão e renda) só existe no degrau completo. O motor prefixa
+ * '#define DETAIL' quando monta nele; no degrau leve, que é o do Lighthouse, o
+ * bloco nem é compilado. uDetail desliga em tempo de execução, para a guarda de
+ * tempo de quadro descer sem recompilar.
+ */
+#ifdef DETAIL
+uniform sampler2D uDetailTex;
+uniform float uDetail;
+#endif
 
 vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
 vec4 mod289(vec4 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
@@ -114,7 +130,73 @@ float fbm(vec3 p) {
 }
 
 /*
- * O campo de ondas de praia (v3.5).
+ * Ruído de valor 2D: barato de rodar e, principalmente, de compilar.
+ *
+ * No Chrome sem GPU, que é onde o Lighthouse roda, o SwiftShader compila o
+ * shader inteiro no link, de forma síncrona, e o custo cresce com cada cópia de
+ * snoise que o compilador expande. O vaivém só precisa de um número suave que
+ * varia devagar ao longo da praia, então não paga um snoise (§16.5).
+ */
+float hash12(vec2 p) {
+  vec3 p3 = fract(vec3(p.xyx) * 0.1031);
+  p3 += dot(p3, p3.yzx + 33.33);
+  return fract((p3.x + p3.y) * p3.z);
+}
+
+float vnoise(vec2 p) {
+  vec2 i = floor(p);
+  vec2 f = fract(p);
+  vec2 u = f * f * (3.0 - 2.0 * f);
+  float a = hash12(i);
+  float b = hash12(i + vec2(1.0, 0.0));
+  float c = hash12(i + vec2(0.0, 1.0));
+  float d = hash12(i + vec2(1.0, 1.0));
+  return mix(mix(a, b, u.x), mix(c, d, u.x), u.y) * 2.0 - 1.0;
+}
+
+float sat(float x) { return clamp(x, 0.0, 1.0); }
+
+const float TAU = 6.2831853;
+
+/* Fração do ciclo do vaivém gasta subindo a praia. O resto é a descida, que
+   começa lenta e acelera ladeira abaixo. */
+const float UPRUSH = 0.28;
+
+/*
+ * O céu (§16): gradiente, sol que anda sozinho e nuvens.
+ *
+ * As nuvens são o mesmo fbm de 3 oitavas que o céu já calculava, aplicado num
+ * teto em perspectiva que espelha o plano do mar ('zc = 1/dc'): comprimem em
+ * faixas perto do horizonte e crescem no alto da tela. A aresta é curta, como a
+ * da espuma, para ler como forma e não como borrão. Perto do sol ficam em
+ * contraluz: o corpo escurece e só a borda acende. O fbm chega pronto em
+ * 'cover': ver o comentário de waveField sobre a chamada única.
+ */
+float skyField(vec2 uv, vec2 aspect, float horizon, vec2 sun, float cover) {
+  float dc = uv.y - horizon;
+  float k = dc / max(1.0 - horizon, 0.001);
+  float sky = mix(0.62, 0.16, sqrt(k));
+
+  float r = length((uv - sun) * aspect);
+
+  float haze = smoothstep(0.02, 0.16, dc);
+  float body = smoothstep(0.0, 0.10, cover) * haze;
+  float rim = (smoothstep(-0.04, 0.01, cover) - smoothstep(0.03, 0.14, cover)) * haze;
+
+  float nearSun = exp(-r * 4.5);
+  float disc = 1.0 - smoothstep(0.034, 0.040, r);
+  float glow = exp(-r * 11.0) * 0.30 + exp(-r * 3.0) * 0.07;
+  float band = exp(-dc * 28.0) * exp(-abs(uv.x - sun.x) * 1.8) * 0.12;
+
+  float v = sky + band + glow * (1.0 - body * 0.5) + disc * (1.0 - body * 0.65) * 0.6;
+  float lit = mix(sky + 0.07, sky - 0.06, smoothstep(0.05, 0.6, nearSun));
+  v = mix(v, lit, body * 0.85);
+  v += rim * nearSun * 0.45;
+  return v;
+}
+
+/*
+ * O campo de ondas de praia.
  *
  * Devolve um escalar em [0,1] que o ramp de 3 cores logo abaixo traduz em cor.
  * **Manter a saída dentro de [0,1] é o que preserva a garantia de contraste do
@@ -128,27 +210,46 @@ float fbm(vec3 p) {
  * ela é contraintuitiva: **z pequeno é perto do observador** (base da tela) e
  * **z grande é longe** (junto ao horizonte). A areia fica em z pequeno, o mar
  * em z grande, e a linha d'água é o z onde os dois se encontram.
+ *
+ * Todo detalhe novo da §16 mora aqui, no alvo de baixa resolução, e herda o
+ * mesmo esticão bilinear do resto. Detalhe em resolução cheia custou 4x no
+ * SwiftShader, que é onde o Lighthouse roda (lei 20).
  */
 float waveField(vec2 uv, vec2 aspect, float t, vec2 pointer, vec2 sunPointer) {
   float horizon = 0.62 + pointer.y * 0.01;
 
-  /* A coluna do rastro do sol, seguida de longe por um ponteiro próprio, bem
-     mais lento que o do horizonte (SUN_TIME_CONSTANT no renderer.ts). */
-  float sunX = 0.5 + sunPointer.x * 0.06;
-
-  if (uv.y > horizon) {
-    /* Céu: gradiente vertical, mais claro junto ao horizonte, com uma banda de
-       nuvem lenta em fbm de baixa frequência e o halo do sol descendo. */
-    float k = (uv.y - horizon) / max(1.0 - horizon, 0.001);
-    float sky = mix(0.66, 0.30, k);
-    sky += fbm(vec3(uv.x * 2.2, uv.y * 3.0, t * 0.15)) * 0.09;
-    sky += exp(-abs(uv.x - sunX) * 6.0) * (1.0 - k) * 0.20;
-    return clamp(sky, 0.0, 1.0);
-  }
+  /*
+   * O sol anda sozinho: vai e volta num arco baixo, uma volta inteira a cada
+   * 4 min, mais alto no meio do caminho. A fase sai de uTime em segundos, não
+   * de 't', para o período não depender da velocidade das ondas. O ponteiro só
+   * empurra de leve, pelo uSunPointer de constante de tempo lenta.
+   */
+  float sunPhase = uTime * (TAU / 240.0) + uSeed;
+  float sunX = 0.55 + 0.22 * sin(sunPhase) + sunPointer.x * 0.03;
+  float arc = (sunX - 0.55) / 0.25;
+  vec2 sun = vec2(sunX, horizon + 0.07 + 0.06 * (1.0 - arc * arc));
 
   float d = horizon - uv.y;
   float z = 1.0 / max(d, 0.004);
   float x = (uv.x - 0.5) * z * aspect.x;
+
+  /* O teto das nuvens, espelho do plano do mar: 'zc = 1/dc'. */
+  float zc = 1.0 / (max(-d, 0.0) + 0.09);
+  vec2 cloud = vec2((uv.x - 0.5) * zc * aspect.x * 0.22 + t * 0.05,
+                    zc * 0.55 + t * 0.025);
+
+  /*
+   * **Uma chamada de fbm só, para céu e mar.** Cada pixel usa uma das duas, e
+   * escolher a coordenada antes de chamar faz o compilador expandir o fbm uma
+   * vez, não duas. É metade dos snoise no código compilado, e o SwiftShader
+   * compila tudo no link, de forma síncrona, no main thread (§16.5).
+   */
+  bool isSky = uv.y > horizon;
+  float n = fbm(isSky ? vec3(cloud, t * 0.04) : vec3(x * 0.35, z * 0.25, t * 0.4));
+
+  if (isSky) {
+    return sat(skyField(uv, aspect, horizon, sun, n + 0.04));
+  }
 
   /*
    * Duas trens de crista com períodos diferentes, viajando em direção ao
@@ -161,7 +262,7 @@ float waveField(vec2 uv, vec2 aspect, float t, vec2 pointer, vec2 sunPointer) {
    * crista vem para a praia, que é o que a arrebentação faz. Lembre que
    * aqui z pequeno é perto do observador.
    */
-  float warp = fbm(vec3(x * 0.35, z * 0.25, t * 0.4));
+  float warp = n;
   float w = sin(z * 0.9 + t * 1.6 + warp * 2.2) * 0.6
           + sin(z * 1.7 + t * 2.3 + warp * 1.3) * 0.4;
 
@@ -171,43 +272,116 @@ float waveField(vec2 uv, vec2 aspect, float t, vec2 pointer, vec2 sunPointer) {
    * moiré por uma faixa calma de mar distante.
    */
   w *= 1.0 - smoothstep(7.0, 22.0, z);
-
-  /* Espuma nas cristas: smoothstep de faixa curta. É esta aresta que dá forma
-     sólida no lugar do borrão que o campo de noise produzia. */
   float foam = smoothstep(0.38, 0.48, w);
 
-  /* Vaivém: a linha d'água sobe e desce em período longo. Menor é mais perto. */
-  float swash = 0.5 + 0.5 * sin(t * 0.35);
-  float waterline = mix(3.2, 2.2, swash);
+  /* Maré: a linha média da água sobe e desce em período longo. */
+  float tide = 0.5 + 0.5 * sin(t * 0.35);
+  float zs = mix(3.1, 2.6, tide);
 
-  /* 0 na areia (z pequeno), 1 no mar (z grande). */
-  float shore = smoothstep(waterline - 0.4, waterline + 0.4, z);
+  float water = mix(0.20, 0.38, sat(d * 2.2));
+  float seaMask = smoothstep(zs - 0.12, zs + 0.30, z);
 
-  /* Água escura, clareando um pouco perto do observador. */
-  float water = mix(0.20, 0.38, clamp(d * 2.2, 0.0, 1.0));
+  /* Arrebentação: perto da linha média a crista vira espuma larga. */
+  float near = 1.0 - smoothstep(0.0, 1.8, z - zs);
+  float surf = smoothstep(0.05, 0.50, w) * near * seaMask;
 
-  /* Areia clara, e a faixa recém molhada guarda resíduo de espuma. */
-  float sand = mix(0.46, 0.62, clamp((waterline - z) * 0.5, 0.0, 1.0));
+  float sea = water + foam * 0.42 * (1.0 - near * 0.5) + surf * 0.34;
+  /* Cintilância do sol, só dentro da coluna do rastro. */
+  sea += exp(-abs(uv.x - sun.x) * 5.0) * smoothstep(0.0, 0.6, w) * 0.16;
 
-  float v = mix(sand, water, shore);
-  v += foam * shore * 0.42;
+  float v = sea;
+  float lace = surf * 0.9;
+  float sandMask = 0.0;
+  float drift = 0.0;
+
+  if (z < zs + 0.6) {
+    /*
+     * O vaivém, sincronizado com o trem de cristas principal: c = 0 quando a
+     * crista chega à linha média. A água sobe rápido e freia, deixa uma linha
+     * de espuma no alcance máximo, e desce acelerando. O alcance varia ao
+     * longo da praia (as línguas de espuma).
+     */
+    float sn = vnoise(vec2(x * 0.35, t * 0.4));
+    float phi = zs * 0.9 + t * 1.6 + sn * 1.6;
+    float c = fract((phi - 1.5708) / TAU);
+
+    float uq = 1.0 - c / UPRUSH;
+    float bq = max(c - UPRUSH, 0.0) / (1.0 - UPRUSH);
+    float e = c < UPRUSH ? 1.0 - uq * uq : 1.0 - bq * bq;
+
+    float cusp = vnoise(vec2(x * 0.55, t * 0.12 + 3.7));
+    float reach = 0.80 * (0.72 + 0.38 * cusp);
+    float zEdge = zs - e * reach;
+    float zMax = zs - reach;
+
+    /* Fração da subida em que este ponto está: 0 na linha média, 1 no alcance. */
+    float hh = (zs - z) / reach;
+
+    /* Areia seca: clareia subindo a praia, com manchas e marcas de vento. */
+    float sandV = mix(0.44, 0.60, sat((zs - z) * 0.55));
+    float ripple = sin(z * 26.0 + x * 1.3 + warp * 5.0);
+
+    /*
+     * Areia molhada: a água deixou este ponto há 'age' de ciclo. Ela escurece,
+     * porque a luz entra mais fundo e é absorvida, e espelha o sol pela
+     * película d'água. Depois seca.
+     */
+    float cu = UPRUSH + (1.0 - UPRUSH) * sqrt(sat(1.0 - hh));
+    float age = fract(c - cu);
+    float wet = exp(-age * 3.5) * (1.0 - smoothstep(0.95, 1.08, hh));
+    wet = max(wet, (1.0 - smoothstep(0.0, 0.35, hh)) * 0.7);
+
+    sandV += ripple * 0.018 * (1.0 - wet) + warp * 0.10;
+    sandV -= wet * 0.13;
+    sandV += wet * exp(-abs(uv.x - sun.x) * 7.0) * 0.20;
+
+    /* Lâmina d'água: fina na borda, mostra a areia; grossa vira mar. */
+    float covered = smoothstep(-0.015, 0.015, z - zEdge);
+    float film = sat((z - zEdge) / 0.55);
+    float filmV = mix(sandV - 0.05, water + 0.06, film);
+
+    float ebb = c < UPRUSH ? 1.0 : 1.0 - bq;
+    float edgeLine = exp(-abs(z - zEdge) * 34.0) * (0.35 + 0.65 * ebb);
+    float wrack = exp(-abs(z - zMax) * 20.0) * step(UPRUSH, c) * (1.0 - bq);
+
+    float shoreV = mix(sandV, filmV, covered) + edgeLine * 0.30 + wrack * 0.16;
+
+    v = mix(shoreV, sea, seaMask);
+    sandMask = (1.0 - covered * film) * (1.0 - seaMask) * (1.0 - wet * 0.45);
+
+    /* A renda mora na frente da lâmina, não na lâmina inteira. */
+    float front = 1.0 - film;
+    float filmLace = covered * front * front * (0.35 + 0.65 * ebb);
+    lace = mix(max(filmLace, wrack * 0.35) + edgeLine * 0.5, lace, seaMask);
+    drift = e * reach;
+  }
 
   /*
-   * A linha de arrebentação: uma faixa clara presa à linha d'água, que sobe e
-   * desce com ela. Sem isto a espuma fica espalhada pelo mar inteiro e a
-   * imagem perde o único lugar onde uma praia de verdade tem branco sólido.
-   * A cauda é assimétrica de propósito: mais longa do lado da areia, que é o
-   * resíduo que a água deixa ao recuar.
+   * Grão e renda leem a textura assada no mount, em coordenada de chão: maiores
+   * perto, menores rumo à água. Uma leitura cada, e só onde há areia ou
+   * espuma. Só existem com DETAIL, e uDetail ainda desliga em tempo de execução.
    */
-  float toEdge = z - waterline;
-  float uprush = 1.0 - smoothstep(0.0, 0.45, abs(toEdge));
-  float residue = (1.0 - smoothstep(0.0, 1.4, max(-toEdge, 0.0))) * 0.4;
-  v += (uprush + residue) * (0.55 + 0.45 * foam) * 0.34;
+#ifdef DETAIL
+  if (uDetail > 0.5) {
+    vec2 g = vec2(x, z);
+    if (sandMask > 0.004) {
+      v += (texture2D(uDetailTex, g * 0.5).b - 0.5) * sandMask * 0.12;
+    }
+    /*
+     * Renda: uma escala só, células grandes. Fresca, cobre quase tudo; conforme
+     * a espuma se desfaz o limiar desce, sobra a rede, depois nada. É o limiar
+     * que anima a dissolução, não a textura.
+     */
+    if (lace > 0.004) {
+      vec4 l = texture2D(uDetailTex, vec2(g.x, g.y + drift) * 0.40 + vec2(t * 0.02, 0.0));
+      float kk = mix(0.04, 0.66, lace) + (l.r - 0.5) * 0.35;
+      float net = 1.0 - smoothstep(kk, kk + 0.10, l.g);
+      v += net * smoothstep(0.0, 0.25, lace) * 0.28;
+    }
+  }
+#endif
 
-  /* Cintilância do sol, só dentro da coluna do rastro. */
-  v += exp(-abs(uv.x - sunX) * 5.0) * smoothstep(0.0, 0.6, w) * shore * 0.16;
-
-  return clamp(v, 0.0, 1.0);
+  return sat(v);
 }
 
 void main() {

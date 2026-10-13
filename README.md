@@ -2,7 +2,7 @@
 
 Portfólio minimalista com fundo WebGL próprio, tipografia fluida e navegação em 5 rotas por idioma. O texto branco das seções usa `mix-blend-mode: difference` e inverte contra o que estiver embaixo, então o contraste sai de graça sem escurecer o fundo.
 
-**Versão atual: V3.5.** Identidade fixa no canto esquerdo (nome, cargo e nav vertical), home reduzida ao campo de ondas, e uma paleta só no site inteiro. O fundo é um campo procedural de ondas de praia: céu, mar em perspectiva, espuma de crista e vaivém na areia, tudo por pixel e por frame, **sem nenhum vídeo ou GIF envolvido**.
+**Versão atual: V3.5.** Identidade fixa no canto esquerdo (nome, cargo e nav vertical), home reduzida ao campo de ondas, e uma paleta só no site inteiro. O fundo é um campo procedural de ondas de praia: sol que anda sozinho, nuvens em perspectiva, mar com espuma de crista, e a onda se desfazendo na areia em renda de espuma, com a areia molhada secando depois. Tudo por pixel e por frame, **sem nenhum vídeo ou GIF envolvido**, e no tema claro com a paleta "praia" (§16 do plano).
 
 **Live:** [pedrolevi.dev](https://pedrolevi.dev) _(definido via `NEXT_PUBLIC_SITE_URL` no deploy)_
 
@@ -258,7 +258,7 @@ CHROME_PATH="$HOME/AppData/Local/ms-playwright/chromium-1234/chrome-win64/chrome
   npx lighthouse http://localhost:3000/ --preset=desktop --chrome-flags="--headless=new"
 ```
 
-Cuidados que o motor do fundo já respeita: teto de 30 quadros por segundo (`MAX_FPS`, ver §16.4 do plano), DPR limitado a 1.5 (e 1 abaixo de 768px), rAF pausado com `document.hidden` e via `IntersectionObserver`, um único frame sob `prefers-reduced-motion`, fallback em gradiente CSS sem WebGL e no `webglcontextlost`.
+Cuidados que o motor do fundo já respeita: teto de 30 quadros por segundo (`MAX_FPS`, ver §16.4 do plano), montagem que compila os shaders fora do main thread e nasce no degrau leve quando não há GPU (§16.5), DPR limitado a 1.5 (e 1 abaixo de 768px), rAF pausado com `document.hidden` e via `IntersectionObserver`, um único frame sob `prefers-reduced-motion`, fallback em gradiente CSS sem WebGL e no `webglcontextlost`.
 
 O anel de foco usa `currentColor` de propósito: com uma cor fixa, ele ficaria invisível no tema claro dentro de seções `blend`.
 

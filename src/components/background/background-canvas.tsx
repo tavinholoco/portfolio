@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 
 import { DEFAULT_PALETTE } from "./background-config";
-import { BackgroundRenderer } from "./renderer";
+import type { BackgroundRenderer } from "./renderer";
 
 /**
  * O canvas do fundo.
@@ -20,6 +20,10 @@ import { BackgroundRenderer } from "./renderer";
  * O `<canvas/>` é renderizado normalmente no SSR e o `ogl` só entra por
  * `await import()` dentro do efeito. Sem `next/dynamic` e sem `ssr: false`, que
  * é inválido em Server Component no Next 16 (E1).
+ *
+ * O motor (`renderer.ts`, com os shaders) entra no mesmo `import()`. Importado
+ * de forma estática ele ia no chunk inicial de toda rota, com o texto inteiro
+ * dos shaders, para um fundo que só monta na ociosidade (§16.5).
  */
 export function BackgroundCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -70,14 +74,22 @@ export function BackgroundCanvas() {
     const agendado = agendar(() => {
       void (async () => {
         try {
-          const ogl = await import("ogl");
+          const [ogl, motor] = await Promise.all([
+            import("ogl"),
+            import("./renderer"),
+          ]);
+          /* Avaliar os chunks e montar na mesma tarefa somava tudo num bloco
+             só no TBT; daqui em diante a montagem também se fatia (§16.5). */
+          await motor.yieldToMain();
           if (cancelled) return;
 
-          renderer = new BackgroundRenderer(ogl, {
+          renderer = new motor.BackgroundRenderer(ogl, {
             onContextLost: () => setDegraded(true),
           });
 
-          if (!renderer.mount(canvas, DEFAULT_PALETTE)) {
+          const montou = await renderer.mount(canvas, DEFAULT_PALETTE);
+          if (cancelled) return;
+          if (!montou) {
             setDegraded(true);
             return;
           }

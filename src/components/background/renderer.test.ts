@@ -1,15 +1,20 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  DETAIL_SIZE,
   FIELD_TARGET_MAX,
   FIELD_TARGET_MAX_SMALL,
+  FRAME_GUARD,
   MAX_DPR,
   MAX_FPS,
   POINTER_TIME_CONSTANT,
   SMALL_SCREEN_WIDTH,
   SUN_TIME_CONSTANT,
   fieldTargetSize,
+  isSoftwareRenderer,
+  shouldDowngrade,
   shouldRenderFrame,
+  yieldToMain,
 } from "./renderer";
 
 /**
@@ -133,5 +138,69 @@ describe("shouldRenderFrame", () => {
 describe("ponteiros", () => {
   it("o sol segue o mouse bem mais devagar que o horizonte", () => {
     expect(SUN_TIME_CONSTANT).toBeGreaterThanOrEqual(POINTER_TIME_CONSTANT * 8);
+  });
+});
+
+describe("isSoftwareRenderer", () => {
+  it("reconhece os renderizadores sem GPU", () => {
+    for (const nome of [
+      /* O do Chromium sem janela, que é onde o Lighthouse roda. */
+      "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "Google SwiftShader",
+      "llvmpipe (LLVM 15.0.7, 256 bits)",
+      "Mesa softpipe",
+      "Microsoft Basic Render Driver",
+    ]) {
+      expect(isSoftwareRenderer(nome), nome).toBe(true);
+    }
+  });
+
+  it("não confunde GPU de verdade com software", () => {
+    for (const nome of [
+      "ANGLE (AMD, AMD Radeon RX 6600 (0x000073FF) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "ANGLE (Intel, Intel(R) UHD Graphics 620 Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "Apple GPU",
+      "Mali-G52 MC2",
+      "Adreno (TM) 610",
+    ]) {
+      expect(isSoftwareRenderer(nome), nome).toBe(false);
+    }
+  });
+});
+
+describe("shouldDowngrade", () => {
+  const janela = (ms: number) => new Array<number>(FRAME_GUARD.window).fill(ms);
+
+  it("não desce com a máquina dando conta dos 30 fps", () => {
+    expect(shouldDowngrade(janela(33.3))).toBe(false);
+  });
+
+  it("desce quando a mediana da janela passa do limite", () => {
+    expect(shouldDowngrade(janela(60))).toBe(true);
+  });
+
+  it("não decide antes de a janela encher", () => {
+    expect(shouldDowngrade(janela(60).slice(1))).toBe(false);
+  });
+
+  it("não desce por causa de picos isolados", () => {
+    /* Um terço da janela em pico de hidratação ainda deixa a mediana em 33. */
+    const picos = janela(33.3).map((ms, i) => (i % 3 === 0 ? 200 : ms));
+    expect(shouldDowngrade(picos)).toBe(false);
+  });
+
+  it("o limite fica acima do intervalo do teto, e a pausa acima do limite", () => {
+    expect(FRAME_GUARD.slowIntervalMs).toBeGreaterThan(1000 / MAX_FPS);
+    expect(FRAME_GUARD.pauseMs).toBeGreaterThan(FRAME_GUARD.slowIntervalMs);
+  });
+});
+
+describe("textura de ruído e montagem", () => {
+  it("a textura assada tem lado potência de 2, que o REPEAT do WebGL1 exige", () => {
+    expect(Math.log2(DETAIL_SIZE) % 1).toBe(0);
+  });
+
+  it("yieldToMain resolve, com ou sem scheduler.yield", async () => {
+    await expect(yieldToMain()).resolves.toBeUndefined();
   });
 });

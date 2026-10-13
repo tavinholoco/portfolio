@@ -177,22 +177,23 @@
  * Fallback do fundo quando não há WebGL ou o contexto se perde.
  *
  * As cores saem de color-mix sobre var(--c-bg), então o gradiente acompanha o
- * tema sozinho e fica na mesma faixa de luminância que o shader produziria. As
- * doses (8% no claro, 55% no escuro) são as mesmas de FIELD_MIX em
- * background-config.ts, pelo mesmo motivo: manter o backdrop longe de L = 0.5,
- * onde o texto em difference sumiria.
+ * tema sozinho e fica na mesma faixa de luminância que o shader produziria,
+ * pelo mesmo motivo de FIELD_MIX em background-config.ts: manter o backdrop
+ * longe de L = 0.5, onde o texto em difference sumiria. No escuro a dose é a
+ * de 55%. No claro são as cores da paleta praia (§16) a 30%, e a mistura mais
+ * escura das duas fica em L de cerca de 0.77, bem acima do limite de 0.65.
  */
 @utility background-fallback {
   background-color: var(--c-bg);
   background-image:
     radial-gradient(
       70% 60% at 22% 18%,
-      color-mix(in srgb, var(--c-bg) 92%, #454f6b),
+      color-mix(in srgb, var(--c-bg) 70%, #7ed4e0),
       transparent 70%
     ),
     radial-gradient(
       65% 60% at 82% 85%,
-      color-mix(in srgb, var(--c-bg) 92%, #232838),
+      color-mix(in srgb, var(--c-bg) 70%, #f7dc9a),
       transparent 70%
     );
 }
