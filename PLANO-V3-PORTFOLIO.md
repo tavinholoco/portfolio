@@ -1897,3 +1897,71 @@ capture` segue.
 arquivos falham com as larguras reais (avatar 320, prévias 1000, print de
 celular 385), o que prova que o leitor lê o cabeçalho em vez de passar por
 vacuidade. Unitários de 146 para **158**.
+
+---
+
+## 16. A evolução do fundo de praia (10/10/2026)
+
+O Pedro pediu para investir na animação: textura na areia, a onda se desfazendo melhor na areia, nuvens e um sol no alto, **sem pesar em aparelho fraco**. A análise foi feita em duas rodadas num laboratório fora do repo, que lê os shaders atuais direto de `src/` e roda a proposta ao lado, com o mesmo pipeline do motor. Ele mora em `.captures/laboratorio-praia/` (ignorado pelo git): `node gen.cjs` gera a página, `bench.cjs`, `loop.cjs` e `paleta.cjs` reproduzem as medições abaixo.
+
+### 16.1 Decisões fechadas com o Pedro
+
+| Pergunta | Decisão |
+|---|---|
+| Nuvens | **Aprovadas.** O mesmo fbm que o céu já calcula, aplicado num teto em perspectiva que espelha o plano do mar: comprimem em faixas perto do horizonte e crescem no alto. Em contraluz perto do sol, com a borda acesa |
+| Sol | **Anda sozinho**, num arco baixo de vaivém, uma volta a cada 4 min. O mouse só empurra de leve, com constante de tempo de 3 s: seguindo o ponteiro a 0.25 s ele leu como rápido demais |
+| Espuma | **Bonita, mas detalhada demais** na primeira rodada. Ficou uma escala só de células grandes, concentrada na frente da lâmina que sobe |
+| Estilo | **Puxado para pixel art, sem ser pixel art.** Todo detalhe novo mora no alvo de baixa resolução e herda o mesmo esticão do resto; nada de detalhe fino em resolução cheia |
+| Tema escuro | **A paleta de hoje** (`graphite`), sem clarear o topo do ramp |
+| Tema claro | **Praia**: `["#7ed4e0", "#f7dc9a", "#ffffff"]` a `FIELD_MIX.light` de 0.40. Céu e mar turquesa, areia creme, espuma branca |
+| Quadros por segundo | **Teto de 30**, aprovado. Feito na etapa 1, abaixo |
+| Contorno ("sharp bilinear" na leitura do campo) | **Fica o suave de hoje.** O firme custa zero, mas a diferença é de 1 a 2 px nas bordas e some sob o grão na paleta real: o Pedro não a distinguiu nem lado a lado. O ar de pixel já vem do alvo pequeno esticado |
+
+### 16.2 O que a medição mostrou
+
+**O Chromium sem janela renderiza WebGL com SwiftShader, na CPU.** É onde o Lighthouse daqui e o PageSpeed rodam. Em GPU de verdade o fundo inteiro custa menos de 0.15 ms por quadro, antes e depois da proposta; no SwiftShader ele vira trabalho de processador. **Otimizar para a GPU é otimizar o cenário errado.**
+
+**O main thread não é o gargalo.** Rodando o laço de verdade ao lado de uma sonda de JavaScript em fatias fixas, como uma página hidratando, na viewport do Lighthouse mobile: o callback do rAF fica abaixo de 0.2 ms e não aparece nenhuma tarefa longa. O custo é o processo de GPU disputando núcleo. Vazão de JS perdida pela página, mediana de 3 rodadas:
+
+| Fundo | Vazão perdida |
+|---|---|
+| Hoje, sem teto | 16% |
+| Proposta, sem teto | 19% |
+| Hoje, 30 fps | 4.4% |
+| Proposta, 30 fps | 5.3% |
+
+As rodadas têm ruído (uma saiu fora da curva), mas a conclusão é robusta na mediana: **o teto de 30 fps paga os elementos novos com sobra.**
+
+Custo por quadro no SwiftShader, mobile (canvas 350x804, campo 111x256): hoje **2.45 ms**, primeira rodada 4.53, segunda **3.30**.
+
+Três coisas medidas e descartadas, para ninguém refazer:
+
+1. **Detalhe em resolução cheia.** A primeira versão lia uma textura com mipmap na composição, em cada pixel da tela, e custou **4x** no SwiftShader (10.1 ms). Em GPU era de graça, que é justamente por que ninguém veria.
+2. **`OffscreenCanvas` num worker.** Suportado desde o Safari 16.4, mas tiraria do main thread só os 0.2 ms do callback, e não reduz a disputa por processador, que é o custo real.
+3. **`failIfMajorPerformanceCaveat`.** O caminho oficial para recusar contexto sem GPU **não recusa** no SwiftShader daqui. Para degradar sem GPU, o nome em `WEBGL_debug_renderer_info` funciona.
+
+**A folga de contraste do tema claro é para cima.** A faixa proibida (0.35 a 0.65) só limita o ponto mais escuro do ramp; acima do fundo não há limite. Com o topo do ramp em branco, mais claro que `#f0f0f0`, e matizes que guardam luminância alta mesmo saturados (ciano e amarelo, não azul), a amplitude de luminância do campo sobe de **0.074 para 0.16** com a mesma margem de hoje (0.046 contra 0.65). Conta feita com a mesma função do teste de `background-config.test.ts`.
+
+### 16.3 As etapas
+
+Cada uma medida contra um preview da Vercel, mediana de 3 (lei 18), antes da próxima.
+
+1. **Teto de 30 fps e sol lento.** Feita, ver §16.4.
+2. **Elementos novos, todos no passe do campo:** textura 256x256 assada uma vez no mount (worley e fbm ladrilháveis, sem mipmap), sol que anda sozinho, nuvens, vaivém sincronizado com a chegada da crista, renda que se desfaz por limiar, areia molhada que escurece e reflete o sol, grão em perspectiva. A composição não muda, então a lei 14 e o teste de contraste continuam valendo por construção. Junto entram os degraus de qualidade: sem GPU, sem renda nem grão; e uma guarda que mede o tempo de quadro e desce um degrau quando estoura.
+3. **Paleta clara praia.** O teste de contraste valida sozinho.
+
+O contorno firme, que seria a etapa 4, saiu do plano (§16.1).
+
+### 16.4 Etapa 1: o teto de 30 fps
+
+O rAF continua batendo no ritmo da tela e `shouldRenderFrame` decide se o tique vira quadro. Não existe API para pedir taxa menor ao navegador, e um `setInterval` perderia o alinhamento com o vsync. Há folga de 1 ms no intervalo, porque o jitter do vsync faria uma tela de 60 Hz cair para 20 fps sem ela.
+
+O movimento mais rápido da cena é a crista perto da praia, a uns 18 px/s, ou 0.6 px por quadro a 30 fps: abaixo do que o olho separa.
+
+**Medido no build de produção, contando `drawArrays`:** com GPU real o Chromium sem janela roda o rAF a **171 Hz**, e o fundo fica em **30 fps**. Sem o teto ele desenharia 171 quadros por segundo, e é exatamente isso que um monitor de 144 Hz ou um celular de 120 Hz recebia até aqui. No SwiftShader, de 60 Hz para 30 fps.
+
+O rastro do sol ganhou ponteiro próprio (`uSunPointer`, `SUN_TIME_CONSTANT` de 3 s). O horizonte continua no de 0.25 s.
+
+**Testes:** 8 unitários em `renderer.test.ts`, que simulam o rAF em 60, 75, 90, 120, 144, 165 e 240 Hz, o jitter e a volta de uma pausa; e um E2E em `e2e/shell.spec.ts` que embrulha o `drawArrays` antes de a página carregar e conta os quadros. **Controle negativo executado:** com `MAX_FPS` em 60 o E2E mede 50 fps e reprova. `pnpm waves` igual ao de antes: −3 px, erro 1.65. Unitários de 158 para **166**, E2E de 156 para **157**.
+
+**Lighthouse: pendente.** Precisa de um preview da Vercel para comparar com produção; medir em `localhost` não vale (lei 18).

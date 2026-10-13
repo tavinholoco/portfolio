@@ -82,7 +82,55 @@ export const SMALL_SCREEN_WIDTH = 768;
  * ponteiro chegaria ao alvo no dobro da velocidade num monitor de 120Hz, e o
  * fundo teria personalidade diferente dependendo do hardware de quem visita.
  */
-const POINTER_TIME_CONSTANT = 0.25;
+export const POINTER_TIME_CONSTANT = 0.25;
+
+/**
+ * Constante de tempo do sol, que tem ponteiro próprio.
+ *
+ * O Pedro achou o sol rápido demais seguindo o mouse (§16 do plano). Com 3 s
+ * ele leva uns 9 s para assentar, então lê como deriva e não como reação.
+ */
+export const SUN_TIME_CONSTANT = 3;
+
+/**
+ * Teto de quadros por segundo do fundo.
+ *
+ * O movimento mais rápido da cena é a crista perto da praia, a uns 18 px/s: a
+ * 30 fps isso dá 0.6 px por quadro, abaixo do que o olho separa. Sem o teto o
+ * rAF segue a tela, e um celular de 120 Hz desenhava 120 quadros por segundo,
+ * quatro vezes o necessário.
+ *
+ * **Medido, não estimado** (§16 do plano). No Chromium sem GPU, que é onde o
+ * Lighthouse roda e onde o WebGL vira trabalho de CPU pelo SwiftShader, o fundo
+ * sem teto tirava 16% da vazão de JS da página; a 30 fps, 4.4%. O main thread
+ * não é o gargalo (o callback do rAF fica abaixo de 0.2 ms): o custo é o
+ * processo de GPU disputando núcleo com ele.
+ */
+export const MAX_FPS = 30;
+
+/**
+ * Folga do intervalo entre quadros. Os timestamps do rAF chegam alinhados ao
+ * vsync, com jitter de décimos de milissegundo: sem a folga, um tique que
+ * chegasse a 33.2 ms seria pulado numa tela de 60 Hz e o fundo cairia a 20 fps.
+ */
+const FRAME_SLACK_MS = 1;
+
+/**
+ * Decide se um tique do rAF vira quadro.
+ *
+ * O rAF continua batendo no ritmo da tela e o motor só desenha quando passou o
+ * intervalo do teto. Não existe API para pedir taxa menor ao navegador, e um
+ * `setInterval` perderia o alinhamento com o vsync. Pura e exportada para ser
+ * testada sem contexto GL.
+ */
+export function shouldRenderFrame(
+  now: number,
+  lastRenderAt: number,
+  maxFps: number
+): boolean {
+  if (lastRenderAt === 0) return true;
+  return now - lastRenderAt >= 1000 / maxFps - FRAME_SLACK_MS;
+}
 
 /**
  * Dimensões do RenderTarget preservando a proporção da tela.
@@ -162,6 +210,7 @@ export class BackgroundRenderer {
   private startedAt = 0;
   private lastFrameAt = 0;
   private pointer: [number, number] = [0, 0];
+  private sunPointer: [number, number] = [0, 0];
   private pointerTarget: [number, number] = [0, 0];
 
   private preset: PalettePreset = "graphite";
@@ -252,6 +301,7 @@ export class BackgroundRenderer {
           uSeed: { value: Math.random() * 1000 },
           uResolution: { value: [target.width, target.height] },
           uPointer: { value: [0, 0] },
+          uSunPointer: { value: [0, 0] },
           uPalette: { value: palette.map((color) => [...color]) },
         },
       }),
@@ -592,6 +642,7 @@ export class BackgroundRenderer {
 
   private loop = (now: number): void => {
     this.frameId = requestAnimationFrame(this.loop);
+    if (!shouldRenderFrame(now, this.lastFrameAt, MAX_FPS)) return;
     this.renderFrame(now);
   };
 
@@ -622,6 +673,15 @@ export class BackgroundRenderer {
         this.pointer[1] + (this.pointerTarget[1] - this.pointer[1]) * follow,
       ];
       fieldMesh.program.uniforms.uPointer.value = this.pointer;
+
+      const followSun = 1 - Math.exp(-delta / SUN_TIME_CONSTANT);
+      this.sunPointer = [
+        this.sunPointer[0] +
+          (this.pointerTarget[0] - this.sunPointer[0]) * followSun,
+        this.sunPointer[1] +
+          (this.pointerTarget[1] - this.sunPointer[1]) * followSun,
+      ];
+      fieldMesh.program.uniforms.uSunPointer.value = this.sunPointer;
     }
 
     renderer.render({

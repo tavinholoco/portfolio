@@ -258,7 +258,7 @@ CHROME_PATH="$HOME/AppData/Local/ms-playwright/chromium-1234/chrome-win64/chrome
   npx lighthouse http://localhost:3000/ --preset=desktop --chrome-flags="--headless=new"
 ```
 
-Cuidados que o motor do fundo já respeita: DPR limitado a 1.5 (e 1 abaixo de 768px), rAF pausado com `document.hidden` e via `IntersectionObserver`, um único frame sob `prefers-reduced-motion`, fallback em gradiente CSS sem WebGL e no `webglcontextlost`.
+Cuidados que o motor do fundo já respeita: teto de 30 quadros por segundo (`MAX_FPS`, ver §16.4 do plano), DPR limitado a 1.5 (e 1 abaixo de 768px), rAF pausado com `document.hidden` e via `IntersectionObserver`, um único frame sob `prefers-reduced-motion`, fallback em gradiente CSS sem WebGL e no `webglcontextlost`.
 
 O anel de foco usa `currentColor` de propósito: com uma cor fixa, ele ficaria invisível no tema claro dentro de seções `blend`.
 
@@ -273,7 +273,7 @@ O anel de foco usa `currentColor` de propósito: com uma cor fixa, ele ficaria i
 | `gitleaks.yml` | Varredura de segredos com Gitleaks, config em `.gitleaks.toml` |
 
 - **Unitários** (`pnpm test`): manifesto de rotas e os arquivos em disco, contraste das paletas, grain determinístico, aritmética do render target, metadados, sitemap, GitHub com fallback e paridade dos dicionários.
-- **E2E** (`pnpm test:e2e`): a lei de camadas nas 11 rotas com controle negativo, o fallback sem WebGL, DPR por tamanho de tela, movimento reduzido, as regras do showcase em ponteiro, teclado e toque, a navegação nos dois idiomas, o `<html lang>` no SSR, a **hierarquia de cabeçalhos**, o **ícone de aba em toda rota** e uma **auditoria de responsividade** em 4 larguras.
+- **E2E** (`pnpm test:e2e`): a lei de camadas nas 11 rotas com controle negativo, o fallback sem WebGL, DPR por tamanho de tela, o teto de quadros do fundo (contado no próprio WebGL), movimento reduzido, as regras do showcase em ponteiro, teclado e toque, a navegação nos dois idiomas, o `<html lang>` no SSR, a **hierarquia de cabeçalhos**, o **ícone de aba em toda rota** e uma **auditoria de responsividade** em 4 larguras.
 - Os testes de responsividade e de marca existem porque a V3.5 acumulou seis defeitos que só apareceram quando alguém olhou a tela: ondas correndo para o lado errado, email cortado com reticências no celular, palavra por cima da coluna vizinha, ícone de três versões atrás e ícone ausente em `/en/`. Cada um virou asserção.
 - O `pnpm look` **não** roda no CI: tem config própria em `capture/`.
 
