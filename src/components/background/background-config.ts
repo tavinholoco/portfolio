@@ -25,12 +25,17 @@ export const UNSAFE_LUMINANCE = { min: 0.35, max: 0.65 } as const;
  *
  * O claro era 0.08 até a V3.5, e com as paletas escuras esse era o teto: em
  * 0.12 a composição já entrava na faixa. O resultado era um cinza chapado, com
- * as ondas invisíveis. Com `palettesLight` a conta muda, porque o ponto mais
- * escuro do campo deixa de ser quase preto, e **0.25 passa a ser o teto**.
- * Ficou em 0.20, que deixa 0.046 de margem contra o limite de 0.65 em vez dos
- * 0.014 que 0.25 deixaria. Medido pelo teste desta pasta, não estimado.
+ * as ondas invisíveis. Com `palettesLight` a conta mudou, porque o ponto mais
+ * escuro do campo deixou de ser quase preto, e o claro foi para 0.20.
+ *
+ * **Na §16 ele subiu para 0.40, e a folga estava para cima.** A faixa proibida
+ * só limita o ponto mais escuro do ramp; acima do fundo não há limite nenhum.
+ * Com o topo de cada paleta clara em branco, mais claro que `#f0f0f0`, a
+ * espuma e o sol viram brilho, e o ponto escuro foi recalculado para a dose
+ * nova. A amplitude de luminância do campo dobrou (0.074 para ~0.16) com a
+ * mesma margem de antes, 0.045 contra 0.65. Medido pelo teste desta pasta.
  */
-export const FIELD_MIX = { light: 0.2, dark: 0.55 } as const;
+export const FIELD_MIX = { light: 0.4, dark: 0.55 } as const;
 
 /**
  * Força da vinheta e amplitude do grain.
@@ -59,26 +64,36 @@ export const palettes = {
   moss: ["#07140e", "#183c2b", "#3f7a52"],
   plum: ["#150a1c", "#3d1560", "#7541a8"],
   sand: ["#1a1409", "#54401a", "#9c7a3c"],
+  /* A do site desde a §16: no escuro é o grafite de sempre, aprovado pelo
+     Pedro como estava; a diferença mora toda no set claro. */
+  praia: ["#0e1018", "#232838", "#454f6b"],
 } as const satisfies Record<string, readonly [string, string, string]>;
 
 /**
- * As mesmas seis, claras, para o tema claro.
+ * As mesmas, claras, para o tema claro.
  *
  * Não são as escuras clareadas por acaso: o que importa é que o **ponto mais
  * escuro** de cada ramp fique alto o bastante para a composição sobre
- * `#f0f0f0` não cair na faixa proibida. É isso que compra a dose de campo que
- * torna as ondas visíveis no claro, em vez do cinza chapado da v3.
+ * `#f0f0f0` não cair na faixa proibida, na dose de `FIELD_MIX.light`. O topo é
+ * branco, mais claro que o fundo, porque a folga do tema claro é para cima
+ * (§16.2). As seis do vocabulário foram recalculadas para a dose de 0.40 pelo
+ * mesmo método do teste, com o matiz de cada uma.
+ *
+ * A `praia` é a do site: mar e céu turquesa, areia creme, espuma branca. O
+ * ciano e o amarelo guardam luminância alta mesmo saturados, ao contrário do
+ * azul, e é isso que deixa o claro ter cor de verdade sem afundar o contraste.
  *
  * A ordem continua do escuro para o claro, como no set escuro, senão o campo
  * inverte: a espuma (v perto de 1) tem que ser o extremo claro dos dois lados.
  */
 export const palettesLight = {
-  graphite: ["#8f98b4", "#aeb5c9", "#ccd1de"],
-  cobalt: ["#7d9bc4", "#a3bad8", "#c6d6e8"],
-  ember: ["#c49a7d", "#d8b8a3", "#e8d4c6"],
-  moss: ["#86b092", "#aac9b3", "#cbdfd1"],
-  plum: ["#a68fc4", "#c1b0d8", "#d9d0e8"],
-  sand: ["#c4b184", "#d8cba8", "#e8dfca"],
+  graphite: ["#c0c4cd", "#e5e6ea", "#ffffff"],
+  cobalt: ["#adc8de", "#e1ebf3", "#ffffff"],
+  ember: ["#debead", "#f3e7e1", "#ffffff"],
+  moss: ["#b2cab9", "#e4ece7", "#ffffff"],
+  plum: ["#cfbee1", "#ece4f3", "#ffffff"],
+  sand: ["#d2c3a6", "#f1ece4", "#ffffff"],
+  praia: ["#7ed4e0", "#f7dc9a", "#ffffff"],
 } as const satisfies Record<
   keyof typeof palettes,
   readonly [string, string, string]
@@ -91,11 +106,12 @@ export type PalettePreset = keyof typeof palettes;
  * A paleta do site, uma só.
  *
  * A v3 trocava de paleta por rota e no hover de cada item da lista. Saiu na
- * v3.5: o fundo passou a ser o mesmo em todo lugar, e as outras cinco ficam
- * como vocabulário disponível, ainda cobertas pelo teste de contraste, para o
- * dia em que alguém quiser trocar a do site inteiro numa linha.
+ * v3.5: o fundo passou a ser o mesmo em todo lugar, e as outras ficam como
+ * vocabulário disponível, ainda cobertas pelo teste de contraste, para o dia
+ * em que alguém quiser trocar a do site inteiro numa linha. Na §16 a do site
+ * passou de `graphite` para `praia`, que só difere no tema claro.
  */
-export const DEFAULT_PALETTE: PalettePreset = "graphite";
+export const DEFAULT_PALETTE: PalettePreset = "praia";
 
 /** Converte `#rrggbb` (ou `#rgb`) para canais de 0 a 1. */
 export function hexToRgb(hex: string): Rgb {
