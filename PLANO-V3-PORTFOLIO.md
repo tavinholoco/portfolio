@@ -1952,6 +1952,8 @@ Cada uma medida contra um preview da Vercel, mediana de 3 (lei 18), antes da pr�
 
 O contorno firme, que seria a etapa 4, saiu do plano (§16.1).
 
+4. **Introdução: a cortina preta com o nome.** Decidida e especificada na §16.8. **É a próxima.**
+
 ### 16.4 Etapa 1: o teto de 30 fps
 
 O rAF continua batendo no ritmo da tela e `shouldRenderFrame` decide se o tique vira quadro. Não existe API para pedir taxa menor ao navegador, e um `setInterval` perderia o alinhamento com o vsync. Há folga de 1 ms no intervalo, porque o jitter do vsync faria uma tela de 60 Hz cair para 20 fps sem ela.
@@ -2051,3 +2053,59 @@ Lighthouse 13.4.1 mobile contra produção, `simulate`, `--only-categories=perfo
 **97 a 100 no mobile**, contra 94 a 95 depois da etapa 1 (§16.4) e os 98 a 100 da §15.8. O TBT foi de 150 a 250 ms para **38 a 73 ms**. O A/B local da §16.5 previa a direção, e produção confirmou: com sol, nuvens, onda, areia e o tema claro novos, o fundo ficou mais barato para o Lighthouse do que era antes da §16.
 
 Duas ressalvas, para a leitura ser honesta. O Lighthouse roda sem GPU, então mede o degrau `lite`, sem grão nem renda; quem visita com GPU vê o completo. E com a compilação em segundo plano o fundo aparece um pouco depois no carregamento, então parte da montagem pode cair depois do fim do trace (o Speed Index voltou a ficar perto do FCP).
+
+### 16.8 Estado ao fim da sessão, e a próxima etapa: a introdução (13/10/2026)
+
+Esta seção existe para a próxima sessão começar daqui, sem reconstruir contexto. A sessão foi de 10 a 13/10/2026.
+
+#### O que foi feito, e onde
+
+| PR | O que entrou | Resultado |
+|---|---|---|
+| #16 | Etapa 1: teto de 30 fps e o sol seguindo o mouse devagar | Produção caiu para 94 a 95, **e não foi por ele** (A/B na §16.4) |
+| #17 | Etapas 2 e 3: sol que anda, nuvens, vaivém, renda, areia, degraus de qualidade, montagem que não bloqueia, tema claro "praia" | Produção **97 a 100** no mobile, TBT de 38 a 73 ms (§16.7) |
+| #18 | §16.7, a medição em produção | Só documentação |
+| este | §16.8, o registro da sessão | Só documentação |
+
+Antes do código houve duas rodadas de análise num laboratório fora do repo, com pesquisa e medição. O que elas decidiram está na §16.1 e na §16.2.
+
+#### Todas as decisões do Pedro nesta sessão
+
+- **O pedido:** investir na animação do fundo (textura na areia, a onda se desfazendo na areia, nuvens e sol no alto) sem deixar o site lento em aparelho fraco.
+- **Nuvens:** aprovadas como no protótipo.
+- **Sol:** primeiro, mais lento seguindo o mouse; depois, **andar sozinho**. Os dois estão no ar.
+- **Espuma:** bonita, mas detalhada demais na primeira rodada. Ficou maior e menos detalhada.
+- **Estilo:** "puxado para pixel art, não pixel art". Todo detalhe novo mora no alvo de baixa resolução.
+- **Tema escuro:** a paleta de hoje. O topo do ramp mais claro (`#9aa6c4`) foi mostrado e não escolhido.
+- **Tema claro:** "ressaltar mais as cores". Entre o grafite novo e a praia, escolheu a **praia**.
+- **Contorno:** não distinguiu suave, firme e pixel, e ficou o **suave** de hoje.
+- **Teto de 30 fps e degraus de qualidade:** "vou querer seguir suas recomendações".
+- **Fluxo de trabalho:** commits e PRs autorizados; **o merge é sempre dele**; medir em produção depois de cada merge.
+- **Introdução:** cortina **preta**, **só o nome**, o nome **deslizando** até o canto, **uma vez por sessão**.
+
+Ficaram de fora por decisão, para ninguém repropor sem motivo novo: sol colorido (sai da decisão da §12.1, ondas passando pela paleta), dithering e posterização (levariam o site a pixel art de verdade), `OffscreenCanvas` num worker (medido, não compensa, §16.2).
+
+#### A próxima etapa: a introdução
+
+**O que o Pedro decidiu:** ao entrar, tela preta com "Pedro Levi"; o nome desliza e encolhe até o lugar onde ele fica no canto superior esquerdo, enquanto a cortina some e revela o site. Uma vez por sessão. A motivação dele é estética e prática: a cortina cobre o momento em que o fundo ainda está montando (a compilação em segundo plano da §16.5 faz a praia aparecer um pouco depois).
+
+**Especificação**, que saiu da análise feita com ele e das leis do projeto:
+
+1. **Camada.** Um componente próprio no `<SiteShell>`, irmão do resto, `fixed inset-0`, acima do header (que é `z-50`), em `#0b0b0c`. **Nunca envolve o conteúdo** (lei 1) e não mexe em `html`, `body` ou `main` (lei 3), senão o `difference` some em todas as seções.
+2. **Decidir antes da primeira pintura.** No `themeScript` do `root-document.tsx`, que já roda no `<head>`: se não há a chave no `sessionStorage` e o usuário não pede movimento reduzido, marcar `data-intro` no `<html>`. O CSS só mostra a cortina com `html[data-intro]`. **Não use classe:** o `<BackgroundCanvas>` observa o `class` do `<html>` para trocar de tema, e uma classe nova dispararia uma transição de tema à toa.
+3. **A cortina vem no HTML do servidor**, escondida por padrão, para não piscar o site antes dela.
+4. **Não esconder o link "Pedro Levi" do header.** Ele é o elemento de LCP nas cinco rotas (§16.7). A cortina só cobre; o LCP não leva oclusão em conta. Se o link ficar com opacidade zero durante a abertura, o LCP passa a contar só quando ele reaparece, e a nota cai.
+5. **O deslize (FLIP).** O nome da cortina usa a mesma fonte e peso do header (Fira Code, `hero.name`, que já existe nos dois dicionários, regra 2). Mede-se o retângulo do nome centralizado e o do link do header, e anima-se só `transform` no nome da cortina. Ao pousar, ele sai e o do header fica. `transform` aqui é seguro: o elemento é da cortina, não um ancestral de seção `blend`.
+6. **Tempo.** Mínimo de ~0.9 s e teto de ~1.6 s. A cortina sobe quando o fundo avisa que está pronto: o `setPronto` do `background-canvas.tsx` vira um sinal (evento ou `data-ready` no canvas). Sem WebGL (fallback), sobe no mínimo.
+7. **Nunca prender ninguém.** Clique, tecla, rolagem ou toque encerram a abertura; `pointer-events: none` para o clique chegar à página; `aria-hidden`; não rouba foco. A chave do `sessionStorage` é gravada ao terminar. Com movimento reduzido ela nem aparece, e a regra global de `globals.css` já zera qualquer animação CSS.
+8. **Os E2E vão esbarrar nela.** Todo contexto do Playwright nasce sem `sessionStorage`, então a cortina aparece em todo teste. Ou um fixture global semeia a chave por `addInitScript`, ou cada teste afetado espera a cortina sair. Testes novos: aparece na primeira visita, não aparece com a chave, não aparece com movimento reduzido, não bloqueia clique, e a lei 1 continua passando com controle negativo.
+9. **Medição.** A/B local contra a `main`, mediana de 3 intercalado, conferindo o elemento de LCP e o Speed Index (a revelação conta como progresso visual tardio). Depois, produção.
+
+#### Como retomar
+
+1. Ler o CLAUDE.md (o estado e as 20 leis), a §16 inteira e esta seção.
+2. Base: **177 unitários e 158 E2E** passando, `pnpm waves` em −3 px com erro 2.22, produção em 97 a 100 no mobile.
+3. As ferramentas de medição da sessão estão em `.captures/laboratorio-praia/medicao/`, com um README: Lighthouse com mediana de 3, o A/B entre dois builds trocando a `.next`, o trace do Lighthouse e o custo de montagem no `chrome.exe`. A pasta é local, fora do git.
+4. **Compilação e montagem se medem no `chrome.exe` do Playwright, que é o que o Lighthouse usa**, nunca no headless shell (§16.5).
+5. Derrubar a porta 3000 depois de todo build, antes de testar ou medir.
+6. Fluxo: branch `claude/...` a partir da `main`, commits em português explicando o porquê, PR com a verificação, merge do Pedro, medição em produção.
