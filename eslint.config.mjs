@@ -12,6 +12,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Capturas e laboratórios locais, ignorados pelo git. Os scripts .cjs de
+    // medição usam require() e reprovavam o `pnpm lint` só na máquina de
+    // desenvolvimento, porque no CI a pasta não existe.
+    ".captures/**",
   ]),
 ]);
 

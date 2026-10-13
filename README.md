@@ -4,20 +4,22 @@ Portfólio minimalista com fundo WebGL próprio, tipografia fluida e navegação
 
 **Versão atual: V3.5.** Identidade fixa no canto esquerdo (nome, cargo e nav vertical), home reduzida ao campo de ondas, e uma paleta só no site inteiro. O fundo é um campo procedural de ondas de praia: sol que anda sozinho, nuvens em perspectiva, mar com espuma de crista, e a onda se desfazendo na areia em renda de espuma, com a areia molhada secando depois. Tudo por pixel e por frame, **sem nenhum vídeo ou GIF envolvido**, e no tema claro com a paleta "praia" (§16 do plano).
 
-**Live:** [pedrolevi.dev](https://pedrolevi.dev) _(definido via `NEXT_PUBLIC_SITE_URL` no deploy)_
+**Live:** [pedrolevi.vercel.app](https://pedrolevi.vercel.app)
 
 | | Desktop | Mobile |
 |---|---|---|
-| Performance | 99 a 100 | 96 a 98 |
+| Performance | 100 | 97 a 100 |
 | Acessibilidade, Best Practices e SEO | 100 | 100 |
 
-CLS zero nas 5 rotas. O mobile é **medido contra a URL de produção**, mediana de 3 rodadas por rota: o mesmo build no `next start` local dá 80 a 94, porque não tem CDN, HTTP/2 nem Brotli. Rodada única não serve como medida em nenhum dos dois ambientes.
+CLS zero nas 5 rotas. Os dois são **medidos contra a URL de produção**, mediana de 3 rodadas por rota (13/10/2026): o mesmo build no `next start` local dá 80 a 94 no mobile, porque não tem CDN, HTTP/2 nem Brotli. Rodada única não serve como medida em nenhum dos dois ambientes.
 
-**146 testes unitários e 151 E2E.** A auditoria responsiva sozinha cobre 6 rotas × 7 larguras (320 a 2560) com 5 asserções cada.
+**177 testes unitários e 158 E2E.** A auditoria responsiva sozinha cobre 6 rotas × 7 larguras (320 a 2560) com 5 asserções cada.
 
-> A referência estrutural foi [p5aholic.me](https://p5aholic.me), **sem reúso de código**: shader, paleta, composição e CSS foram escritos do zero. O plano completo está em [PLANO-V3-PORTFOLIO.md](PLANO-V3-PORTFOLIO.md): a V3 nas seções 0 a 11, a **V3.5 na seção 12** rodada por rodada, e o **passe de aperfeiçoamento na seção 13**.
+> A referência estrutural foi [p5aholic.me](https://p5aholic.me), **sem reúso de código**: shader, paleta, composição e CSS foram escritos do zero. O plano completo está em [PLANO-V3-PORTFOLIO.md](PLANO-V3-PORTFOLIO.md): a V3 nas seções 0 a 11, a **V3.5 na seção 12** rodada por rodada, o **passe de aperfeiçoamento na seção 13**, a entrada suave na 14, as prévias do showcase e as imagens na 15, e a **evolução do fundo de praia na seção 16**, cuja §16.8 é o ponto de partida do trabalho atual.
 
 > ⚡ **Antes de tentar otimizar performance, leia a §13.3 e a §13.4.** Três hipóteses plausíveis foram medidas e duas pioraram o site (adiar as imagens do showcase e o `experimental.inlineCss`). O gargalo do LCP é `Element render delay`, ou seja, trabalho de main thread na hidratação, e não imagens, CSS ou atributos. Isso já está medido para não ser remedido.
+>
+> **Antes de mexer no shader ou na montagem do fundo, leia a §16.2 e a §16.5.** O Lighthouse e o PageSpeed rodam sem GPU, então o custo que importa é o do SwiftShader, na CPU, e não o da placa de vídeo. E compilação de shader se mede no `chrome.exe` que o Lighthouse usa: o headless shell do Playwright adia a compilação e mostra um custo de montagem que não existe.
 
 ## ✨ Stack
 
@@ -25,7 +27,7 @@ CLS zero nas 5 rotas. O mobile é **medido contra a URL de produção**, mediana
 |---|---|
 | Framework | **Next.js 16** (App Router, Turbopack) + TypeScript |
 | Estilo | **Tailwind CSS v4**, tema claro/escuro via classe `.dark` |
-| Fundo | **OGL** (~20 KB gzip), campo de ondas de praia em dois passes, paleta única |
+| Fundo | **OGL** (~20 KB gzip), carregado sob demanda junto com o motor. Campo de ondas de praia em dois passes, teto de 30 fps, paleta única |
 | Rolagem | Nativa do navegador. O Lenis saiu na V3.5 |
 | Componentes | **Base UI** (Sheet do menu mobile). Não é Radix: a API é `render={<a/>}`, não `asChild` |
 | Ícones | **Lucide React** |
@@ -124,11 +126,13 @@ Captura as telas em `.captures/` (ignorada pelo git). Parametrizável por `LOOK_
 │   │   └── en/                   # espelho em inglês, mesma estrutura
 │   ├── components/
 │   │   ├── background/           # o motor do fundo
-│   │   │   ├── renderer.ts       # BackgroundRenderer, sem React
-│   │   │   ├── background-config.ts  # paletas, contraste, tweens e o singleton
-│   │   │   ├── background-canvas.tsx # componente cliente, carrega o ogl no efeito
+│   │   │   ├── renderer.ts       # BackgroundRenderer, sem React: teto de quadros, degraus
+│   │   │   │                     #   de qualidade e a montagem fatiada (§16.4 e §16.5)
+│   │   │   ├── background-config.ts  # paletas, contraste e a curva do crossfade de tema
+│   │   │   ├── background-canvas.tsx # componente cliente, carrega o ogl e o motor no efeito
 │   │   │   ├── grain-texture.ts  # buffer puro + wrapper de Texture
-│   │   │   └── shaders/          # vertex, campo de ondas e composição, em template literal
+│   │   │   └── shaders/          # vertex, campo de ondas e composição, em template literal,
+│   │   │                         #   e bake.ts, a textura de ruído assada uma vez na montagem
 │   │   ├── shell/                # root-document (o <html> dos dois idiomas), site-shell, frame, viewport-mask
 │   │   ├── showcase/             # lista com preview trocando no hover, e a legenda fora da moldura
 │   │   ├── pages/                # o conteúdo de cada rota, compartilhado pelos dois idiomas
@@ -216,17 +220,21 @@ Em `src/i18n/*.ts` → `clients.projects`. Mesmo componente de lista dos projeto
 
 ### 4. Ajustar a paleta do fundo
 
-Em `src/components/background/background-config.ts`:
+O site inteiro usa **uma paleta só**, sem troca por rota nem no hover da lista (a troca saiu na V3.5). Ela mora em `src/components/background/background-config.ts`, e cada paleta tem dois ramps, um por tema:
 
 ```ts
-export const palettes = {
-  cobalt: ["#05101f", "#0e3560", "#2a6ea8"],  // ramp do escuro ao claro
+export const palettes = {        // tema escuro, ramp do escuro ao claro
+  praia: ["#0e1018", "#232838", "#454f6b"],
   // …
 };
-export const paletteForRoute = { home: "graphite", projects: "cobalt", … };
+export const palettesLight = {   // tema claro, mesma ordem, topo em branco
+  praia: ["#7ed4e0", "#f7dc9a", "#ffffff"],
+  // …
+};
+export const DEFAULT_PALETTE: PalettePreset = "praia";  // trocar a do site é esta linha
 ```
 
-Cada item do showcase também escolhe uma paleta, e passar o mouse na lista muda o humor do fundo inteiro.
+As outras paletas (`graphite`, `cobalt`, `ember`, `moss`, `plum`, `sand`) ficam como vocabulário, cobertas pelo mesmo teste, para a troca ser de uma linha. `FIELD_MIX` é a dose do campo sobre a cor de fundo em cada tema: **mudou a dose do claro, recalcule as sete paletas claras**, porque a dose é uma só para todas (lei 11 do CLAUDE.md, §16.6 do plano).
 
 > **Antes de inventar cores:** existe uma faixa de luminância proibida. Com texto branco, o `difference` devolve `1 − L`, então o contraste vai a zero em `L = 0.5` e o site vira cinza sobre cinza **sem acusar erro**. O teste em `background-config.test.ts` varre o ramp inteiro das paletas, nos dois temas, com vinheta e grain, e reprova qualquer uma que caia na faixa. Rode `pnpm test` depois de mexer.
 
@@ -241,22 +249,27 @@ Cada item do showcase também escolhe uma paleta, e passar o mouse na lista muda
 
 ## ♿ Acessibilidade e performance
 
-Lighthouse no build de produção, preset desktop:
+Lighthouse 13.4.1 contra a URL de produção, mediana de 3 rodadas por rota, throttling `simulate` (13/10/2026):
 
-| Rota | Perf | A11y | Best Practices | SEO |
-|---|---|---|---|---|
-| `/` | 99 | 100 | 100 | 100 |
-| `/clientes/` | 98 | 100 | 100 | 100 |
-| `/projetos/` | 98 | 100 | 100 | 100 |
-| `/info/` | 100 | 100 | 100 | 100 |
-| `/contato/` | 99 | 100 | 100 | 100 |
+| Rota | Perf desktop | Perf mobile | A11y | Best Practices | SEO |
+|---|---|---|---|---|---|
+| `/` | 100 | 100 | 100 | 100 | 100 |
+| `/clientes/` | 100 | 97 | 100 | 100 | 100 |
+| `/projetos/` | 100 | 99 | 100 | 100 | 100 |
+| `/info/` | 100 | 98 | 100 | 100 | 100 |
+| `/contato/` | 100 | 98 | 100 | 100 | 100 |
 
-Como rodar: a máquina de desenvolvimento não tem Chrome próprio, então aponte o `CHROME_PATH` para o Chromium do Playwright.
+No desktop as 15 rodadas deram 100 nas quatro categorias. O mobile tem TBT de 38 a 73 ms, e o detalhe por rota (LCP, TBT, FCP e Speed Index) está na §16.7 do plano. O elemento de LCP é o mesmo nas cinco rotas e **não é imagem**: é o link "Pedro Levi" do header.
+
+Como rodar: a máquina de desenvolvimento não tem Chrome próprio, então aponte o `CHROME_PATH` para o Chromium do Playwright, e meça **produção**, nunca `localhost` (lei 18 do CLAUDE.md).
 
 ```bash
-CHROME_PATH="$HOME/AppData/Local/ms-playwright/chromium-1234/chrome-win64/chrome.exe" \
-  npx lighthouse http://localhost:3000/ --preset=desktop --chrome-flags="--headless=new"
+export CHROME_PATH="$HOME/AppData/Local/ms-playwright/chromium-1234/chrome-win64/chrome.exe"
+npx lighthouse https://pedrolevi.vercel.app/ --only-categories=performance --chrome-flags="--headless=new"
+npx lighthouse https://pedrolevi.vercel.app/ --preset=desktop --chrome-flags="--headless=new"
 ```
+
+O primeiro é o mobile, que é o padrão do Lighthouse. Rode cada rota 3 vezes e use a mediana, e confira `configSettings.throttlingMethod` no JSON antes de comparar duas medições. **Nunca use `--preset=perf`:** ele troca o throttling para `devtools` sem avisar, e o número deixa de ser comparável com qualquer outro deste projeto.
 
 Cuidados que o motor do fundo já respeita: teto de 30 quadros por segundo (`MAX_FPS`, ver §16.4 do plano), montagem que compila os shaders fora do main thread e nasce no degrau leve quando não há GPU (§16.5), DPR limitado a 1.5 (e 1 abaixo de 768px), rAF pausado com `document.hidden` e via `IntersectionObserver`, um único frame sob `prefers-reduced-motion`, fallback em gradiente CSS sem WebGL e no `webglcontextlost`.
 
@@ -272,8 +285,8 @@ O anel de foco usa `currentColor` de propósito: com uma cor fixa, ele ficaria i
 | `ci.yml` | Lint, typecheck, testes unitários (Vitest), build de produção e E2E (Playwright) |
 | `gitleaks.yml` | Varredura de segredos com Gitleaks, config em `.gitleaks.toml` |
 
-- **Unitários** (`pnpm test`): manifesto de rotas e os arquivos em disco, contraste das paletas, grain determinístico, aritmética do render target, metadados, sitemap, GitHub com fallback e paridade dos dicionários.
-- **E2E** (`pnpm test:e2e`): a lei de camadas nas 11 rotas com controle negativo, o fallback sem WebGL, DPR por tamanho de tela, o teto de quadros do fundo (contado no próprio WebGL), movimento reduzido, as regras do showcase em ponteiro, teclado e toque, a navegação nos dois idiomas, o `<html lang>` no SSR, a **hierarquia de cabeçalhos**, o **ícone de aba em toda rota** e uma **auditoria de responsividade** em 4 larguras.
+- **Unitários** (`pnpm test`): manifesto de rotas e os arquivos em disco, contraste das sete paletas nos dois temas, grain determinístico, aritmética do render target, o teto de quadros simulado de 60 a 240 Hz, os degraus de qualidade do fundo, as cores do ícone e da imagem de link, o teto de peso e de largura das imagens versionadas, metadados, sitemap, GitHub com fallback e paridade dos dicionários.
+- **E2E** (`pnpm test:e2e`): a lei de camadas nas 11 rotas com controle negativo, o fallback sem WebGL, DPR por tamanho de tela, o teto de quadros do fundo (contado no próprio WebGL), o degrau leve do fundo quando não há GPU, movimento reduzido, as regras do showcase em ponteiro, teclado e toque, as prévias sem `lazy` e com cache `immutable`, a navegação nos dois idiomas, o `<html lang>` no SSR, a **hierarquia de cabeçalhos**, o **ícone de aba e a imagem de link em toda rota** e uma **auditoria de responsividade** em 6 rotas × 7 larguras.
 - Os testes de responsividade e de marca existem porque a V3.5 acumulou seis defeitos que só apareceram quando alguém olhou a tela: ondas correndo para o lado errado, email cortado com reticências no celular, palavra por cima da coluna vizinha, ícone de três versões atrás e ícone ausente em `/en/`. Cada um virou asserção.
 - O `pnpm look` **não** roda no CI: tem config própria em `capture/`.
 
@@ -289,11 +302,10 @@ O anel de foco usa `currentColor` de propósito: com uma cor fixa, ele ficaria i
 ```bash
 pnpm exec vercel login
 pnpm exec vercel link
-pnpm exec vercel env add NEXT_PUBLIC_SITE_URL production   # ex.: https://pedrolevi.dev
 pnpm deploy
 ```
 
-> Sem `NEXT_PUBLIC_SITE_URL`, o site usa a URL do deploy para canonical, hreflang e sitemap. Com domínio próprio, defina a variável para fixar a canônica.
+> Sem `NEXT_PUBLIC_SITE_URL`, o site usa a URL de produção do projeto na Vercel (`VERCEL_PROJECT_PRODUCTION_URL`) para canonical, hreflang e sitemap. Em produção a canônica é `https://pedrolevi.vercel.app/`. A variável só é necessária com domínio próprio: `pnpm exec vercel env add NEXT_PUBLIC_SITE_URL production`.
 
 ## 📄 Scripts
 
