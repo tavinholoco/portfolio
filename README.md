@@ -4,6 +4,8 @@ Portfólio minimalista com fundo WebGL próprio, tipografia fluida e navegação
 
 **Versão atual: V3.5.** Identidade fixa no canto esquerdo (nome, cargo e nav vertical), home reduzida ao campo de ondas, e uma paleta só no site inteiro. O fundo é um campo procedural de ondas de praia: sol que anda sozinho, nuvens em perspectiva, mar com espuma de crista, e a onda se desfazendo na areia em renda de espuma, com a areia molhada secando depois. Tudo por pixel e por frame, **sem nenhum vídeo ou GIF envolvido**, e no tema claro com a paleta "praia" (§16 do plano).
 
+Na primeira visita da sessão há uma abertura: cortina preta, as letras do nome sobem uma a uma, e o nome desliza e encolhe até o lugar dele no canto enquanto a cortina se dissolve (§16.9). Custa 1 KB de JS e não mexeu na nota do Lighthouse; clique, tecla ou rolagem a encerram, e com movimento reduzido ela não aparece.
+
 **Live:** [pedrolevi.vercel.app](https://pedrolevi.vercel.app)
 
 | | Desktop | Mobile |
@@ -13,7 +15,7 @@ Portfólio minimalista com fundo WebGL próprio, tipografia fluida e navegação
 
 CLS zero nas 5 rotas. Os dois são **medidos contra a URL de produção**, mediana de 3 rodadas por rota (13/10/2026): o mesmo build no `next start` local dá 80 a 94 no mobile, porque não tem CDN, HTTP/2 nem Brotli. Rodada única não serve como medida em nenhum dos dois ambientes.
 
-**177 testes unitários e 158 E2E.** A auditoria responsiva sozinha cobre 6 rotas × 7 larguras (320 a 2560) com 5 asserções cada.
+**183 testes unitários e 166 E2E.** A auditoria responsiva sozinha cobre 6 rotas × 7 larguras (320 a 2560) com 5 asserções cada.
 
 > A referência estrutural foi [p5aholic.me](https://p5aholic.me), **sem reúso de código**: shader, paleta, composição e CSS foram escritos do zero. O plano completo está em [PLANO-V3-PORTFOLIO.md](PLANO-V3-PORTFOLIO.md): a V3 nas seções 0 a 11, a **V3.5 na seção 12** rodada por rodada, o **passe de aperfeiçoamento na seção 13**, a entrada suave na 14, as prévias do showcase e as imagens na 15, e a **evolução do fundo de praia na seção 16**, cuja §16.8 é o ponto de partida do trabalho atual.
 
@@ -56,6 +58,7 @@ A montagem correta, em `src/components/shell/site-shell.tsx`:
 | `<ViewportMask>` | `fixed` | 30 | Cobre as faixas de `var(--pad)` no topo e na base |
 | `<Frame>` | `fixed` | 40 | Moldura de 1px, em `difference` |
 | `<SiteHeader>` / `<SiteFooter>` | `fixed` | 50 | Em `difference`, acima da máscara. Ambos em `pointer-events-none` |
+| `<Intro>` | `fixed`, `inset: 0` | 60 | A cortina da abertura, uma vez por sessão. Só cobre: `pointer-events-none`, irmã do `<main>`, e some no fim |
 
 Cinco detalhes decorrentes, todos descobertos na prática:
 
@@ -285,8 +288,9 @@ O anel de foco usa `currentColor` de propósito: com uma cor fixa, ele ficaria i
 | `ci.yml` | Lint, typecheck, testes unitários (Vitest), build de produção e E2E (Playwright) |
 | `gitleaks.yml` | Varredura de segredos com Gitleaks, config em `.gitleaks.toml` |
 
-- **Unitários** (`pnpm test`): manifesto de rotas e os arquivos em disco, contraste das sete paletas nos dois temas, grain determinístico, aritmética do render target, o teto de quadros simulado de 60 a 240 Hz, os degraus de qualidade do fundo, as cores do ícone e da imagem de link, o teto de peso e de largura das imagens versionadas, metadados, sitemap, GitHub com fallback e paridade dos dicionários.
-- **E2E** (`pnpm test:e2e`): a lei de camadas nas 11 rotas com controle negativo, o fallback sem WebGL, DPR por tamanho de tela, o teto de quadros do fundo (contado no próprio WebGL), o degrau leve do fundo quando não há GPU, movimento reduzido, as regras do showcase em ponteiro, teclado e toque, as prévias sem `lazy` e com cache `immutable`, a navegação nos dois idiomas, o `<html lang>` no SSR, a **hierarquia de cabeçalhos**, o **ícone de aba e a imagem de link em toda rota** e uma **auditoria de responsividade** em 6 rotas × 7 larguras.
+- **Unitários** (`pnpm test`): manifesto de rotas e os arquivos em disco, contraste das sete paletas nos dois temas, grain determinístico, aritmética do render target, o teto de quadros simulado de 60 a 240 Hz, os degraus de qualidade do fundo, as cores do ícone e da imagem de link, o teto de peso e de largura das imagens versionadas, o momento do deslize da abertura, metadados, sitemap, GitHub com fallback e paridade dos dicionários.
+- **E2E** (`pnpm test:e2e`): a lei de camadas nas 11 rotas com controle negativo, o fallback sem WebGL, DPR por tamanho de tela, o teto de quadros do fundo (contado no próprio WebGL), o degrau leve do fundo quando não há GPU, movimento reduzido, as regras do showcase em ponteiro, teclado e toque, as prévias sem `lazy` e com cache `immutable`, a navegação nos dois idiomas, o `<html lang>` no SSR, a **hierarquia de cabeçalhos**, o **ícone de aba e a imagem de link em toda rota**, uma **auditoria de responsividade** em 6 rotas × 7 larguras, e a **abertura**: o nome pousa no pixel do header, o clique passa pela cortina, o nome do header (o LCP) nunca some, e sem JS a cortina sai sozinha.
+- **Toda a suíte E2E roda sem a abertura**, porque cada contexto do Playwright nasce sem `sessionStorage` e ela cobriria o começo de todo teste. Teste novo importa `test` de `e2e/fixtures.ts`, que semeia a chave; os testes da própria abertura ligam com `test.use({ intro: true })`.
 - Os testes de responsividade e de marca existem porque a V3.5 acumulou seis defeitos que só apareceram quando alguém olhou a tela: ondas correndo para o lado errado, email cortado com reticências no celular, palavra por cima da coluna vizinha, ícone de três versões atrás e ícone ausente em `/en/`. Cada um virou asserção.
 - O `pnpm look` **não** roda no CI: tem config própria em `capture/`.
 

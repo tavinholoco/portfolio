@@ -1952,7 +1952,7 @@ Cada uma medida contra um preview da Vercel, mediana de 3 (lei 18), antes da pr�
 
 O contorno firme, que seria a etapa 4, saiu do plano (§16.1).
 
-4. **Introdução: a cortina preta com o nome.** Decidida e especificada na §16.8. **É a próxima.**
+4. **Introdução: a cortina preta com o nome.** Decidida e especificada na §16.8. **Feita, ver §16.9**: o Pedro escolheu o modelo "Letra a letra" num laboratório de seis.
 
 ### 16.4 Etapa 1: o teto de 30 fps
 
@@ -2109,3 +2109,77 @@ Ficaram de fora por decisão, para ninguém repropor sem motivo novo: sol colori
 4. **Compilação e montagem se medem no `chrome.exe` do Playwright, que é o que o Lighthouse usa**, nunca no headless shell (§16.5).
 5. Derrubar a porta 3000 depois de todo build, antes de testar ou medir.
 6. Fluxo: branch `claude/...` a partir da `main`, commits em português explicando o porquê, PR com a verificação, merge do Pedro, medição em produção.
+
+### 16.9 A abertura: o laboratório, o "Letra a letra" e o custo medido (13/10/2026)
+
+#### O laboratório
+
+Antes de implementar, seis modelos rodaram no site de verdade (header, fundo e temas reais), num branch local que nunca foi ao GitHub, com painel para trocar, repetir, câmera lenta e tema, e uma folha comparativa congelando cada modelo em cinco instantes. Todos com a decisão da §16.8 (cortina preta, só o nome, deslize até o canto); variavam a entrada do nome e a saída da cortina:
+
+| Modelo | Entrada | Saída |
+|---|---|---|
+| 1. Direto | o nome surge | a cortina se dissolve |
+| **2. Letra a letra** | **as letras sobem uma a uma, de dentro de uma máscara** | **a cortina se dissolve** |
+| 3. Cortina sobe | o nome surge | sobe como cortina de teatro |
+| 4. Maré | o nome surge | recua em onda, com linha de espuma |
+| 5. Íris | o nome surge | círculo que nasce no nome |
+| 6. Blocos | o nome surge | blocos grandes, do nome para fora |
+
+**O Pedro escolheu o 2.** A ferramenta da folha ficou em `.captures/laboratorio-introducao/` (local).
+
+**Uma lição do laboratório que decidiu a implementação: o nome da cortina não pode ser `mix-blend-difference`.** Parece o certo, porque é assim que o header fica legível nos dois temas. Só que no pouso o nome da cortina fica exatamente sobre o do header, que já é `difference`, e a inversão dupla devolve a cor do fundo: o texto some no instante do pouso. O nome da cortina é branco comum sobre o preto, e a cortina se dissolve por cima do nome de verdade. No escuro a troca é invisível; no claro o branco vira o escuro do header durante a dissolução.
+
+#### Como ficou
+
+| Peça | Onde | Por quê |
+|---|---|---|
+| A decisão | script do `<head>` em `root-document.tsx` | Antes da pintura, com `data-intro` no `<html>`: sem chave na sessão e sem movimento reduzido. **Atributo, nunca classe**, porque o fundo observa o `class` do `<html>` para trocar de tema |
+| A cortina | `shell/intro.tsx`, no `<SiteShell>` | `fixed`, z 60, irmã do `<main>`. Vem no HTML do servidor em `display: none`; o CSS só a mostra com `html[data-intro]`, e por isso não pisca |
+| A subida das letras | CSS (`globals.css`) | Começa na primeira pintura, sem esperar a hidratação |
+| O deslize | JS, FLIP com Web Animations | Só `transform`, no compositor. A escala sai da largura; a altura acompanha porque o nome usa a mesma razão de altura de linha do link (`--text-2xl--line-height` e `--text-3xl--line-height`) |
+| Quando desliza | `momentoDoDeslize` em `intro-config.ts` | Depois das letras e de um respiro de 180 ms, assim que o fundo avisa que montou (evento `fundo-pronto`, novo no `BackgroundCanvas`), com teto de 1.6 s desde a navegação |
+| Ninguém fica preso | `intro.tsx` e CSS | `pointer-events: none`; clique, tecla, rolagem, toque e redimensionar encerram em 200 ms; e uma reserva no CSS tira a cortina aos 4 s se o JS nunca rodar |
+| O LCP | nada a fazer, e é de propósito | O link "Pedro Levi" do header continua visível por baixo. A cortina só cobre, e o LCP não leva oclusão em conta |
+
+Duração típica: cerca de 2.2 s do início da navegação até a cortina sumir, uma vez por sessão. Os números estão todos em `INTRO`, em `intro-config.ts`.
+
+#### Testes
+
+**E2E de 158 para 166.** `e2e/intro.spec.ts` (7): aparece e pousa no pixel (diferença menor que 1 px em posição e tamanho), o link do header continua visível, não volta na mesma sessão, não aparece com movimento reduzido, não bloqueia o clique, uma tecla encerra, e sem o JS a reserva do CSS a tira. Mais um caso na F1 de `shell.spec.ts`: com a cortina na tela, nenhum ancestral de seção `blend` muda.
+
+**A suíte inteira roda sem a cortina**, porque todo contexto do Playwright nasce sem `sessionStorage` e ela cobriria o começo de todo teste. A fixture `e2e/fixtures.ts` semeia a chave; os testes da abertura ligam com `test.use({ intro: true })`; contexto criado à mão chama `pularIntro(context)`. O `pnpm look` semeia a chave também.
+
+**Controle negativo executado**, com quatro quebras num build só (cortina capturando clique, link do header invisível, nome sem a altura de linha do header, reserva do CSS removida): as quatro reprovam o teste correspondente. **E o controle pegou um teste fraco:** com `locator.click()` o teste de clique passava com a cortina engolindo o clique, porque o Playwright espera o elemento ficar clicável e nesse meio-tempo a abertura acaba sozinha. Virou clique cru nas coordenadas, `page.mouse.click`.
+
+**Unitários de 177 para 183**: `momentoDoDeslize` nos quatro cenários (fundo cedo, fundo tarde, fundo que não chega, aparelho lento) e o FLIP.
+
+#### O custo, medido
+
+**Peso**, por carregamento, gzip, mesmo build das duas versões:
+
+| | `main` | Com a abertura | Diferença |
+|---|---|---|---|
+| JS de `/` | 211.8 KB | 212.8 KB | **+1.0 KB** |
+| CSS | 9.4 KB | 9.7 KB | +0.3 KB |
+| HTML de `/` | 5.5 KB | 5.9 KB | +0.4 KB |
+
+Em tempo de execução não há laço: duas animações no compositor e uma em CSS, os ouvintes saem no fim, e isso uma vez por sessão.
+
+**Lighthouse mobile**, A/B local na mesma sessão, `next start`, intercalado (main, abertura, abertura, main), 6 rodadas por lado e por rota, mediana:
+
+| Rota | Lado | Perf | LCP | TBT | Speed Index | Elemento de LCP |
+|---|---|---|---|---|---|---|
+| `/` | `main` | 93 (93 a 93) | 3163 ms | 55 ms | 810 ms | link "Pedro Levi" |
+| `/` | abertura | 95 (92 a 96) | 2913 ms | 57 ms | 1716 ms | link "Pedro Levi" |
+| `/projetos/` | `main` | 87 (87 a 93) | 3912 ms | 94 ms | 772 ms | link "Pedro Levi" |
+| `/projetos/` | abertura | 92 (91 a 93) | 3199 ms | 103 ms | 1650 ms | link "Pedro Levi" |
+
+Números de `localhost`, que pela lei 18 não são o estado do site: valem para comparar os dois lados. O que eles dizem:
+
+- **A nota não caiu.** Ficou igual ou um pouco acima, e eu não leio isso como ganho: o LCP da `main` em `/projetos/` oscilou entre dois patamares (87 e 93), e a diferença está dentro do que o A/B local varia.
+- **O elemento de LCP continuou o link do header** nas 24 rodadas, que era o risco principal da §16.8.
+- **O Speed Index dobrou, e não pesa.** A página só fica visualmente completa quando a cortina sai, então ele foi de ~0.8 s para ~1.7 s. A curva do Lighthouse mobile só começa a tirar ponto bem acima disso (a nota do Speed Index ficou em 1.00 nas 12 rodadas da abertura), e ele vale 10% da nota.
+- **O TBT ficou igual**, dentro do ruído.
+- **Acessibilidade, Best Practices e SEO continuam em 100**, conferidos com a cortina na tela, no mobile e no desktop, em `/`, `/projetos/` e `/info/`.
+
+**A conferência que vale é em produção, depois do merge**, com o mesmo método da §16.7.
