@@ -2183,3 +2183,23 @@ Números de `localhost`, que pela lei 18 não são o estado do site: valem para 
 - **Acessibilidade, Best Practices e SEO continuam em 100**, conferidos com a cortina na tela, no mobile e no desktop, em `/`, `/projetos/` e `/info/`.
 
 **A conferência que vale é em produção, depois do merge**, com o mesmo método da §16.7.
+
+#### Em produção, depois do merge dos PRs #20 e #21 (13/10/2026)
+
+Lighthouse 13.4.1 mobile contra produção, `simulate`, `--only-categories=performance`, mediana de 3 por rota, com a abertura confirmada no ar (o HTML já trazia a chave `intro-vista`):
+
+| Rota | Perf | Spread | LCP | TBT | CLS | Speed Index | Antes (§16.7) |
+|---|---|---|---|---|---|---|---|
+| `/` | **100** | 100 a 100 | 1656 ms | 37 ms | 0 | 1862 ms | 100 |
+| `/clientes/` | **98** | 98 a 99 | 2409 ms | 46 ms | 0 | 1841 ms | 97 |
+| `/projetos/` | **97** | 97 a 99 | 2561 ms | 44 ms | 0 | 1843 ms | 99 |
+| `/info/` | **99** | 99 a 99 | 2115 ms | 44 ms | 0 | 1847 ms | 98 |
+| `/contato/` | **99** | 98 a 99 | 2261 ms | 65 ms | 0 | 1833 ms | 98 |
+
+**97 a 100 no mobile, a mesma faixa de antes**, com TBT de 37 a 65 ms (eram 38 a 73). O elemento de LCP foi o link "Pedro Levi" do header nas 18 rodadas. O Speed Index foi de ~1.0 a 1.16 s para ~1.85 s, como o A/B previa, e a nota dele ficou entre 0.97 e 1.
+
+**`/projetos/` é a única rota abaixo do que estava, e a leitura honesta é esta:** com mais 3 rodadas (6 no total) ela fica em 97 a 99, mediana 97.5, e o LCP alterna entre dois patamares, de ~2.1 s e ~2.56 s, sempre no link do header. Esse patamar de 2.56 s já tinha aparecido na §16.4, antes de a abertura existir, e o A/B local, que compara as duas versões na mesma sessão e é o instrumento que atribui causa, mostrou a abertura igual ou melhor nessa rota. Não há sinal de que seja ela; se a rota ficar em 97 nas próximas medições, o lugar para olhar é o LCP de `/projetos/`, não a cortina.
+
+**Desktop**, preset desktop, as quatro categorias, mediana de 3: **99 a 100** em Performance (99 em `/`, 100 nas outras quatro) e **100 em Acessibilidade, Best Practices e SEO** nas cinco rotas, com CLS zero.
+
+**A abertura funcionando em produção**, num Chromium com GPU: marca no `<html>` antes da pintura, link do header visível o tempo todo, pouso no pixel no desktop (57.6, 57.6, 172.5 × 36) e no celular (40, 30, 138 × 32), fim entre 2.15 e 2.38 s com a chave gravada, nenhuma cortina na segunda visita nem com movimento reduzido, nenhum erro de console.
