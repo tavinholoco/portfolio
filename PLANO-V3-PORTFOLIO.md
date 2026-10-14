@@ -2357,6 +2357,8 @@ Lighthouse em produção no domínio novo, mobile e desktop, mediana de 3, nas 5
 
 ### 17.7 Como retomar
 
+> **Desatualizado desde 14/10/2026:** as fases A a D estão feitas. Retome pela **§17.12**, que tem o estado, o inventário da conta e a fase E passo a passo. A lista abaixo fica como registro de como a sessão de execução começou.
+
 1. Ler o CLAUDE.md e esta seção inteira.
 2. Autorizar o MCP da Cloudflare pelo `/mcp`.
 3. Perguntar ao Pedro se o `pedrolevi.com.br` já foi registrado. As fases A e B não esperam por isso.
@@ -2486,3 +2488,50 @@ O Pedro decidiu as quatro pendências da §17.10, e tudo foi aplicado pela API a
 2. **Fase E:** o `pedrolevi.vercel.app` vira 308 para o domínio no painel da Vercel, o Git da Vercel é desconectado, o `vercel.json` sai do repositório, os links de fora (o campo de site do repositório no GitHub, o perfil, o LinkedIn) e o Search Console com o sitemap.
 3. **Fase F:** Lighthouse no domínio, mobile e desktop, mediana de 3, nas 5 rotas, pelo método da §16.7.
 4. **Os secrets** `GITHUB_TOKEN` e `CF_DEPLOY_HOOK` (Pedro). Até o segundo existir, o `rebuild-semanal.yml` fica vermelho.
+
+### 17.12 O estado em 14/10/2026 e como retomar pela fase E
+
+**O site está no ar em https://pedrolevi.com.br desde 14/10/2026, 23:22 UTC**, servido pela Cloudflare a partir da `main`. O PR #27 (23:38 UTC) foi o último deploy, e a conferência das 18 páginas (`confere-producao.mjs`) passou inteira depois dele. **As fases A a D estão feitas**, a C inclusive com o DNSSEC validado. O `pedrolevi.vercel.app` continua em 200, servindo a versão de antes da migração, congelada pelo `vercel.json`.
+
+#### Inventário na Cloudflare
+
+Nada aqui é segredo: são identificadores, não credenciais.
+
+| O quê | Valor |
+|---|---|
+| Conta | `fd64386c78c6bb5bbfc8ffa08c2c6ca5`, subdomínio `workers.dev`: `pedrolevidiass` |
+| Worker | `portfolio`, tag `e5de41a4bc0c4ac38fe216d86e351574`, em https://portfolio.pedrolevidiass.workers.dev (`noindex`, HTTP/3) e em `pedrolevi.com.br` (domínio próprio, pelo `routes` do `wrangler.jsonc`) |
+| Gatilho de build | `915cba66-1150-44be-8b9a-1f8b5015fe16`, branch `main`, `pnpm build` e `npx wrangler deploy`. Variável: `NEXT_PUBLIC_SITE_URL=https://pedrolevi.com.br`. Cache de build ligado. Sem gatilho de prévia |
+| Zona | `pedrolevi.com.br`, id `541ef630eb330536969e435487469f3b`, Free, servidores `damien` e `sunny.ns.cloudflare.com` |
+| DNS | `AAAA pedrolevi.com.br 100::` (criado pelo domínio próprio) e `AAAA www 100::`, os dois com proxy |
+| Redirect Rule | id `5d77c2a7670b4d26b54577bd793db9c2`: `www` para `https://pedrolevi.com.br` + caminho, 301, preservando a query |
+| Ajustes da zona | HTTP/3 **desligado** (§17.10), Always Use HTTPS ligado, Email Address Obfuscation desligado; Bot Fight Mode, bloqueio de IA, robots.txt gerenciado, Rocket Loader e Speed Brain desligados |
+| DNSSEC | `active`. DS no registro.br: 2371, 13, 2, `365A7C0513A3F1D7B743B71F384A8CFF6E5431A1CD443F2AA288F9E4B8237934` |
+
+#### Pendente com o Pedro, antes ou junto da fase E
+
+1. **`CF_DEPLOY_HOOK`, com prazo:** o `rebuild-semanal.yml` roda na **segunda, 19/10/2026, às 09:00 UTC**, e sem o secret ele falha (de propósito). No Worker: Settings, Builds, Deploy Hooks, criar um hook na `main` e copiar a URL. No GitHub: o repositório, Settings, Secrets and variables, Actions, New repository secret, nome `CF_DEPLOY_HOOK`. Depois, rodar o workflow à mão (aba Actions, "Rebuild semanal", Run workflow) e conferir que apareceu um build novo no Worker. Em 14/10 não existia hook nem secret nenhum no repositório.
+2. **`GITHUB_TOKEN`, sem prazo:** um token fine-grained no GitHub, só leitura de repositórios públicos; no Worker, Settings, Build, Variables and secrets, tipo **Secret**, nome `GITHUB_TOKEN`. Sem ele o build funciona, só arrisca o limite de 60 requisições por IP (§17.5). Credencial é com o Pedro: eu não digito token.
+
+#### A fase E, passo a passo
+
+A ordem importa: o `vercel.json` só sai do repositório **depois** de o Git da Vercel ser desconectado, senão a Vercel builda a versão export e o `vercel.app` serve imagem de link quebrada (§17.5).
+
+1. **O redirecionamento (Pedro, no painel da Vercel).** Projeto `portfolio`, Settings, Domains, a entrada `pedrolevi.vercel.app`, Edit, redirecionar para `pedrolevi.com.br` com **308**. Conferência (eu): `curl -sI https://pedrolevi.vercel.app/info/` tem de responder 308 com `location: https://pedrolevi.com.br/info/`, o caminho preservado. Conferir também uma página de case e a raiz. Se o painel não oferecer a opção para a entrada `.vercel.app`, a saída é um `vercel.json` com `redirects` para `https://pedrolevi.com.br/:path*` e um deploy só dele: decidir com o Pedro na hora.
+2. **Desconectar o Git da Vercel (Pedro).** Settings, Git, Disconnect. O projeto fica, só para o redirecionamento. Depois disso nenhum push builda na Vercel.
+3. **Tirar o `vercel.json` do repositório (eu, PR).** Junto: a linha dele na árvore do README, a menção no CLAUDE.md e na nota de migração do README, e o comentário da `.vercel` no `.gitignore`. O `.gitleaks.toml` mantém `vercel.app` e `vercel.com` na lista de permitidos: as demos de clientes ainda moram lá.
+4. **Os links de fora.** O campo "Website" do repositório no GitHub aponta para um deploy antigo (`portfolio-tau-five-f86nc5khr8.vercel.app`); eu troco com `gh repo edit tavinholoco/portfolio --homepage https://pedrolevi.com.br` **com o OK do Pedro**. O perfil do GitHub e o LinkedIn são com ele. O PDF do currículo em `public/cv/` não tem link da Vercel (conferido em 14/10).
+5. **Search Console (Pedro e eu).** O Pedro cria a propriedade de **domínio** `pedrolevi.com.br` e me passa o valor do TXT (`google-site-verification=...`). Eu crio o registro TXT na zona pela API, ele clica em Verificar, e envia o sitemap `https://pedrolevi.com.br/sitemap.xml`.
+
+#### A fase F, depois da E
+
+Lighthouse no domínio, pelo método da §16.7: mobile com `node .captures/laboratorio-praia/medicao/lh.cjs https://pedrolevi.com.br cloudflare-prod` (5 rotas, mediana de 3, `simulate`), e desktop com `--preset=desktop`. **Conferir no JSON que o protocolo é `h2`** (`network-requests`), senão a nota não é comparável (§17.10). A base é a da §16.9: 97 a 100 no mobile, 99 a 100 no desktop, LCP no link do header. Depois: a tabela do README e os comandos de Lighthouse dele (ainda apontam para `vercel.app`), o "Estado" do CLAUDE.md, e a memória.
+
+#### Ferramentas locais desta seção
+
+Em `.captures/laboratorio-praia/medicao/`, ignorada pelo git:
+
+- `confere-producao.mjs <url>`: as 18 páginas do sitemap e os cabeçalhos das leis 17, 19, 22 e 23. No `workers.dev` exige `noindex`, no domínio próprio exige a ausência dele.
+- `lh-ab-hosts.cjs <hostA> <hostB> <rótulo>`: o portão, dois hosts intercalados rodada a rodada.
+- `lh-ab-flags.cjs`: o mesmo, com flag do Chrome por lado (`"url|--disable-quic"`).
+- `compara-rodadas.cjs <json>...`: LCP, elemento, fases e cascata de rede de cada rodada.
