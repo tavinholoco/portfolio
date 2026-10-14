@@ -2,7 +2,7 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
   "installCommand": "",
-  "buildCommand": "mkdir -p vercel-redirect",
+  "buildCommand": "mkdir -p vercel-redirect && echo https://pedrolevi.com.br > vercel-redirect/index.txt",
   "outputDirectory": "vercel-redirect",
   "redirects": [
     {
