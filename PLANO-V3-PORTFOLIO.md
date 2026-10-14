@@ -2410,6 +2410,58 @@ Branch `claude/migracao-cloudflare-fase-a`, a partir da `main` com a §17 (a3773
 - **E2E: 166 de 166** contra o `wrangler dev` (no experimento, 165). Controle negativo do passo do Windows: buildando só com `next build`, sobram 19 pastas `__next.*` e o teste de movimento reduzido reprova com 404 no console, como no experimento.
 - À mão, contra o `wrangler dev`: `/nao-existe/` em 404 com a página do Next (a mesma `<title>` que a Vercel serve hoje, porque o site não tem `not-found` próprio); `/info` em 307 para `/info/`; as duas OG em 200 `image/png`, com e sem barra; um chunk de `_next/static` com `max-age=31536000, immutable`; `robots.txt` e `sitemap.xml` servindo.
 - **Achado novo, para a §17.5:** no Windows, matar os `workerd.exe` com o `wrangler` vivo não adianta, porque ele os sobe de novo. A ordem é matar o `node` do wrangler primeiro. Encerrado pelo próprio Playwright, nada sobrou.
-- O CI no Ubuntu é o que confirma o item 7 da §17.4 do lado do Linux: lá o passo do Windows não age, e o teste de movimento reduzido tem de passar mesmo assim.
+- O CI no Ubuntu é o que confirma o item 7 da §17.4 do lado do Linux: lá o passo do Windows não age, e o teste de movimento reduzido tem de passar mesmo assim. **Confirmado:** o PR #24 passou no CI inteiro, E2E incluído, e foi mergeado em 14/10/2026 às 14:51 UTC. A Vercel pulou o build do merge ("Canceled by Ignored Build Step"), e o `vercel.app` seguiu servindo a versão de antes, imagens de link incluídas.
 
 **A fase B começa depois do merge**, com o OK do Pedro a cada ação na conta: criar o Worker `portfolio` ligado ao repositório (GitHub App só no `portfolio`), as variáveis de build (`PNPM_VERSION`, `NEXT_PUBLIC_SITE_URL` com o endereço do `workers.dev` por enquanto, o secret `GITHUB_TOKEN`, que o Pedro gera no GitHub), o deploy hook no secret `CF_DEPLOY_HOOK` do repositório, e o portão de medição contra o `vercel.app` congelado. Conectar o repositório só depois do merge evita que o Workers Builds abra sozinho um PR de configuração (§17.5).
+
+### 17.10 Fase B no ar e a fase C delegada (14/10/2026)
+
+#### Fase B: o Worker no `workers.dev`
+
+- **O Worker foi criado pelo Pedro no painel**, importando o repositório (Workers & Pages, Create application, Import a repository), com o app do GitHub da Cloudflare instalado **só no repositório `portfolio`**. Nome `portfolio`, gatilho na `main`, `pnpm build` e `npx wrangler deploy`. Abrir a página de Workers & Pages criou o subdomínio da conta, `pedrolevidiass`, e o site ficou em **https://portfolio.pedrolevidiass.workers.dev**. Como a `main` já tinha `wrangler.jsonc`, a Cloudflare não abriu PR de configuração.
+- **O primeiro build falhou na guarda da lei 23**, de propósito: `Error: NEXT_PUBLIC_SITE_URL não definida no Workers Builds`, na coleta do `/sitemap.xml`. A lei está provada em produção.
+- **A imagem de build leu sozinha as duas versões:** Node 22.23.3 pelo `.node-version` e pnpm 10.32.1 pelo `packageManager` (`Detected the following tools from environment: nodejs@22.23.3, pnpm@10.32.1`). A variável `PNPM_VERSION` da §17.6 não é necessária e não foi criada.
+- `NEXT_PUBLIC_SITE_URL=https://portfolio.pedrolevidiass.workers.dev` entrou pela API, no gatilho da `main`, e o segundo build passou em 90 s. **O cache de build veio ligado** (`Build output uploaded to build cache`), então o motivo do `revalidate: 3600` no `github.ts` (§17.9, item 4) vale na prática.
+- **O build do Linux grava 183 arquivos, o do Windows 148.** A diferença é o segmento de prefetch do layout de cada página (por exemplo `/__next.!KGhvbWUp.txt`), que o build do Windows nem gera. Cada plataforma é coerente com ela mesma: o E2E local passa, e em produção os arquivos que o navegador pede respondem 200.
+- **Conferência de produção, nas 18 páginas do sitemap** (`.captures/laboratorio-praia/medicao/confere-producao.mjs`, local): canonical, `og:image` e `twitter:image` no próprio host; as duas imagens de link em 200 `image/png` sem seguir redirecionamento; chunk de `_next/static` com `immutable`; `X-Robots-Tag: noindex` em toda página; o gmail legível em `/contato/` e `/info/`, sem `email-decode`; `/nao-existe/` em 404; `/info` em 307; `robots.txt` apontando o sitemap do host. **Tudo certo.** O script foi validado antes contra a Vercel, onde só reprova o `noindex`, que ela não tem.
+
+#### O portão de medição, e por que a primeira leitura enganava
+
+Lighthouse 13.4.1 mobile, `simulate`, `--only-categories=performance`, mediana de 3, as 5 rotas, os dois hosts **intercalados rodada a rodada** (`.captures/laboratorio-praia/medicao/lh-ab-hosts.cjs`):
+
+| Rota | Vercel | `workers.dev` |
+|---|---|---|
+| `/` | 100 | 99 |
+| `/clientes/` | 98 | 99 |
+| `/projetos/` | 97 | 98 |
+| `/info/` | 99 | 99 |
+| `/contato/` | 100 | **94** |
+
+No `workers.dev`, 5 das 15 rodadas tiveram LCP simulado entre 3.0 e 3.4 s (nota 92 a 94), e as outras ficaram entre 1.8 e 2.4 s, como na Vercel. **O site não estava mais lento:** o LCP observado ficou entre 210 e 410 ms em todas as rodadas dos dois hosts, o elemento de LCP é o mesmo (o link "Pedro Levi" do header), e a rede da rodada lenta é praticamente idêntica à da rápida (TTFB de 44 a 57 ms, mesmos arquivos, mesma ordem).
+
+**A causa é o simulador do Lighthouse, não a Cloudflare.** A Cloudflare entrega por **HTTP/3**, e a Vercel por HTTP/2. O Lantern só modela multiplexação quando o protocolo é exatamente `h2`: `node_modules/@paulirish/trace_engine/models/trace/lantern/simulation/ConnectionPool.js` faz `isH2 = request.protocol === 'h2'`, e para qualquer outro protocolo cria até 6 conexões por origem com fila, como no HTTP/1.1. O HTTP/3 é simulado como o protocolo mais lento dos três, e o resultado oscila conforme a ordem em que os arquivos caem nas conexões simuladas.
+
+A prova, no mesmo `workers.dev`, intercalando o Chrome padrão com o Chrome forçado em HTTP/2 (`--disable-quic`, conferido no JSON: protocolo `h2`) (`lh-ab-flags.cjs`):
+
+| Rota | HTTP/3 | HTTP/2 forçado | LCP h3 / h2 |
+|---|---|---|---|
+| `/` | 99 | **100** | 1995 / 1393 ms |
+| `/clientes/` | 95 | **100** | 2918 / 1833 ms |
+| `/projetos/` | 94 | **97** | 3020 / 2434 ms |
+| `/info/` | 94 | **98** | 3066 / 2282 ms |
+| `/contato/` | 98 | **100** | 2436 / 1674 ms |
+
+**Com HTTP/2 a Cloudflare empata com a Vercel** (97 a 100 contra 97 a 100), e o TBT fica no mesmo patamar dos dois lados (20 a 105 ms). **O portão passou.** O que fica para decidir é se o domínio próprio serve HTTP/3: a zona `pedrolevi.com.br` veio com `http3: on`, e desligá-lo faz o Lighthouse e o PageSpeed medirem o site do jeito que mediam na Vercel. O `workers.dev` não tem esse ajuste: ele sempre serve HTTP/3, e por isso nunca mais serve de base de comparação de nota. **Toda medição daqui em diante precisa dizer o protocolo.**
+
+#### Fase C: o domínio delegado
+
+- O Pedro registrou o `pedrolevi.com.br` em 14/10/2026 às 14:44 UTC (vence em 14/10/2027). **Ele veio no DNS automático do registro.br (`a.auto.dns.br`), com DNSSEC ligado e DS publicado** (Key Tag 33150, algoritmo 13), o que o roteiro não previa: um DS velho com os servidores da Cloudflare deixaria o domínio sem resolver em todo resolvedor que valida.
+- **A zona foi criada pela API**, com OK do Pedro: plano Free, id `541ef630eb330536969e435487469f3b`, servidores `damien.ns.cloudflare.com` e `sunny.ns.cloudflare.com`. Da lista da §17.5, só o **Email Address Obfuscation** veio ligado, e foi desligado. Bot Fight Mode, bloqueio de robôs de IA, robots.txt gerenciado, Rocket Loader e Speed Brain vieram desligados. **Always Use HTTPS veio desligado** e espera a decisão do Pedro (a Vercel redireciona `http` para `https`).
+- **O registro.br cuidou do DNSSEC na ordem certa, sozinho.** O Pedro trocou os servidores às 15:10 UTC; no mesmo minuto o RDAP passou a `delegationSigned: false` (o DS saiu do registro), e o painel avisou que a delegação aos servidores externos levaria cerca de 2 horas: é o tempo de o DS velho, com TTL de 3600 s, sair dos caches antes de a zona mudar de mãos. A delegação saiu às 17:10:55 UTC, a zona ficou **ativa**, e os resolvedores da Cloudflare e do Google respondem com `damien`/`sunny` e nenhum DS.
+- **Falta o passo 5, o DNSSEC novo:** ligar na Cloudflare, e o Pedro cadastrar no registro.br o DS que ela mostrar.
+
+#### Como retomar daqui
+
+1. O que está esperando o Pedro: os secrets `GITHUB_TOKEN` (no Worker) e `CF_DEPLOY_HOOK` (no repositório; até lá o `rebuild-semanal.yml` fica vermelho), e três decisões: Always Use HTTPS, HTTP/3 no domínio, e o OK para o DNSSEC.
+2. A fase D vira um PR de código: `routes` com `custom_domain: true` no `wrangler.jsonc` (versionado, em vez de pelo painel), a variável `NEXT_PUBLIC_SITE_URL` trocada para `https://pedrolevi.com.br` **antes** do merge, o `www` com `AAAA 100::` e a Redirect Rule, e a conferência com o `confere-producao.mjs` apontado para o domínio. No domínio a regra de `noindex` não vale, então a conferência tem de inverter essa asserção.
+3. Só o gatilho de produção existe; prévias de branch não foram ligadas no painel.

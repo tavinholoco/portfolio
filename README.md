@@ -8,7 +8,7 @@ Na primeira visita da sessão há uma abertura: cortina preta, as letras do nome
 
 **Live:** [pedrolevi.vercel.app](https://pedrolevi.vercel.app)
 
-> 🚚 **Em migração para a Cloudflare, com domínio próprio (`pedrolevi.com.br`), pela §17 do plano.** O código já é export estático servido por Workers Static Assets (fase A). Até o domínio entrar no ar (fase D), o site público continua sendo o da Vercel, congelado pelo `vercel.json` no último deploy de antes da migração.
+> 🚚 **Em migração para a Cloudflare, com domínio próprio (`pedrolevi.com.br`), pela §17 do plano.** O código já é export estático servido por Workers Static Assets (fase A), o site já roda na Cloudflare em [portfolio.pedrolevidiass.workers.dev](https://portfolio.pedrolevidiass.workers.dev) (fora do índice, fase B), e o domínio já está delegado à Cloudflare (fase C). Até o domínio entrar no ar no Worker (fase D), o site público continua sendo o da Vercel, congelado pelo `vercel.json` no último deploy de antes da migração.
 
 | | Desktop | Mobile |
 |---|---|---|
