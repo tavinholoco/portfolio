@@ -1,0 +1,10 @@
+# Reescritas do servidor de assets da Cloudflare (lei 22 do CLAUDE.md, §17.4).
+# O 200 no fim é reescrita interna, não redirecionamento: a URL não muda e o
+# teste de e2e/marca.spec.ts, que exige 200 sem seguir salto, continua valendo.
+#
+# A meta anuncia a imagem de link com barra (trailingSlash: true), mas o
+# export a grava como arquivo sem barra e sem pasta. Sem estas linhas a URL
+# anunciada responde 404. Os caminhos têm de bater com ogImageMeta em
+# src/lib/metadata.ts; src/lib/cloudflare-assets.test.ts confere.
+/opengraph-image-12gd74/ /opengraph-image-12gd74 200
+/en/opengraph-image/ /en/opengraph-image 200

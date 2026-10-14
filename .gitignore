@@ -44,8 +44,11 @@ yarn-error.log*
 .env*
 !.env.example
 
-# vercel
+# vercel (o projeto antigo, que só redireciona depois da fase E da §17)
 .vercel
+
+# wrangler (estado local do wrangler dev)
+/.wrangler/
 
 # freebuff (dados locais do app, nunca versionar)
 .freebuff

@@ -2290,7 +2290,7 @@ Numa worktree descartável a partir da `main` (24c6b0d), fora do repositório: `
 - **O caminho com hash está escrito à mão** no `_headers` e no `_redirects`. Ele é estável (é o `djb2` de `/(home)`, e `src/lib/metadata.test.ts` já confere o literal), mas se um dia mudar, os dois arquivos envelhecem sem ninguém ver. Um teste unitário deve conferir que os dois arquivos citam os mesmos caminhos que `ogImageMeta` gera.
 - **Configurações da zona que mexem no HTML ou barram visita**, a conferir na fase C: Bot Fight Mode (pode desafiar o Lighthouse, o PageSpeed e os robôs de prévia de link do LinkedIn e do WhatsApp), robots.txt gerenciado e bloqueio de robôs de IA (reescrevem o `robots.txt` do site; recomendação: deixar desligado, o portfólio quer ser encontrado), Rocket Loader (reescreve scripts), e não ligar o Web Analytics (injeta script). O Speed Brain vem ligado no Free e só acrescenta `Speculation-Rules`; conferir se não briga com o prefetch do Next.
 - **Autoconfig do Workers Builds.** Se a branch de produção não tiver `wrangler.jsonc` quando o repositório for conectado, a Cloudflare abre sozinha um PR de configuração. Conectar só depois do merge da fase A evita isso. O nome do Worker no painel precisa ser igual ao `name` do `wrangler.jsonc`, senão o build falha.
-- **`wrangler dev` no Windows deixa processo órfão.** Encerrar o terminal (ou o `TaskStop`) não mata os `workerd.exe`, que seguram a pasta `out/` (o build seguinte falha com `EBUSY`) e a porta. Matar os processos antes de buildar de novo.
+- **`wrangler dev` no Windows deixa processo órfão.** Encerrar o terminal (ou o `TaskStop`) não mata os `workerd.exe`, que seguram a pasta `out/` (o build seguinte falha com `EBUSY`) e a porta. Matar os processos antes de buildar de novo, **o `node` do wrangler primeiro**: com ele vivo, o `workerd` morto volta (§17.9).
 
 ### 17.6 O roteiro
 
@@ -2361,7 +2361,7 @@ Lighthouse em produção no domínio novo, mobile e desktop, mediana de 3, nas 5
 2. Autorizar o MCP da Cloudflare pelo `/mcp`.
 3. Perguntar ao Pedro se o `pedrolevi.com.br` já foi registrado. As fases A e B não esperam por isso.
 4. Base: **183 unitários e 166 E2E**, produção na Vercel em **97 a 100** no mobile (§16.9). É o número contra o qual a Cloudflare se compara.
-5. Começar pela fase A, num branch `claude/...` a partir da `main`.
+5. ~~Começar pela fase A~~ **A fase A está feita (§17.9).** Depois do merge dela, seguir pela fase B, pedindo o OK do Pedro a cada ação que cria ou muda algo na conta da Cloudflare.
 6. No Windows, matar os `workerd.exe` órfãos antes de buildar ou testar de novo, e derrubar a porta 3000 como sempre.
 
 ### 17.8 Referências consultadas
@@ -2371,3 +2371,45 @@ Cloudflare: [Next.js nos Workers](https://developers.cloudflare.com/workers/fram
 registro.br: [tutorial de DNSSEC](https://ftp.registro.br/pub/doc/tutorial-dnssec.pdf), e dois guias de terceiros sobre a troca de servidores e o DS com a Cloudflare ([1](https://tudosobrehospedagemdesites.com.br/como-alterar-dns-dominio-registro-br), [2](https://bedhosting.com.br/en/blog/ferramentas/configurar-dnssec-registrobr-cloudflare/)). Os nomes exatos dos botões no painel do registro.br não estão em documentação oficial que eu tenha achado: conferir na hora.
 
 Next: `node_modules/next/dist/docs/01-app/02-guides/static-exports.md` (o que o export não suporta: ISR, `headers`, `redirects`, rewrites, proxy, otimizador de imagem padrão).
+
+### 17.9 Fase A: o código, feita (14/10/2026)
+
+Branch `claude/migracao-cloudflare-fase-a`, a partir da `main` com a §17 (a3773b1). O MCP da Cloudflare já estava autorizado na conta do Pedro (o `whoami` responde), e nada foi criado na conta: a fase A é só código.
+
+| Peça | O que entrou |
+|---|---|
+| `next.config.ts` | `output: "export"`, com o comentário do que muda de lugar |
+| 4 arquivos de rota | `export const dynamic = "force-static"` nas duas `opengraph-image.tsx`, em `robots.ts` e em `sitemap.ts` |
+| `public/_headers` | `immutable` em `/_next/static/*`, `Content-Type: image/png` nos quatro caminhos da OG, `X-Robots-Tag: noindex` em `https://:worker.:subdomain.workers.dev/*` |
+| `public/_redirects` | As duas reescritas da OG com barra para o arquivo do export, com `200` |
+| `wrangler.jsonc` | Worker `portfolio`, só assets, `compatibility_date` 2026-10-14, `404-page`, `auto-trailing-slash`, `workers_dev` e `preview_urls` ligados |
+| `src/lib/metadata.ts` | Sai o fallback da Vercel; com `WORKERS_CI` e sem `NEXT_PUBLIC_SITE_URL`, `getSiteUrl()` lança e o build para (lei 23) |
+| `src/lib/github.ts` | `Authorization` quando `GITHUB_TOKEN` existe |
+| `package.json` | Sai a dependência `vercel` e os scripts `deploy` e `deploy:preview`; entra o `wrangler` 4.151.0, o `workerd` na lista de build permitido do pnpm, o `build` com o passo do Windows e o `start` como `wrangler dev --port 3000` |
+| `scripts/achata-prefetch-windows.mjs` | O conserto do §17.4, item 7. Só age em `win32` |
+| `.github/workflows/rebuild-semanal.yml` | Segunda, 09:00 UTC, `POST` no secret `CF_DEPLOY_HOOK`, mais `workflow_dispatch`. Sem o secret ele fica vermelho, de propósito |
+| `src/lib/cloudflare-assets.test.ts` | 6 testes: as regras dos dois arquivos contra `ogImageMeta`, o `immutable`, o `noindex` preso ao host |
+| `.gitignore`, `.gitleaks.toml`, `.env.example`, `.node-version` | `/.wrangler/`; o domínio, o `workers.dev` e os nomes das variáveis na lista de permitidos; o exemplo de `.env` sem a Vercel; Node 22 |
+| `vercel.json` | `ignoreCommand: "exit 0"`: o congelamento da Vercel |
+| Documentação | CLAUDE.md (leis 17, 18 e 19 com a ponta da Cloudflare, leis novas 22 e 23, o aviso do `workerd.exe`), README (o status da migração, Stack, Deploy, Scripts, CI, GitHub) |
+
+**Onde a fase A saiu diferente do roteiro da §17.6, e por quê:**
+
+1. **A Vercel foi congelada pelo repositório, não pelo painel.** O `vercel.json` com `ignoreCommand: "exit 0"` vale para o commit que está sendo buildado, então a Vercel já pula a prévia deste PR e o commit do merge, sem depender de um clique antes da hora. O `vercel.app` fica no deploy de antes da migração até virar redirecionamento. **Sai na fase E**, junto com a desconexão do Git.
+2. **O `pnpm start` virou o `wrangler dev`**, em vez de só o `webServer` do Playwright mudar. Assim a config de captura (`capture/playwright.config.ts`, que sobe o `pnpm start` para o `pnpm look`) continua funcionando sem mudança.
+3. **O Node vem do `.node-version`**, e não da variável `NODE_VERSION` no painel: fica versionado, e o CI passou a ler do mesmo arquivo (`node-version-file`). O `PNPM_VERSION=10.32.1` continua como variável de build na fase B.
+4. **O `revalidate: 3600` ficou no `github.ts`, por outro motivo.** Com o cache de build ligado (é opcional, em Settings, Build), o Workers Builds guarda o `.next/cache` entre builds, e o cache de fetch do Next mora ali. Com `force-cache` o rebuild semanal reaproveitaria a resposta do primeiro build para sempre; com `no-store` a rota deixa de ser estática e o export para. Uma hora de validade faz todo rebuild buscar de novo.
+5. **O passo do Windows roda dentro do `pnpm build`** (`next build && node scripts/...`), porque o pnpm não roda `postbuild` sozinho. No Linux ele sai na primeira linha.
+6. **A issue no Next não foi aberta.** É ação pública na conta do Pedro, e fica para ele decidir. Não havia issue nem PR sobre isso no `vercel/next.js` em 14/10/2026 (busca por `collectSegmentPaths`, export estático, Windows e prefetch).
+
+**Verificação, no Windows:**
+
+- `pnpm lint` e `pnpm typecheck` limpos.
+- **192 unitários** (183 + 9: os 6 do `cloudflare-assets`, 2 do token do GitHub e 1 líquido no `getSiteUrl`, que trocou os dois da Vercel por três da guarda). Controle negativo do teste novo: com o hash da OG trocado no `_redirects` e a regra de `/en/opengraph-image/` apagada do `_headers`, reprovam os dois testes certos.
+- `pnpm build`: 26 páginas, **148 arquivos e 3.7 MB** em `out/` (os 146 do experimento mais `_headers` e `_redirects`), e o passo do Windows renomeou 19 arquivos de prefetch.
+- **E2E: 166 de 166** contra o `wrangler dev` (no experimento, 165). Controle negativo do passo do Windows: buildando só com `next build`, sobram 19 pastas `__next.*` e o teste de movimento reduzido reprova com 404 no console, como no experimento.
+- À mão, contra o `wrangler dev`: `/nao-existe/` em 404 com a página do Next (a mesma `<title>` que a Vercel serve hoje, porque o site não tem `not-found` próprio); `/info` em 307 para `/info/`; as duas OG em 200 `image/png`, com e sem barra; um chunk de `_next/static` com `max-age=31536000, immutable`; `robots.txt` e `sitemap.xml` servindo.
+- **Achado novo, para a §17.5:** no Windows, matar os `workerd.exe` com o `wrangler` vivo não adianta, porque ele os sobe de novo. A ordem é matar o `node` do wrangler primeiro. Encerrado pelo próprio Playwright, nada sobrou.
+- O CI no Ubuntu é o que confirma o item 7 da §17.4 do lado do Linux: lá o passo do Windows não age, e o teste de movimento reduzido tem de passar mesmo assim.
+
+**A fase B começa depois do merge**, com o OK do Pedro a cada ação na conta: criar o Worker `portfolio` ligado ao repositório (GitHub App só no `portfolio`), as variáveis de build (`PNPM_VERSION`, `NEXT_PUBLIC_SITE_URL` com o endereço do `workers.dev` por enquanto, o secret `GITHUB_TOKEN`, que o Pedro gera no GitHub), o deploy hook no secret `CF_DEPLOY_HOOK` do repositório, e o portão de medição contra o `vercel.app` congelado. Conectar o repositório só depois do merge evita que o Workers Builds abra sozinho um PR de configuração (§17.5).

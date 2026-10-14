@@ -2,8 +2,36 @@ import { projectMetas } from "@/data/projects";
 import type { FeaturedProject, Locale } from "@/i18n";
 
 const GITHUB_USER = "tavinholoco";
-/** Regeneração a cada 1h (ISR), suficiente para o rate limit de 60 req/h sem token. */
+/**
+ * Validade da resposta no cache de fetch do Next.
+ *
+ * Com o export estático não existe mais ISR: o dado do GitHub é o do build, e
+ * o build roda toda semana (§17.6). O número continua por outro motivo. Com o
+ * cache de build ligado, o Workers Builds guarda o `.next/cache` entre builds,
+ * e o cache de fetch mora ali: com `force-cache` o rebuild semanal reaproveitaria a resposta do
+ * primeiro build para sempre, e com `no-store` a rota deixaria de ser estática
+ * e o export pararia. Uma hora de validade faz todo rebuild buscar de novo.
+ */
 const REVALIDATE_SECONDS = 3600;
+
+/**
+ * Cabeçalhos da chamada à API. O token é opcional: sem ele o limite é de 60
+ * requisições por hora **por IP**, e as máquinas de build da Cloudflare são
+ * compartilhadas. Se o limite já estiver gasto por outro projeto, a chamada
+ * cai no fallback sem erro e as páginas de case saem sem linguagem e sem data
+ * (§17.5). Com `GITHUB_TOKEN` (fine-grained, só leitura de repositório
+ * público), o limite passa a ser da conta.
+ */
+function githubHeaders(): HeadersInit {
+  const headers: Record<string, string> = {
+    Accept: "application/vnd.github+json",
+    "User-Agent": "pedrolevi-portfolio",
+  };
+  if (process.env.GITHUB_TOKEN) {
+    headers.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`;
+  }
+  return headers;
+}
 
 type GitHubRepo = {
   name: string;
@@ -39,7 +67,7 @@ function formatDate(iso: string | null, lang: Locale): string | null {
 
 /**
  * Busca os projetos em destaque no GitHub e mescla com a curadoria.
- * Roda no servidor (SSG/ISR). Se a API falhar ou estiver em rate limit,
+ * Roda no build (export estático). Se a API falhar ou estiver em rate limit,
  * cai no fallback estático (repo/demo da curadoria), o site nunca quebra.
  */
 export async function getFeaturedProjects(
@@ -53,10 +81,7 @@ export async function getFeaturedProjects(
       `https://api.github.com/users/${GITHUB_USER}/repos?per_page=100&sort=updated`,
       {
         next: { revalidate: REVALIDATE_SECONDS },
-        headers: {
-          Accept: "application/vnd.github+json",
-          "User-Agent": "pedrolevi-portfolio",
-        },
+        headers: githubHeaders(),
       }
     );
     if (res.ok) {

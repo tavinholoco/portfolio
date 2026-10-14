@@ -13,8 +13,7 @@ function setEnv(vars: Record<string, string | undefined>) {
 afterEach(() => {
   setEnv({
     NEXT_PUBLIC_SITE_URL: undefined,
-    VERCEL_PROJECT_PRODUCTION_URL: undefined,
-    VERCEL_URL: undefined,
+    WORKERS_CI: undefined,
   });
 });
 
@@ -26,7 +25,7 @@ describe("json-ld", () => {
   }
 
   it("person tem nome, cargo e links sociais", async () => {
-    setEnv({ NEXT_PUBLIC_SITE_URL: "https://pedrolevi.dev" });
+    setEnv({ NEXT_PUBLIC_SITE_URL: "https://pedrolevi.com.br" });
     const { personJsonLd } = await freshJsonLd();
 
     const person = personJsonLd("pt");
@@ -38,16 +37,16 @@ describe("json-ld", () => {
   });
 
   it("projectJsonLd gera SoftwareApplication com URL absoluta", async () => {
-    setEnv({ NEXT_PUBLIC_SITE_URL: "https://pedrolevi.dev" });
+    setEnv({ NEXT_PUBLIC_SITE_URL: "https://pedrolevi.com.br" });
     const { projectJsonLd } = await freshJsonLd();
 
     const ld = projectJsonLd("newra-news", "pt");
     expect(ld?.["@type"]).toBe("SoftwareApplication");
-    expect(ld?.url).toBe("https://pedrolevi.dev/projetos/newra-news/");
+    expect(ld?.url).toBe("https://pedrolevi.com.br/projetos/newra-news/");
     expect(ld?.keywords).toContain("Turborepo");
 
     const en = projectJsonLd("newra-news", "en");
-    expect(en?.url).toBe("https://pedrolevi.dev/en/projects/newra-news/");
+    expect(en?.url).toBe("https://pedrolevi.com.br/en/projects/newra-news/");
   });
 
   it("projectJsonLd retorna null para slug desconhecido", async () => {
@@ -90,7 +89,7 @@ describe("itemListJsonLd", () => {
   });
 
   it("projectListJsonLd aponta para a rota de projeto de cada idioma", async () => {
-    setEnv({ NEXT_PUBLIC_SITE_URL: "https://pedrolevi.dev" });
+    setEnv({ NEXT_PUBLIC_SITE_URL: "https://pedrolevi.com.br" });
     const { projectListJsonLd } = await freshJsonLd();
 
     const pt = projectListJsonLd("pt");

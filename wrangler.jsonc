@@ -1,0 +1,31 @@
+/*
+ * O site na Cloudflare: um Worker só de assets, sem código (sem "main"),
+ * servindo a pasta `out/` que o `next build` grava com `output: "export"`.
+ * Requisição de asset estático não invoca Worker e não é cobrada. Por que
+ * export estático, e não vinext nem OpenNext, está na §17.3 do plano.
+ *
+ * O Workers Builds builda com `pnpm build` e publica com
+ * `npx wrangler deploy`. O nome do Worker no painel tem de ser igual a
+ * `name`, senão o build falha.
+ */
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "portfolio",
+  "compatibility_date": "2026-10-14",
+  "assets": {
+    "directory": "./out",
+    /* Rota que não existe responde 404 com a página `out/404.html`, a mesma
+       not-found do Next. */
+    "not_found_handling": "404-page",
+    /* `/info/` serve `info/index.html`; `/info` vai para `/info/` com 307
+       (a Vercel dava 308, e a Cloudflare só oferece 307 aqui). Os links
+       internos, o canonical e o sitemap já levam barra, então ninguém passa
+       por esse salto. */
+    "html_handling": "auto-trailing-slash"
+  },
+  /* O endereço workers.dev fica ligado para o portão de medição da fase B
+     (§17.6), e as prévias de branch saem públicas para dar para medir nelas.
+     As duas levam `noindex` pelo `public/_headers`. */
+  "workers_dev": true,
+  "preview_urls": true
+}

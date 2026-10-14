@@ -1,0 +1,39 @@
+name: Rebuild semanal
+
+# O export estático congela o dado do GitHub das páginas de case (linguagem,
+# mês do último push, links) no momento do build. No lugar do ISR de 1 hora
+# que a Vercel fazia, o site é rebuildado uma vez por semana (§17.6, fase A).
+#
+# O deploy hook é uma URL única do Workers Builds, presa ao branch `main`:
+# um POST nela builda e publica. A URL é a credencial, então vive no secret
+# CF_DEPLOY_HOOK do repositório, nunca no código.
+#
+# O GitHub desliga workflow agendado depois de 60 dias sem atividade no
+# repositório. Se isso acontecer, ele reativa pela aba Actions, e o
+# workflow_dispatch roda à mão a qualquer momento.
+
+on:
+  schedule:
+    # Segunda-feira, 09:00 UTC (06:00 em Brasília).
+    - cron: "0 9 * * 1"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  rebuild:
+    name: Dispara o build da Cloudflare
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: POST no deploy hook
+        env:
+          CF_DEPLOY_HOOK: ${{ secrets.CF_DEPLOY_HOOK }}
+        run: |
+          # Sem o secret o rebuild não acontece, e o site envelhece calado.
+          # Melhor um vermelho na aba Actions.
+          if [ -z "$CF_DEPLOY_HOOK" ]; then
+            echo "::error::O secret CF_DEPLOY_HOOK não existe neste repositório."
+            exit 1
+          fi
+          curl --fail-with-body --silent --show-error --request POST "$CF_DEPLOY_HOOK"

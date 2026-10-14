@@ -1,6 +1,22 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  /*
+   * Export estático: o `next build` grava o site inteiro em `out/`, e a
+   * Cloudflare serve essa pasta como assets de um Worker (`wrangler.jsonc`),
+   * sem servidor do Next. É a §17.3 do plano: o site já era estático (nenhuma
+   * rota lê a requisição, `dynamicParams = false` nos cases, imagens sem
+   * otimizador), e asset estático na Cloudflare é grátis e ilimitado.
+   *
+   * O que isso troca, e onde cada coisa passou a morar:
+   * - Cabeçalhos (o `immutable` de `_next/static`, o tipo da imagem de link)
+   *   e reescritas não vêm mais do Next: vivem em `public/_headers` e
+   *   `public/_redirects`, que o export copia para `out/`.
+   * - O ISR das páginas de case some: o dado do GitHub é o do build, e o
+   *   build roda toda semana (`.github/workflows/rebuild-semanal.yml`).
+   * - O `pnpm start` passa a ser o `wrangler dev` servindo `out/`.
+   */
+  output: "export",
   // URLs estáveis com barra final (ex.: /en/), consistente com canonical e sitemap.
   trailingSlash: true,
   images: {

@@ -6,6 +6,10 @@ import { pathFor, routes } from "@/lib/routes";
 
 const siteUrl = getSiteUrl();
 
+/* O export estático (`output: "export"`) exige que rota de metadado declare
+   que é estática; sem isto o build para. */
+export const dynamic = "force-static";
+
 /**
  * O sitemap deriva do manifesto de rotas, então acrescentar uma rota lá já a
  * coloca aqui, nos dois idiomas e com o hreflang certo.

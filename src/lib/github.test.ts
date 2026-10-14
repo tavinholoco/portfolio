@@ -99,4 +99,33 @@ describe("getFeaturedProjects", () => {
     // A demo curada (src/data/projects.ts) sobrevive à falha da API
     expect(project.demoUrl).toBe("https://newra-news-web.vercel.app");
   });
+
+  /*
+   * O token existe por causa do build na Cloudflare, onde o limite de 60
+   * por hora sem token é dividido com quem mais usa a mesma máquina (§17.5).
+   * O par prova que ele vai quando existe e que nada muda quando não existe.
+   */
+  describe("GITHUB_TOKEN", () => {
+    afterEach(() => {
+      delete process.env.GITHUB_TOKEN;
+    });
+
+    function cabecalhosDaChamada(): Record<string, string> {
+      const chamada = vi.mocked(globalThis.fetch).mock.calls[0];
+      return (chamada[1]?.headers ?? {}) as Record<string, string>;
+    }
+
+    it("manda Authorization quando o token existe", async () => {
+      process.env.GITHUB_TOKEN = "github_pat_teste";
+      await getFeaturedProjects(featured, "pt");
+      expect(cabecalhosDaChamada().Authorization).toBe(
+        "Bearer github_pat_teste"
+      );
+    });
+
+    it("não manda Authorization sem o token", async () => {
+      await getFeaturedProjects(featured, "pt");
+      expect(cabecalhosDaChamada()).not.toHaveProperty("Authorization");
+    });
+  });
 });
