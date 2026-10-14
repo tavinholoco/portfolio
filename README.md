@@ -10,7 +10,7 @@ Na primeira visita da sessão há uma abertura: cortina preta, as letras do nome
 
 | | Desktop | Mobile |
 |---|---|---|
-| Performance | 100 | 97 a 100 |
+| Performance | 99 a 100 | 97 a 100 |
 | Acessibilidade, Best Practices e SEO | 100 | 100 |
 
 CLS zero nas 5 rotas. Os dois são **medidos contra a URL de produção**, mediana de 3 rodadas por rota (13/10/2026): o mesmo build no `next start` local dá 80 a 94 no mobile, porque não tem CDN, HTTP/2 nem Brotli. Rodada única não serve como medida em nenhum dos dois ambientes.
@@ -256,13 +256,13 @@ Lighthouse 13.4.1 contra a URL de produção, mediana de 3 rodadas por rota, thr
 
 | Rota | Perf desktop | Perf mobile | A11y | Best Practices | SEO |
 |---|---|---|---|---|---|
-| `/` | 100 | 100 | 100 | 100 | 100 |
-| `/clientes/` | 100 | 97 | 100 | 100 | 100 |
-| `/projetos/` | 100 | 99 | 100 | 100 | 100 |
-| `/info/` | 100 | 98 | 100 | 100 | 100 |
-| `/contato/` | 100 | 98 | 100 | 100 | 100 |
+| `/` | 99 | 100 | 100 | 100 | 100 |
+| `/clientes/` | 100 | 98 | 100 | 100 | 100 |
+| `/projetos/` | 100 | 97 | 100 | 100 | 100 |
+| `/info/` | 100 | 99 | 100 | 100 | 100 |
+| `/contato/` | 100 | 99 | 100 | 100 | 100 |
 
-No desktop as 15 rodadas deram 100 nas quatro categorias. O mobile tem TBT de 38 a 73 ms, e o detalhe por rota (LCP, TBT, FCP e Speed Index) está na §16.7 do plano. O elemento de LCP é o mesmo nas cinco rotas e **não é imagem**: é o link "Pedro Levi" do header.
+Medido com a abertura no ar. No desktop, Acessibilidade, Best Practices e SEO deram 100 em todas as rodadas. O mobile tem TBT de 37 a 65 ms, e o detalhe por rota (LCP, TBT, Speed Index e a comparação com antes da abertura) está na §16.9 do plano. O elemento de LCP é o mesmo nas cinco rotas e **não é imagem**: é o link "Pedro Levi" do header.
 
 Como rodar: a máquina de desenvolvimento não tem Chrome próprio, então aponte o `CHROME_PATH` para o Chromium do Playwright, e meça **produção**, nunca `localhost` (lei 18 do CLAUDE.md).
 
