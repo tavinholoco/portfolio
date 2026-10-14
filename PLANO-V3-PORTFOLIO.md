@@ -2465,3 +2465,24 @@ A prova, no mesmo `workers.dev`, intercalando o Chrome padrão com o Chrome for�
 1. O que está esperando o Pedro: os secrets `GITHUB_TOKEN` (no Worker) e `CF_DEPLOY_HOOK` (no repositório; até lá o `rebuild-semanal.yml` fica vermelho), e três decisões: Always Use HTTPS, HTTP/3 no domínio, e o OK para o DNSSEC.
 2. A fase D vira um PR de código: `routes` com `custom_domain: true` no `wrangler.jsonc` (versionado, em vez de pelo painel), a variável `NEXT_PUBLIC_SITE_URL` trocada para `https://pedrolevi.com.br` **antes** do merge, o `www` com `AAAA 100::` e a Redirect Rule, e a conferência com o `confere-producao.mjs` apontado para o domínio. No domínio a regra de `noindex` não vale, então a conferência tem de inverter essa asserção.
 3. Só o gatilho de produção existe; prévias de branch não foram ligadas no painel.
+
+### 17.11 Fase D: o domínio no ar (14/10/2026)
+
+O Pedro decidiu as quatro pendências da §17.10, e tudo foi aplicado pela API antes do merge:
+
+- **HTTP/3 desligado na zona** (`http3: off`). O domínio passa a anunciar só `h2` (registro HTTPS com `alpn=h2`, nenhum `alt-svc`), e o Lighthouse volta a medir o site do jeito que media na Vercel. O `workers.dev` continua em HTTP/3, porque lá não há esse ajuste.
+- **Always Use HTTPS ligado:** `http://pedrolevi.com.br/info/` responde 301 para `https://pedrolevi.com.br/info/`.
+- **`www`:** registro `AAAA 100::` com proxy e uma Redirect Rule 301 (`http.host eq "www.pedrolevi.com.br"` para `concat("https://pedrolevi.com.br", http.request.uri.path)`, preservando a query). Conferido em `http` e `https`. A primeira requisição, logo depois de criar a regra, deu 522: era a regra propagando.
+- **DNSSEC ligado na Cloudflare**, em `pending` até o DS chegar ao registro.br: Key Tag 2371, algoritmo 13, digest tipo 2, digest `365A7C0513A3F1D7B743B71F384A8CFF6E5431A1CD443F2AA288F9E4B8237934`. **Antes de passar o DS ao Pedro**, conferi que a zona já publicava o DNSKEY (KSK com flags 257 e Key Tag 2371, calculado do registro) e recalculei o digest como SHA-256 do nome do dono em formato de fio mais o RDATA da chave: bate byte a byte. No painel do registro.br o DS entra pelo botão **"+ DNSSEC"** do mesmo diálogo "Alterar servidores DNS"; o "+ DNS" só acrescenta um terceiro servidor.
+- **`NEXT_PUBLIC_SITE_URL=https://pedrolevi.com.br`** no gatilho da `main`, trocada antes do merge para o build do merge já sair com as URLs do domínio.
+
+**O código foi o PR #26:** `routes` com `custom_domain: true` no `wrangler.jsonc`. O token automático do Workers Builds tem "Workers Routes: Edit" em todas as zonas da conta, que é o que o domínio próprio exige, e o `wrangler deploy --dry-run` passou sem aviso. Os PRs #25 e #26 foram mergeados em 14/10/2026 às 23:22 UTC; os dois builds passaram, e o deploy criou sozinho o registro `AAAA pedrolevi.com.br 100::` com proxy e o certificado.
+
+**Conferência em produção, no domínio** (`confere-producao.mjs`, que no domínio próprio exige a **ausência** do `noindex`): as 18 páginas do sitemap em 200, com canonical, `og:image` e `twitter:image` em `pedrolevi.com.br`; as duas imagens de link em 200 `image/png` sem seguir redirecionamento; `_next/static` com `immutable`; nenhum `X-Robots-Tag`; o gmail legível em `/contato/` e `/info/`, sem `email-decode`; `/nao-existe/` em 404; `/info` em 307 para `/info/`; `robots.txt` e sitemap no domínio. **Tudo certo.** O `vercel.app` segue em 200, servindo a versão de antes.
+
+**O que falta:**
+
+1. ~~O DS no registro.br~~ **Feito.** O Pedro cadastrou o DS às 23:30 UTC; o RDAP mostrou na hora `delegationSigned: true` com os quatro valores exatos e o teste do próprio registro.br como `ds ok`. A publicação na zona `.br` saiu às 23:35, e no mesmo minuto os resolvedores da Cloudflare e do Google passaram a responder o domínio com `AD` (validado), e a Cloudflare marcou o DNSSEC como `active`. **A fase C fechou.**
+2. **Fase E:** o `pedrolevi.vercel.app` vira 308 para o domínio no painel da Vercel, o Git da Vercel é desconectado, o `vercel.json` sai do repositório, os links de fora (o campo de site do repositório no GitHub, o perfil, o LinkedIn) e o Search Console com o sitemap.
+3. **Fase F:** Lighthouse no domínio, mobile e desktop, mediana de 3, nas 5 rotas, pelo método da §16.7.
+4. **Os secrets** `GITHUB_TOKEN` e `CF_DEPLOY_HOOK` (Pedro). Até o segundo existir, o `rebuild-semanal.yml` fica vermelho.
