@@ -16,6 +16,7 @@ function setEnv(vars: Record<string, string | undefined>) {
 afterEach(() => {
   setEnv({
     NEXT_PUBLIC_SITE_URL: undefined,
+    WORKERS_CI: undefined,
     VERCEL_PROJECT_PRODUCTION_URL: undefined,
     VERCEL_URL: undefined,
   });
@@ -23,23 +24,39 @@ afterEach(() => {
 
 describe("getSiteUrl", () => {
   it("prioriza NEXT_PUBLIC_SITE_URL", () => {
-    setEnv({ NEXT_PUBLIC_SITE_URL: "https://pedrolevi.dev" });
-    expect(getSiteUrl()).toBe("https://pedrolevi.dev");
-  });
-
-  it("cai para a URL de produção da Vercel quando não há domínio próprio", () => {
-    setEnv({
-      VERCEL_PROJECT_PRODUCTION_URL: "portfolio.vercel.app",
-    });
-    expect(getSiteUrl()).toBe("https://portfolio.vercel.app");
-  });
-
-  it("cai para VERCEL_URL (preview) se for a única disponível", () => {
-    setEnv({ VERCEL_URL: "portfolio-preview.vercel.app" });
-    expect(getSiteUrl()).toBe("https://portfolio-preview.vercel.app");
+    setEnv({ NEXT_PUBLIC_SITE_URL: "https://pedrolevi.com.br" });
+    expect(getSiteUrl()).toBe("https://pedrolevi.com.br");
   });
 
   it("usa o fallback local sem nenhuma variável", () => {
+    expect(getSiteUrl()).toBe("https://localhost:3000");
+  });
+
+  /*
+   * Lei 23. O par de testes abaixo é o controle negativo um do outro: a mesma
+   * falta de variável que dá localhost no build local derruba o build da
+   * Cloudflare. Sem a guarda, o build de lá passaria com o site inteiro
+   * apontando canonical e `og:image` para localhost.
+   */
+  it("derruba o build no Workers Builds sem NEXT_PUBLIC_SITE_URL", () => {
+    setEnv({ WORKERS_CI: "1" });
+    expect(() => getSiteUrl()).toThrow(/NEXT_PUBLIC_SITE_URL/);
+  });
+
+  it("no Workers Builds, com a variável, usa a variável", () => {
+    setEnv({ WORKERS_CI: "1", NEXT_PUBLIC_SITE_URL: "https://pedrolevi.com.br" });
+    expect(getSiteUrl()).toBe("https://pedrolevi.com.br");
+  });
+
+  /*
+   * O fallback da Vercel saiu com a migração. Se ele voltasse, um build fora
+   * da Vercel com essas variáveis no ambiente pegaria o endereço velho.
+   */
+  it("não lê mais as variáveis da Vercel", () => {
+    setEnv({
+      VERCEL_PROJECT_PRODUCTION_URL: "pedrolevi.vercel.app",
+      VERCEL_URL: "portfolio-preview.vercel.app",
+    });
     expect(getSiteUrl()).toBe("https://localhost:3000");
   });
 });
@@ -52,15 +69,15 @@ describe("buildMetadata", () => {
   }
 
   it("gera canonical e hreflang por idioma", async () => {
-    setEnv({ NEXT_PUBLIC_SITE_URL: "https://pedrolevi.dev" });
+    setEnv({ NEXT_PUBLIC_SITE_URL: "https://pedrolevi.com.br" });
     const { buildMetadata: build } = await freshMetadata();
 
     const pt = build("pt");
     expect(pt.alternates?.canonical).toBe("/");
     expect(pt.alternates?.languages).toEqual({
-      "pt-BR": "https://pedrolevi.dev/",
-      en: "https://pedrolevi.dev/en/",
-      "x-default": "https://pedrolevi.dev/",
+      "pt-BR": "https://pedrolevi.com.br/",
+      en: "https://pedrolevi.com.br/en/",
+      "x-default": "https://pedrolevi.com.br/",
     });
     expect(pt.openGraph?.locale).toBe("pt_BR");
 
@@ -85,7 +102,7 @@ describe("buildMetadata", () => {
 
 describe("buildRouteMetadata: SEO por rota", () => {
   it("dá canonical próprio a cada rota, no idioma certo", async () => {
-    setEnv({ NEXT_PUBLIC_SITE_URL: "https://pedrolevi.dev" });
+    setEnv({ NEXT_PUBLIC_SITE_URL: "https://pedrolevi.com.br" });
     vi.resetModules();
     const { buildRouteMetadata } = await import("./metadata");
 
@@ -102,14 +119,14 @@ describe("buildRouteMetadata: SEO por rota", () => {
   });
 
   it("aponta o hreflang de cada rota para o par dela, não para a home", async () => {
-    setEnv({ NEXT_PUBLIC_SITE_URL: "https://pedrolevi.dev" });
+    setEnv({ NEXT_PUBLIC_SITE_URL: "https://pedrolevi.com.br" });
     vi.resetModules();
     const { buildRouteMetadata } = await import("./metadata");
 
     expect(buildRouteMetadata("info", "pt").alternates?.languages).toEqual({
-      "pt-BR": "https://pedrolevi.dev/info/",
-      en: "https://pedrolevi.dev/en/info/",
-      "x-default": "https://pedrolevi.dev/info/",
+      "pt-BR": "https://pedrolevi.com.br/info/",
+      en: "https://pedrolevi.com.br/en/info/",
+      "x-default": "https://pedrolevi.com.br/info/",
     });
   });
 
@@ -140,7 +157,7 @@ describe("buildProjectMetadata", () => {
   }
 
   it("gera canonical com barra final e hreflang por idioma do projeto", async () => {
-    setEnv({ NEXT_PUBLIC_SITE_URL: "https://pedrolevi.dev" });
+    setEnv({ NEXT_PUBLIC_SITE_URL: "https://pedrolevi.com.br" });
     const { buildProjectMetadata: build, languageUrlsFor } =
       await freshMetadata();
 
@@ -162,12 +179,12 @@ describe("buildProjectMetadata", () => {
   });
 
   it("languageUrlsFor aponta as duas rotas do projeto", async () => {
-    setEnv({ NEXT_PUBLIC_SITE_URL: "https://pedrolevi.dev" });
+    setEnv({ NEXT_PUBLIC_SITE_URL: "https://pedrolevi.com.br" });
     const { languageUrlsFor } = await freshMetadata();
     expect(languageUrlsFor("netsheet-engine")).toEqual({
-      "pt-BR": "https://pedrolevi.dev/projetos/netsheet-engine/",
-      en: "https://pedrolevi.dev/en/projects/netsheet-engine/",
-      "x-default": "https://pedrolevi.dev/projetos/netsheet-engine/",
+      "pt-BR": "https://pedrolevi.com.br/projetos/netsheet-engine/",
+      en: "https://pedrolevi.com.br/en/projects/netsheet-engine/",
+      "x-default": "https://pedrolevi.com.br/projetos/netsheet-engine/",
     });
   });
 });

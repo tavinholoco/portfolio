@@ -16,13 +16,12 @@ function setEnv(vars: Record<string, string | undefined>) {
 afterEach(() => {
   setEnv({
     NEXT_PUBLIC_SITE_URL: undefined,
-    VERCEL_PROJECT_PRODUCTION_URL: undefined,
-    VERCEL_URL: undefined,
+    WORKERS_CI: undefined,
   });
 });
 
 async function freshSitemap() {
-  setEnv({ NEXT_PUBLIC_SITE_URL: "https://pedrolevi.dev" });
+  setEnv({ NEXT_PUBLIC_SITE_URL: "https://pedrolevi.com.br" });
   vi.resetModules();
   const { default: sitemap } = await import("./sitemap");
   return sitemap();
@@ -40,10 +39,10 @@ describe("sitemap", () => {
 
     for (const route of routes) {
       expect(urls, `rota "${route.id}" em pt`).toContain(
-        `https://pedrolevi.dev${route.pt}`
+        `https://pedrolevi.com.br${route.pt}`
       );
       expect(urls, `rota "${route.id}" em en`).toContain(
-        `https://pedrolevi.dev${route.en}`
+        `https://pedrolevi.com.br${route.en}`
       );
     }
   });
@@ -52,9 +51,9 @@ describe("sitemap", () => {
     const urls = (await freshSitemap()).map((entry) => entry.url);
 
     for (const meta of projectMetas) {
-      expect(urls).toContain(`https://pedrolevi.dev/projetos/${meta.slug}/`);
+      expect(urls).toContain(`https://pedrolevi.com.br/projetos/${meta.slug}/`);
       expect(urls).toContain(
-        `https://pedrolevi.dev/en/projects/${meta.slug}/`
+        `https://pedrolevi.com.br/en/projects/${meta.slug}/`
       );
     }
   });
@@ -75,8 +74,8 @@ describe("sitemap", () => {
 
   it("a home é a de maior prioridade", async () => {
     const entries = await freshSitemap();
-    const home = entries.find((e) => e.url === "https://pedrolevi.dev/");
-    const outras = entries.filter((e) => e.url !== "https://pedrolevi.dev/");
+    const home = entries.find((e) => e.url === "https://pedrolevi.com.br/");
+    const outras = entries.filter((e) => e.url !== "https://pedrolevi.com.br/");
 
     expect(home?.priority).toBe(1);
     for (const entry of outras) {
@@ -86,12 +85,12 @@ describe("sitemap", () => {
 
   it("cada rota aponta o hreflang para o par dela, não para a home", async () => {
     const entries = await freshSitemap();
-    const info = entries.find((e) => e.url === "https://pedrolevi.dev/info/");
+    const info = entries.find((e) => e.url === "https://pedrolevi.com.br/info/");
 
     expect(info?.alternates?.languages).toEqual({
-      "pt-BR": "https://pedrolevi.dev/info/",
-      en: "https://pedrolevi.dev/en/info/",
-      "x-default": "https://pedrolevi.dev/info/",
+      "pt-BR": "https://pedrolevi.com.br/info/",
+      en: "https://pedrolevi.com.br/en/info/",
+      "x-default": "https://pedrolevi.com.br/info/",
     });
   });
 
@@ -102,9 +101,9 @@ describe("sitemap", () => {
     );
 
     expect(entry?.alternates?.languages).toEqual({
-      "pt-BR": "https://pedrolevi.dev/projetos/newra-news/",
-      en: "https://pedrolevi.dev/en/projects/newra-news/",
-      "x-default": "https://pedrolevi.dev/projetos/newra-news/",
+      "pt-BR": "https://pedrolevi.com.br/projetos/newra-news/",
+      en: "https://pedrolevi.com.br/en/projects/newra-news/",
+      "x-default": "https://pedrolevi.com.br/projetos/newra-news/",
     });
   });
 });

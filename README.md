@@ -8,14 +8,16 @@ Na primeira visita da sessão há uma abertura: cortina preta, as letras do nome
 
 **Live:** [pedrolevi.vercel.app](https://pedrolevi.vercel.app)
 
+> 🚚 **Em migração para a Cloudflare, com domínio próprio (`pedrolevi.com.br`), pela §17 do plano.** O código já é export estático servido por Workers Static Assets (fase A). Até o domínio entrar no ar (fase D), o site público continua sendo o da Vercel, congelado pelo `vercel.json` no último deploy de antes da migração.
+
 | | Desktop | Mobile |
 |---|---|---|
 | Performance | 99 a 100 | 97 a 100 |
 | Acessibilidade, Best Practices e SEO | 100 | 100 |
 
-CLS zero nas 5 rotas. Os dois são **medidos contra a URL de produção**, mediana de 3 rodadas por rota (13/10/2026): o mesmo build no `next start` local dá 80 a 94 no mobile, porque não tem CDN, HTTP/2 nem Brotli. Rodada única não serve como medida em nenhum dos dois ambientes.
+CLS zero nas 5 rotas. Os dois são **medidos contra a URL de produção**, mediana de 3 rodadas por rota (13/10/2026): o mesmo build servido localmente (pelo `next start`, antes do export) dava 80 a 94 no mobile, porque não tem CDN, HTTP/2 nem Brotli. Rodada única não serve como medida em nenhum dos dois ambientes.
 
-**183 testes unitários e 166 E2E.** A auditoria responsiva sozinha cobre 6 rotas × 7 larguras (320 a 2560) com 5 asserções cada.
+**192 testes unitários e 166 E2E.** A auditoria responsiva sozinha cobre 6 rotas × 7 larguras (320 a 2560) com 5 asserções cada.
 
 > A referência estrutural foi [p5aholic.me](https://p5aholic.me), **sem reúso de código**: shader, paleta, composição e CSS foram escritos do zero. O plano completo está em [PLANO-V3-PORTFOLIO.md](PLANO-V3-PORTFOLIO.md): a V3 nas seções 0 a 11, a **V3.5 na seção 12** rodada por rodada, o **passe de aperfeiçoamento na seção 13**, a entrada suave na 14, as prévias do showcase e as imagens na 15, e a **evolução do fundo de praia na seção 16**, cuja §16.8 é o ponto de partida do trabalho atual.
 
@@ -33,9 +35,9 @@ CLS zero nas 5 rotas. Os dois são **medidos contra a URL de produção**, media
 | Rolagem | Nativa do navegador. O Lenis saiu na V3.5 |
 | Componentes | **Base UI** (Sheet do menu mobile). Não é Radix: a API é `render={<a/>}`, não `asChild` |
 | Ícones | **Lucide React** |
-| Dados | **GitHub API** em Server Component com ISR de 1h + fallback estático |
+| Dados | **GitHub API** em Server Component, buscada no build, com rebuild semanal e fallback estático |
 | i18n | Rotas por idioma, 5 de cada: `/` (pt-BR) e `/en/`, com dicionários em `src/i18n/` |
-| Deploy | Vercel |
+| Deploy | **Export estático** (`output: "export"`) em **Cloudflare Workers Static Assets**, buildado pelo Workers Builds (§17 do plano) |
 
 ## ⚠️ A lei de camadas, leia antes de mexer no layout
 
@@ -92,7 +94,7 @@ Opacidade em elemento decorativo (moldura, máscara, ícone `aria-hidden`) não 
 
 ## 🚦 Começando
 
-**Pré-requisitos:** Node.js 20+ e [pnpm](https://pnpm.io).
+**Pré-requisitos:** Node.js 22 (`.node-version`) e [pnpm](https://pnpm.io).
 
 ```bash
 pnpm install
@@ -107,13 +109,17 @@ pnpm build && pnpm look
 
 Captura as telas em `.captures/` (ignorada pelo git). Parametrizável por `LOOK_PATHS`, `LOOK_THEMES`, `LOOK_FULL`, `LOOK_SCROLL` e `LOOK_HOVER`. No Git Bash do Windows, prefixe com `MSYS_NO_PATHCONV=1`.
 
-> ⚠️ Se houver servidor na porta 3000 iniciado **antes** do último `pnpm build`, ele continua servindo o `.next` antigo, e tanto a captura quanto os E2E veem o estado velho. Derrube a porta antes.
+> ⚠️ Se houver servidor na porta 3000 iniciado **antes** do último `pnpm build`, ele continua servindo o build antigo, e tanto a captura quanto os E2E veem o estado velho. Derrube a porta antes.
+>
+> ⚠️ No Windows, o `pnpm start` (o `wrangler dev`) deixa `workerd.exe` órfão ao ser encerrado, segurando a porta 3000 e a pasta `out/` (o build seguinte falha com `EBUSY`). Mate primeiro o processo `node` do wrangler e depois os `workerd.exe`: na ordem inversa, o wrangler sobe o `workerd` de novo.
 
 ## 🗂 Estrutura do projeto
 
 ```
 ├── public/
-│   └── cv/                       # currículo PDF (única coisa que fica aqui: URL estável)
+│   ├── cv/                       # currículo PDF (o único documento aqui: URL estável)
+│   ├── _headers                  # cabeçalhos da Cloudflare: immutable, tipo da OG, noindex (lei 22)
+│   └── _redirects                # a reescrita da OG com barra para o arquivo do export (lei 22)
 ├── src/
 │   ├── assets/                   # imagens importadas, versionadas por hash (lei 19)
 │   │   ├── avatar.webp           # foto do perfil, 320x320 (ver nota abaixo)
@@ -149,7 +155,7 @@ Captura as telas em `.captures/` (ignorada pelo git). Parametrizável por `LOOK_
 │   ├── i18n/                     # ⭐ TODOS os textos do site, em pt.ts e en.ts
 │   └── lib/
 │       ├── routes.ts             # ⭐ manifesto de rotas: nav, sitemap e hreflang derivam daqui
-│       ├── github.ts             # fetch da GitHub API (ISR) + fallback
+│       ├── github.ts             # fetch da GitHub API no build + fallback
 │       ├── metadata.ts           # metadados por rota e por idioma
 │       ├── json-ld.ts            # dados estruturados
 │       └── utils.ts              # helper cn()
@@ -157,6 +163,9 @@ Captura as telas em `.captures/` (ignorada pelo git). Parametrizável por `LOOK_
 │                                 #   responsivo, marca (ícone + metadados) e bundle
 ├── capture/                      # `pnpm look`, `pnpm capture`, `pnpm waves` e `pnpm favicon`,
 │                                 #   config própria, fora do CI
+├── scripts/                      # o conserto pós-build do prefetch no Windows (§17.4)
+├── wrangler.jsonc                # o Worker da Cloudflare: só assets, servindo out/
+├── vercel.json                   # congela a Vercel durante a migração; sai na fase E
 └── PLANO-V3-PORTFOLIO.md         # o plano, as auditorias e as notas de cada fase
 ```
 
@@ -264,7 +273,7 @@ Lighthouse 13.4.1 contra a URL de produção, mediana de 3 rodadas por rota, thr
 
 Medido com a abertura no ar. No desktop, Acessibilidade, Best Practices e SEO deram 100 em todas as rodadas. O mobile tem TBT de 37 a 65 ms, e o detalhe por rota (LCP, TBT, Speed Index e a comparação com antes da abertura) está na §16.9 do plano. O elemento de LCP é o mesmo nas cinco rotas e **não é imagem**: é o link "Pedro Levi" do header.
 
-Como rodar: a máquina de desenvolvimento não tem Chrome próprio, então aponte o `CHROME_PATH` para o Chromium do Playwright, e meça **produção**, nunca `localhost` (lei 18 do CLAUDE.md).
+Como rodar: a máquina de desenvolvimento não tem Chrome próprio, então aponte o `CHROME_PATH` para o Chromium do Playwright, e meça **produção**, nunca `localhost` (lei 18 do CLAUDE.md). Os números acima são da Vercel. Quando o domínio próprio entrar no ar, a URL dos comandos passa a ser `https://pedrolevi.com.br/`; no `workers.dev` só se mede performance, porque ele leva `noindex` de propósito e o SEO reprova lá.
 
 ```bash
 export CHROME_PATH="$HOME/AppData/Local/ms-playwright/chromium-1234/chrome-win64/chrome.exe"
@@ -287,37 +296,49 @@ O anel de foco usa `currentColor` de propósito: com uma cor fixa, ele ficaria i
 |---|---|
 | `ci.yml` | Lint, typecheck, testes unitários (Vitest), build de produção e E2E (Playwright) |
 | `gitleaks.yml` | Varredura de segredos com Gitleaks, config em `.gitleaks.toml` |
+| `rebuild-semanal.yml` | Toda segunda, um POST no deploy hook da Cloudflare (secret `CF_DEPLOY_HOOK`) rebuilda o site, para o dado do GitHub não envelhecer. Roda à mão pela aba Actions |
 
-- **Unitários** (`pnpm test`): manifesto de rotas e os arquivos em disco, contraste das sete paletas nos dois temas, grain determinístico, aritmética do render target, o teto de quadros simulado de 60 a 240 Hz, os degraus de qualidade do fundo, as cores do ícone e da imagem de link, o teto de peso e de largura das imagens versionadas, o momento do deslize da abertura, metadados, sitemap, GitHub com fallback e paridade dos dicionários.
-- **E2E** (`pnpm test:e2e`): a lei de camadas nas 11 rotas com controle negativo, o fallback sem WebGL, DPR por tamanho de tela, o teto de quadros do fundo (contado no próprio WebGL), o degrau leve do fundo quando não há GPU, movimento reduzido, as regras do showcase em ponteiro, teclado e toque, as prévias sem `lazy` e com cache `immutable`, a navegação nos dois idiomas, o `<html lang>` no SSR, a **hierarquia de cabeçalhos**, o **ícone de aba e a imagem de link em toda rota**, uma **auditoria de responsividade** em 6 rotas × 7 larguras, e a **abertura**: o nome pousa no pixel do header, o clique passa pela cortina, o nome do header (o LCP) nunca some, e sem JS a cortina sai sozinha.
+- **Unitários** (`pnpm test`): manifesto de rotas e os arquivos em disco, contraste das sete paletas nos dois temas, grain determinístico, aritmética do render target, o teto de quadros simulado de 60 a 240 Hz, os degraus de qualidade do fundo, as cores do ícone e da imagem de link, o teto de peso e de largura das imagens versionadas, o `_headers` e o `_redirects` da Cloudflare contra o caminho da imagem de link, a guarda da URL do site no build da Cloudflare, o momento do deslize da abertura, metadados, sitemap, GitHub com fallback e paridade dos dicionários.
+- **E2E** (`pnpm test:e2e`): roda contra o `wrangler dev` servindo `out/`, com as mesmas regras de `_headers` e `_redirects` de produção. Cobre a lei de camadas nas 11 rotas com controle negativo, o fallback sem WebGL, DPR por tamanho de tela, o teto de quadros do fundo (contado no próprio WebGL), o degrau leve do fundo quando não há GPU, movimento reduzido, as regras do showcase em ponteiro, teclado e toque, as prévias sem `lazy` e com cache `immutable`, a navegação nos dois idiomas, o `<html lang>` no SSR, a **hierarquia de cabeçalhos**, o **ícone de aba e a imagem de link em toda rota**, uma **auditoria de responsividade** em 6 rotas × 7 larguras, e a **abertura**: o nome pousa no pixel do header, o clique passa pela cortina, o nome do header (o LCP) nunca some, e sem JS a cortina sai sozinha.
 - **Toda a suíte E2E roda sem a abertura**, porque cada contexto do Playwright nasce sem `sessionStorage` e ela cobriria o começo de todo teste. Teste novo importa `test` de `e2e/fixtures.ts`, que semeia a chave; os testes da própria abertura ligam com `test.use({ intro: true })`.
 - Os testes de responsividade e de marca existem porque a V3.5 acumulou seis defeitos que só apareceram quando alguém olhou a tela: ondas correndo para o lado errado, email cortado com reticências no celular, palavra por cima da coluna vizinha, ícone de três versões atrás e ícone ausente em `/en/`. Cada um virou asserção.
 - O `pnpm look` **não** roda no CI: tem config própria em `capture/`.
 
 ## 🔗 Integração com o GitHub
 
-`src/lib/github.ts` busca os repositórios em Server Component com `next: { revalidate: 3600 }`. O dado alimenta a linha `atualizado <data> · <linguagem>` na página de case, e os links de repositório e demo.
+`src/lib/github.ts` busca os repositórios em Server Component, **no build**: com o export estático não há ISR, e o dado é o do último build. O `rebuild-semanal.yml` o renova toda segunda. O dado alimenta a linha `atualizado <data> · <linguagem>` na página de case, e os links de repositório e demo.
 
-- **Rate limit:** 60 requisições/h sem token. Para folga, defina `GITHUB_TOKEN`.
+- **Rate limit:** 60 requisições/h **por IP** sem token, e a máquina de build da Cloudflare é compartilhada. Com o secret de build `GITHUB_TOKEN` (fine-grained, só leitura de repositório público), a chamada leva `Authorization` e o limite passa a ser da conta.
+- **O `revalidate: 3600` continua, por outro motivo:** com o cache de build ligado, o Workers Builds guarda o `.next/cache` entre builds. Com `force-cache` o rebuild reaproveitaria a resposta velha para sempre; com `no-store` a rota deixa de ser estática e o export para.
 - **Fallback:** se a API falhar, o site usa os dados curados. Nunca quebra.
 
-## 🚀 Deploy na Vercel
+## 🚀 Deploy na Cloudflare
 
-```bash
-pnpm exec vercel login
-pnpm exec vercel link
-pnpm deploy
-```
+O `next build` grava o site inteiro em `out/` (`output: "export"`), e um Worker só de assets o serve (`wrangler.jsonc`, sem código). Não há comando de deploy local: o **Workers Builds** da Cloudflare, ligado ao repositório, builda com `pnpm build` e publica com `npx wrangler deploy` a cada push na `main`, e gera prévia para os outros branches. O rebuild semanal entra pelo deploy hook.
 
-> Sem `NEXT_PUBLIC_SITE_URL`, o site usa a URL de produção do projeto na Vercel (`VERCEL_PROJECT_PRODUCTION_URL`) para canonical, hreflang e sitemap. Em produção a canônica é `https://pedrolevi.vercel.app/`. A variável só é necessária com domínio próprio: `pnpm exec vercel env add NEXT_PUBLIC_SITE_URL production`.
+O que o export troca, e onde cada coisa passou a morar (lei 22 do CLAUDE.md):
+
+- **Cabeçalhos e reescritas** não vêm mais do Next: `public/_headers` devolve o `immutable` de `_next/static` e o `Content-Type` das imagens de link, e `public/_redirects` reescreve a URL da imagem com barra para o arquivo que o export grava. `src/lib/cloudflare-assets.test.ts` confere os dois contra `ogImageMeta`.
+- **URL sem barra** vai para a com barra com **307** (a Vercel dava 308). Ninguém passa por esse salto: links, canonical e sitemap já levam barra.
+- **Rota inexistente** responde 404 com a página `out/404.html`.
+
+Variáveis de build no painel do Worker (Settings, Build):
+
+| Variável | Para quê |
+|---|---|
+| `NEXT_PUBLIC_SITE_URL` | **Obrigatória.** URL canônica, sem barra no fim. Sem ela o build falha de propósito, porque o fallback é localhost (lei 23) |
+| `GITHUB_TOKEN` (secret) | Opcional. Tira o build do limite de 60 requisições por IP da API do GitHub |
+| `PNPM_VERSION` | `10.32.1`, a do `packageManager`. O Node sai do `.node-version` |
+
+O roteiro completo da migração (Worker, domínio, DNS, DNSSEC, o redirecionamento da Vercel e a medição) está na §17 do plano.
 
 ## 📄 Scripts
 
 | Comando | Descrição |
 |---|---|
 | `pnpm dev` | Dev server em `http://localhost:3000` |
-| `pnpm build` | Build de produção |
-| `pnpm start` | Serve o build de produção |
+| `pnpm build` | Export estático em `out/` (e, só no Windows, o conserto do prefetch da §17.4) |
+| `pnpm start` | Serve `out/` com o `wrangler dev`, o servidor de assets da Cloudflare, na porta 3000 |
 | `pnpm lint` | ESLint |
 | `pnpm typecheck` | `tsc --noEmit` |
 | `pnpm test` | Testes unitários (Vitest) |
@@ -326,5 +347,3 @@ pnpm deploy
 | `pnpm capture` | Gera os previews do showcase em `src/assets/projects/`, sob demanda |
 | `pnpm waves` | Mede para que lado as cristas do fundo viajam, compilando o GLSL real |
 | `pnpm favicon` | Regrava o `favicon.ico` a partir do `icon.svg`, em 6 tamanhos |
-| `pnpm deploy` | Deploy de produção na Vercel |
-| `pnpm deploy:preview` | Deploy de preview na Vercel |

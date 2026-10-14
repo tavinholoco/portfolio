@@ -5,16 +5,28 @@ import { dictionaries, type Locale } from "@/i18n";
 import { pathFor, type RouteId } from "@/lib/routes";
 
 /**
- * URL canônica do site. Prioridade:
- * 1. NEXT_PUBLIC_SITE_URL (domínio próprio, ex.: https://pedrolevi.dev)
- * 2. VERCEL_PROJECT_PRODUCTION_URL / VERCEL_URL (URL real do deploy na Vercel)
- * 3. Fallback local
+ * URL canônica do site: `NEXT_PUBLIC_SITE_URL`, ou o fallback local.
+ *
+ * **Por que o build da Cloudflare cai aqui em vez de seguir** (lei 23). Na
+ * Vercel havia uma rede: sem a variável, a URL saía de `VERCEL_URL`, que a
+ * plataforma injeta. Na Cloudflare não há equivalente, e o fallback é
+ * `https://localhost:3000`: canonical, hreflang, `og:image`, sitemap e robots
+ * apontariam para localhost, com o build passando e o site servindo. Nada
+ * acusaria. Por isso, quando roda no Workers Builds (que injeta
+ * `WORKERS_CI=1`), a variável é obrigatória e a falta dela derruba o build.
+ *
+ * Fora de lá o fallback continua: o CI do GitHub e o build local não publicam
+ * nada, e o E2E roda contra localhost de propósito.
  */
 export function getSiteUrl(): string {
   if (process.env.NEXT_PUBLIC_SITE_URL) return process.env.NEXT_PUBLIC_SITE_URL;
-  if (process.env.VERCEL_PROJECT_PRODUCTION_URL)
-    return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
-  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
+  if (process.env.WORKERS_CI) {
+    throw new Error(
+      "NEXT_PUBLIC_SITE_URL não definida no Workers Builds: canonical, " +
+        "og:image e sitemap sairiam apontando para localhost. Defina a " +
+        "variável de build no painel do Worker (Settings, Build)."
+    );
+  }
   return "https://localhost:3000";
 }
 

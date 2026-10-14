@@ -1,0 +1,33 @@
+# Cabeçalhos do servidor de assets da Cloudflare (lei 22 do CLAUDE.md, §17.4).
+# O export estático copia este arquivo para out/, e o Worker o aplica.
+# Com output: "export" o Next não manda cabeçalho nenhum: tudo o que a
+# Vercel dava de graça e o site depende está aqui.
+
+# Lei 19: asset com hash no nome nunca muda. Sem esta regra a Cloudflare
+# entrega max-age=0, must-revalidate, e o navegador revalida a cada visita.
+/_next/static/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# As duas imagens de link saem do export como arquivo sem extensão, e sem
+# extensão a Cloudflare não sabe o tipo. A regra precisa existir nos dois
+# caminhos: a meta anuncia o com barra, e o _redirects o reescreve para o
+# sem barra. Com só um deles a imagem sai sem Content-Type, e o LinkedIn e o
+# WhatsApp desistem dela calados. Os caminhos têm de bater com ogImageMeta
+# em src/lib/metadata.ts; src/lib/cloudflare-assets.test.ts confere.
+/opengraph-image-12gd74
+  Content-Type: image/png
+
+/opengraph-image-12gd74/
+  Content-Type: image/png
+
+/en/opengraph-image
+  Content-Type: image/png
+
+/en/opengraph-image/
+  Content-Type: image/png
+
+# O endereço workers.dev e as prévias de branch servem o mesmo conteúdo do
+# domínio próprio: fora do índice, para não haver página duplicada. Por isso
+# o SEO do Lighthouse só se mede no domínio final.
+https://:worker.:subdomain.workers.dev/*
+  X-Robots-Tag: noindex

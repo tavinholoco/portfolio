@@ -27,10 +27,16 @@ regexes = [
     '''github\.com/tavinholoco''',
     '''api\.github\.com/users/tavinholoco''',
     '''pedrolevi\.dev''',
+    '''pedrolevi\.com\.br''',
+    '''workers\.dev''',
     '''localhost:3000''',
     # Placeholders de ambiente e variáveis de configuração
     '''NEXT_PUBLIC_SITE_URL''',
     '''VERCEL_(URL|PROJECT_PRODUCTION_URL)''',
+    # Nomes (não valores) de variáveis e secrets do build na Cloudflare
+    '''WORKERS_CI''',
+    '''GITHUB_TOKEN''',
+    '''CF_DEPLOY_HOOK''',
     '''vercel\.app''',
     '''vercel\.com''',
     # Projetos de clientes e demos referenciados no site
