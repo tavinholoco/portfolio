@@ -2482,7 +2482,7 @@ O Pedro decidiu as quatro pendências da §17.10, e tudo foi aplicado pela API a
 
 **O que falta:**
 
-1. **O DS no registro.br** (Pedro), e depois a conferência da cadeia (`dig +dnssec`, DNSViz, o `AD` dos resolvedores e o status `active` na Cloudflare).
+1. ~~O DS no registro.br~~ **Feito.** O Pedro cadastrou o DS às 23:30 UTC; o RDAP mostrou na hora `delegationSigned: true` com os quatro valores exatos e o teste do próprio registro.br como `ds ok`. A publicação na zona `.br` saiu às 23:35, e no mesmo minuto os resolvedores da Cloudflare e do Google passaram a responder o domínio com `AD` (validado), e a Cloudflare marcou o DNSSEC como `active`. **A fase C fechou.**
 2. **Fase E:** o `pedrolevi.vercel.app` vira 308 para o domínio no painel da Vercel, o Git da Vercel é desconectado, o `vercel.json` sai do repositório, os links de fora (o campo de site do repositório no GitHub, o perfil, o LinkedIn) e o Search Console com o sitemap.
 3. **Fase F:** Lighthouse no domínio, mobile e desktop, mediana de 3, nas 5 rotas, pelo método da §16.7.
 4. **Os secrets** `GITHUB_TOKEN` e `CF_DEPLOY_HOOK` (Pedro). Até o segundo existir, o `rebuild-semanal.yml` fica vermelho.
