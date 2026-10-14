@@ -27,5 +27,13 @@
      (§17.6), e as prévias de branch saem públicas para dar para medir nelas.
      As duas levam `noindex` pelo `public/_headers`. */
   "workers_dev": true,
-  "preview_urls": true
+  "preview_urls": true,
+  /* O domínio próprio (fase D da §17.6). Com `custom_domain` a Cloudflare
+     cria sozinha o registro DNS e o certificado; a zona já está na conta.
+     O `www` não entra aqui: ele é um AAAA `100::` com uma Redirect Rule na
+     zona, que manda para o domínio sem `www` preservando caminho e query.
+     A URL canônica de todo o site sai da variável de build
+     `NEXT_PUBLIC_SITE_URL`, que precisa apontar para este mesmo domínio
+     (lei 23): trocou aqui, troque lá e rebuilde. */
+  "routes": [{ "pattern": "pedrolevi.com.br", "custom_domain": true }]
 }
