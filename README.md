@@ -6,9 +6,9 @@ Portfólio minimalista com fundo WebGL próprio, tipografia fluida e navegação
 
 Na primeira visita da sessão há uma abertura: cortina preta, as letras do nome sobem uma a uma, e o nome desliza e encolhe até o lugar dele no canto enquanto a cortina se dissolve (§16.9). Custa 1 KB de JS e não mexeu na nota do Lighthouse; clique, tecla ou rolagem a encerram, e com movimento reduzido ela não aparece.
 
-**Live:** [pedrolevi.vercel.app](https://pedrolevi.vercel.app)
+**Live:** [pedrolevi.com.br](https://pedrolevi.com.br)
 
-> 🚚 **Em migração para a Cloudflare, com domínio próprio (`pedrolevi.com.br`), pela §17 do plano.** O código já é export estático servido por Workers Static Assets (fase A), o site já roda na Cloudflare em [portfolio.pedrolevidiass.workers.dev](https://portfolio.pedrolevidiass.workers.dev) (fora do índice, fase B), e o domínio já está delegado à Cloudflare (fase C). Até o domínio entrar no ar no Worker (fase D), o site público continua sendo o da Vercel, congelado pelo `vercel.json` no último deploy de antes da migração.
+> 🚚 **Migrado para a Cloudflare em 14/10/2026, pela §17 do plano:** export estático servido por Workers Static Assets, no domínio próprio. O `pedrolevi.vercel.app` ainda serve a versão de antes da migração até virar redirecionamento para o domínio (fase E), e os números de Lighthouse abaixo ainda são os da Vercel até a medição da fase F.
 
 | | Desktop | Mobile |
 |---|---|---|
