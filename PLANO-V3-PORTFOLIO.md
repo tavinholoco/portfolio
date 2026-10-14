@@ -7,6 +7,7 @@
 > **Status:** ✅ **V3.5 no ar, com o passe de aperfeiçoamento fechado.** As 7 fases da v3 fechadas em 27/08/2026 (avaliação na seção 11), o refinamento **V3.5** mergeado pelo PR #4 em 6 rodadas de ajuste (avaliação na **§12.10**), e os **5 milestones da seção 13** mergeados pelo PR #7 em 31/08/2026 (fechamento na **§13.5**).
 >
 > **Produção:** https://pedrolevi.vercel.app
+> **Próxima etapa:** a migração para a Cloudflare com o domínio `pedrolevi.com.br`, analisada e testada em 14/10/2026 e ainda não feita. Comece pela **§17**.
 > **Versão do documento:** V3.5
 
 ---
@@ -2203,3 +2204,170 @@ Lighthouse 13.4.1 mobile contra produção, `simulate`, `--only-categories=perfo
 **Desktop**, preset desktop, as quatro categorias, mediana de 3: **99 a 100** em Performance (99 em `/`, 100 nas outras quatro) e **100 em Acessibilidade, Best Practices e SEO** nas cinco rotas, com CLS zero.
 
 **A abertura funcionando em produção**, num Chromium com GPU: marca no `<html>` antes da pintura, link do header visível o tempo todo, pouso no pixel no desktop (57.6, 57.6, 172.5 × 36) e no celular (40, 30, 138 × 32), fim entre 2.15 e 2.38 s com a chave gravada, nenhuma cortina na segunda visita nem com movimento reduzido, nenhum erro de console.
+
+## 17. A migração para a Cloudflare, com domínio próprio (14/10/2026)
+
+Em 14/10/2026 o Pedro decidiu sair da Vercel para a Cloudflare e ter domínio próprio, registrado no registro.br. Isso revoga a decisão anterior de ficar no domínio padrão da Vercel. **Esta sessão foi só análise e preparação: nada foi migrado**, o site continua em https://pedrolevi.vercel.app, e a `main` não mudou além deste registro. O código e a migração ficam para uma sessão nova, que começa por aqui.
+
+### 17.1 Decisões do Pedro
+
+- **Domínio:** `pedrolevi.com.br`. O Pedro ainda confere a disponibilidade e faz o registro (é a conta dele, com CPF). Em 14/10/2026 o RDAP do registro.br respondia 404 para ele, que é o sinal de livre (o mesmo RDAP responde 200 para `globo.com.br`); `pedrolevi.dev.br` também estava livre. Anuidade de R$ 40.
+- **Hospedagem:** Cloudflare, com o site como **export estático servido por Workers Static Assets** (§17.3). Recomendação aceita.
+- **Dados do GitHub nas páginas de case:** **rebuild automático semanal**. Recomendação aceita (§17.4, item 4).
+- **`cf` CLI (beta):** não por enquanto. O MCP e o wrangler cobrem o que a migração precisa.
+- **Registrar antes de codar**, e seguir numa sessão nova. O fluxo é o de sempre: branch `claude/...`, PR meu, merge dele, medição em produção.
+
+### 17.2 O que já está instalado
+
+- **Plugin oficial da Cloudflare**, `cloudflare@cloudflare` 1.0.2, do marketplace `cloudflare/skills`, instalado em escopo de usuário com `claude plugin marketplace add cloudflare/skills` e `claude plugin install cloudflare@cloudflare`, como manda o https://developers.cloudflare.com/agent-setup/prompt.md. O repositório foi conferido antes: só skills (`wrangler`, `workers-best-practices`, `web-perf`, `nextjs-on-cloudflare` e outras) e o MCP remoto `https://mcp.cloudflare.com/mcp`. Nenhum hook.
+- **O MCP precisa ser autorizado** na primeira sessão em que for usado: ele aparece como pendente de autenticação, e o Pedro autoriza pelo `/mcp` com a conta Cloudflare dele (OAuth). Sem isso as ferramentas da Cloudflare não existem na sessão.
+- ⚠️ **A skill `nextjs-on-cloudflare` empurra o vinext** e manda rodar `npx skills add cloudflare/vinext`. Não siga: a decisão aqui é export estático, e o porquê está na §17.3.
+- O wrangler ainda não é dependência do projeto. Ele entra na fase A, e o Workers Builds usa a versão que estiver no `package.json`.
+
+### 17.3 Por que export estático, e não vinext nem OpenNext
+
+A Cloudflare oferece três caminhos para Next.js:
+
+| Caminho | O que é | Por que não (ou por que sim) |
+|---|---|---|
+| vinext | Recomendação padrão da Cloudflare. Reimplementa a API do Next sobre o Vite; em beta | O build deixa de ser o do Next. As leis 16 e 17 dependem de comportamento interno do Next (o reexport de `metadata`, o merge raso de `openGraph`, o hash `djb2` do caminho da OG), e a montagem do fundo foi medida chunk a chunk (§16.5). Trocar o compilador invalida tudo isso |
+| OpenNext | O servidor do Next rodando num Worker, ISR com cache em R2 | Um Worker em toda requisição de HTML, cache em R2 e fila, para manter o ISR de 8 páginas cujo dado do GitHub muda uma vez por mês |
+| **Export estático** | `output: "export"` e a pasta `out/` servida como assets | **O site já é estático**: sem proxy, sem cookies, sem rota que leia a requisição, `dynamicParams = false` nas duas rotas de case, e `images.unoptimized` ligado desde a §15.7. Requisição de asset estático na Cloudflare é **grátis e ilimitada** |
+
+Os limites do plano Free não chegam perto: o export tem **146 arquivos e 3.7 MB**, contra 20.000 arquivos por versão e 25 MiB por arquivo. O build tem 3.000 minutos por mês, 1 build por vez e 20 minutos de teto.
+
+### 17.4 O experimento: o export rodando no simulador da Cloudflare
+
+Numa worktree descartável a partir da `main` (24c6b0d), fora do repositório: `output: "export"` no `next.config.ts`, `pnpm build`, a pasta `out/` servida pelo `wrangler dev` 4.151.0 (que simula o servidor de assets da Cloudflare, com `_headers`, `_redirects` e `html_handling`), e **a suíte E2E inteira contra ele**, na porta 3000. Resultado final: **165 de 166**. A worktree foi apagada; o que ela ensinou está aqui.
+
+1. **O build pede `export const dynamic = "force-static"`** em quatro arquivos: as duas `opengraph-image.tsx`, `src/app/robots.ts` e `src/app/(home)/sitemap.ts`. Sem isso ele para com `export const dynamic = "force-static"/export const revalidate not configured on route ...`. Com isso, passa.
+
+2. **A imagem de link quebrava calada, nas duas pontas** (família das leis 13 e 17). A meta anuncia `/opengraph-image-12gd74/`, com barra, porque o projeto usa `trailingSlash: true`; o export grava um arquivo **sem extensão e sem pasta**, `out/opengraph-image-12gd74`. Medido no simulador: **404 com a barra**, e 200 **sem `Content-Type`** sem a barra. O mesmo para `/en/opengraph-image/`. Corrigido e verificado (as quatro URLs em 200 `image/png`, e o teste de `e2e/marca.spec.ts` que exige 200 sem redirecionamento passou) com dois arquivos em `public/`, que o export copia para `out/`:
+
+   `public/_redirects` (o `200` é reescrita interna, não redirecionamento):
+   ```
+   /opengraph-image-12gd74/ /opengraph-image-12gd74 200
+   /en/opengraph-image/ /en/opengraph-image 200
+   ```
+   `public/_headers` (o `Content-Type` precisa da regra **nos dois caminhos**: com só a sem barra, a reescrita servia a imagem sem tipo):
+   ```
+   /_next/static/*
+     Cache-Control: public, max-age=31536000, immutable
+
+   /opengraph-image-12gd74
+     Content-Type: image/png
+
+   /opengraph-image-12gd74/
+     Content-Type: image/png
+
+   /en/opengraph-image
+     Content-Type: image/png
+
+   /en/opengraph-image/
+     Content-Type: image/png
+   ```
+
+3. **`_next/static` perdia o `immutable`** (lei 19). O padrão da Cloudflare para todo asset é `Cache-Control: public, max-age=0, must-revalidate` com `ETag`, o mesmo que a Vercel dava a `public/`. A primeira regra do `_headers` acima devolve o `immutable`, e o teste de `e2e/showcase.spec.ts` que o exige passou.
+
+4. **O ISR de 1 hora some sem aviso.** As 8 páginas de case (4 por idioma) usam `revalidate: 3600` no fetch de `src/lib/github.ts`. No export o build passa e a tabela de rotas as mostra como SSG comum: o dado do GitHub (linguagem, mês do último push, links) passa a ser o do momento do build. A substituição decidida é o rebuild semanal (§17.6, fase A).
+
+5. **URL sem barra redireciona com 307**, não com o 308 da Vercel (`/info` vai para `/info/`). É o comportamento do `html_handling: "auto-trailing-slash"`, e a Cloudflare só oferece 307 ali. Os links internos, o canonical e o sitemap já levam barra, então ninguém passa por esse salto.
+
+6. **O `pnpm start` não serve export.** O `webServer` do Playwright passa a subir o `wrangler dev` servindo `out/`. É melhor do que antes: o E2E passa a testar as mesmas regras de `_headers` e `_redirects` que valem em produção.
+
+7. **A única falha do E2E é um bug do Next 16.3 que só existe no Windows.** O teste "movimento reduzido" de `e2e/shell.spec.ts` reprovou por 9 erros 404 no console: o roteador pede os arquivos de prefetch com o caminho do segmento escrito com pontos (`/projetos/__next.!KGhvbWUp.projetos.__PAGE__.txt`), e o export no Windows os grava em pastas (`/projetos/__next.!KGhvbWUp/projetos/__PAGE__.txt`). A causa está em `node_modules/next/dist/export/index.js`: `collectSegmentPaths` usa `path.relative`, que no Windows devolve barra invertida, e `convertSegmentPathToStaticExportFilename` só troca a barra normal por ponto. **No Linux, que é onde a Cloudflare e o CI buildam, o nome sai certo**; isso ainda precisa ser confirmado pelo CI no PR da fase A. Localmente, a navegação funciona (os testes de navegação passaram), mas o console suja e um teste reprova.
+
+8. **`getSiteUrl()` quebraria calado** (candidata a lei nova). Hoje ela cai em `NEXT_PUBLIC_SITE_URL`, depois em `VERCEL_PROJECT_PRODUCTION_URL` e `VERCEL_URL`. Na Cloudflare as duas últimas não existem, e sem a primeira o fallback é `https://localhost:3000`: canonical, hreflang, `og:image`, sitemap e robots apontando para localhost, com o build passando e o site servindo.
+
+9. **A Cloudflare reescreve o email do site por padrão.** O "Email Address Obfuscation" vem ligado em zona nova e troca endereços de email no HTML por um link ofuscado, com um script `email-decode.min.js`. O gmail aparece em `/contato/` e `/info/` (`src/i18n/pt.ts` e `en.ts`, `src/data/profile.ts`): o HTML deixaria de bater com o que o React hidrata. Desligar na zona (Security, Settings, "Email Address Obfuscation").
+
+### 17.5 Riscos que o experimento não cobre
+
+- **Rate limit do GitHub no build.** A API sem token permite 60 requisições por hora **por IP**, e as máquinas de build da Cloudflare são compartilhadas. Se o limite estiver gasto, `getFeaturedProjects` cai no fallback sem erro, e as páginas de case saem sem linguagem e sem data. Saída: um `GITHUB_TOKEN` como secret de build (token fine-grained, só leitura de repositórios públicos), e o `github.ts` mandando `Authorization` quando ele existir.
+- **Node e pnpm da imagem de build.** O padrão do Workers Builds é Node 24.18.0 e pnpm 10.11.1; o projeto usa Node 22 no CI e `pnpm@10.32.1` no `packageManager`. Definir `NODE_VERSION=22` e `PNPM_VERSION=10.32.1` como variáveis de build (ou um `.node-version` na raiz).
+- **A janela de transição na Vercel.** Depois do merge da fase A, a Vercel buildaria a versão export, e lá `_headers` e `_redirects` não valem: a imagem de link do `vercel.app` quebraria. **Antes do merge da fase A, congelar a Vercel**: "Ignored Build Step" com `exit 0`, ou desconectar o Git do projeto. Assim o `vercel.app` segue no deploy atual até virar redirecionamento, e ainda serve de lado A na medição.
+- **`noindex` no `workers.dev` derruba o SEO do Lighthouse lá.** O `_headers` deve marcar `X-Robots-Tag: noindex` em `https://:worker.:subdomain.workers.dev/*` (o endereço de produção no `workers.dev` e as prévias), para não haver conteúdo duplicado. Consequência: no `workers.dev` se mede **só performance**; SEO só no domínio final.
+- **O caminho com hash está escrito à mão** no `_headers` e no `_redirects`. Ele é estável (é o `djb2` de `/(home)`, e `src/lib/metadata.test.ts` já confere o literal), mas se um dia mudar, os dois arquivos envelhecem sem ninguém ver. Um teste unitário deve conferir que os dois arquivos citam os mesmos caminhos que `ogImageMeta` gera.
+- **Configurações da zona que mexem no HTML ou barram visita**, a conferir na fase C: Bot Fight Mode (pode desafiar o Lighthouse, o PageSpeed e os robôs de prévia de link do LinkedIn e do WhatsApp), robots.txt gerenciado e bloqueio de robôs de IA (reescrevem o `robots.txt` do site; recomendação: deixar desligado, o portfólio quer ser encontrado), Rocket Loader (reescreve scripts), e não ligar o Web Analytics (injeta script). O Speed Brain vem ligado no Free e só acrescenta `Speculation-Rules`; conferir se não briga com o prefetch do Next.
+- **Autoconfig do Workers Builds.** Se a branch de produção não tiver `wrangler.jsonc` quando o repositório for conectado, a Cloudflare abre sozinha um PR de configuração. Conectar só depois do merge da fase A evita isso. O nome do Worker no painel precisa ser igual ao `name` do `wrangler.jsonc`, senão o build falha.
+- **`wrangler dev` no Windows deixa processo órfão.** Encerrar o terminal (ou o `TaskStop`) não mata os `workerd.exe`, que seguram a pasta `out/` (o build seguinte falha com `EBUSY`) e a porta. Matar os processos antes de buildar de novo.
+
+### 17.6 O roteiro
+
+**As fases A e B não dependem do domínio.** Dá para começar por elas enquanto o Pedro registra o `pedrolevi.com.br`.
+
+#### Fase A: o código (PR meu, branch `claude/...`)
+
+| Peça | Mudança |
+|---|---|
+| `next.config.ts` | `output: "export"`, com comentário do porquê |
+| 4 arquivos de rota | `export const dynamic = "force-static"` (§17.4, item 1) |
+| `public/_headers` e `public/_redirects` | Os do item 2 da §17.4, mais o `noindex` do `workers.dev` |
+| `wrangler.jsonc` | `name: "portfolio"`, `compatibility_date` do dia, `assets.directory: "./out"`, `not_found_handling: "404-page"`, `html_handling: "auto-trailing-slash"` |
+| `src/lib/metadata.ts` | Sai o fallback da Vercel. Guarda: o build falha se rodar no Workers Builds (`WORKERS_CI=1`) sem `NEXT_PUBLIC_SITE_URL`. Os testes que citam `VERCEL_*` (`metadata`, `robots`, `sitemap`, `json-ld`) mudam junto |
+| `src/lib/github.ts` | `GITHUB_TOKEN` opcional no `Authorization` |
+| `package.json` | Sai a dependência `vercel` e os scripts `deploy` e `deploy:preview`; entra o `wrangler` e um script para servir `out/` |
+| `playwright.config.ts` | `webServer` passa a ser o `wrangler dev` servindo `out/`. O aviso do `reuseExistingServer` continua valendo |
+| Bug do Windows (§17.4, item 7) | Recomendação: um passo depois do build que, só em `win32`, achata as pastas `__next.*` para os nomes com ponto, para o E2E local ficar em 166; e uma issue no repositório do Next. Se o Pedro preferir, aceita-se 1 falha só no Windows |
+| `.github/workflows/` | Workflow novo com `schedule` semanal que faz `curl -X POST` no deploy hook guardado no secret `CF_DEPLOY_HOOK`. O GitHub desliga cron depois de 60 dias sem atividade no repositório; o workflow pode ter também `workflow_dispatch` para rodar à mão |
+| Teste novo | `_headers` e `_redirects` citam os mesmos caminhos de OG que `ogImageMeta` (§17.5) |
+| `.gitignore`, `.gitleaks.toml`, `.env.example` | `.wrangler/`; `pedrolevi\.com\.br` na lista de permitidos; o comentário da Vercel |
+| Documentação | CLAUDE.md (as leis 18 e 19 falam da Vercel; lei nova da URL do site; lei nova do `_headers`/`_redirects` da OG), README (Live, Deploy, as URLs do Lighthouse, a seção "Deploy na Vercel" e a tabela de scripts), o comentário do `next.config.ts` |
+
+Verificação: lint, typecheck, unitários, build, E2E local contra o `wrangler dev` e o CI no Ubuntu (que confirma o item 7). **Antes do merge, congelar a Vercel** (§17.5).
+
+#### Fase B: o Worker no `workers.dev` e o portão de medição
+
+Pelo MCP da Cloudflare, com o OK do Pedro a cada ação que cria ou muda algo:
+
+1. Criar o Worker `portfolio` ligado ao repositório pelo Workers Builds, com o GitHub App da Cloudflare limitado ao repositório `portfolio` ("Only select repositories"). Build `pnpm build`, deploy `npx wrangler deploy`, branch de produção `main`. As prévias de branch saem públicas, ao contrário das da Vercel, que ficam atrás do SSO: dá para medir nelas.
+2. Variáveis de build: `NODE_VERSION=22`, `PNPM_VERSION=10.32.1`, `NEXT_PUBLIC_SITE_URL` com o endereço do `workers.dev` por enquanto (para as URLs absolutas da OG resolverem), e o secret `GITHUB_TOKEN`.
+3. Deploy hook da `main` (Settings, Builds, Deploy Hooks). A URL é a credencial: vai para o secret `CF_DEPLOY_HOOK` do GitHub, nunca para o código.
+4. **Portão:** Lighthouse mobile, `simulate`, `--only-categories=performance`, mediana de 3, nas 5 rotas, no `workers.dev` e no `vercel.app` (congelado, mesmo visual), intercalados. A base é a §16.9: **97 a 100**, LCP no link do header. Se o `workers.dev` ficar abaixo além do ruído, investigar antes de mexer no DNS. Nada se perde: o `vercel.app` continua sendo o site.
+
+#### Fase C: o domínio e o DNS
+
+O registro.br continua sendo o registrador (a Cloudflare não vende `.br`), e a Cloudflare passa a ser o DNS. Isso é obrigatório: domínio próprio em Worker exige a zona na Cloudflare.
+
+1. **Pedro:** registra `pedrolevi.com.br` no registro.br.
+2. **Eu, pelo MCP:** adiciono a zona `pedrolevi.com.br` no plano Free. Já desligo o Email Address Obfuscation e confiro o resto da lista da §17.5. A Cloudflare mostra os dois nameservers da zona.
+3. **Pedro, no painel do registro.br:** o domínio, "Alterar servidores DNS", e os **dois nomes exatos** que a Cloudflare mostrou. O registro.br só aceita se a zona já existir do outro lado (senão responde "Domínio desconhecido"), por isso o passo 2 vem antes. Ele publica a cada ~30 minutos.
+4. Conferir com `dig NS pedrolevi.com.br +short` e esperar a zona ficar **ativa** na Cloudflare.
+5. **DNSSEC, só depois da zona ativa:** ligar na Cloudflare, que mostra o registro DS (Key Tag, Algorithm, Digest Type e Digest); o Pedro cadastra o DS no registro.br. Antes, `dig DS pedrolevi.com.br +short` não pode trazer DS antigo. **DS errado ou fora de hora deixa o domínio sem resolver** em todo resolvedor que valida. Conferir depois com `dig +dnssec` e no DNSViz.
+
+Não há tempo fora do ar: o domínio é novo e o `vercel.app` continua servindo até a fase E.
+
+#### Fase D: o domínio no Worker
+
+1. Domínio próprio `pedrolevi.com.br` no Worker (`routes` com `custom_domain: true` no `wrangler.jsonc`, ou pelo painel). A Cloudflare cria o registro DNS e o certificado.
+2. `www.pedrolevi.com.br`: registro `AAAA` `100::` com proxy ligado, e uma Redirect Rule para `https://pedrolevi.com.br`, permanente, preservando caminho e query. O canônico é **sem `www`**.
+3. `NEXT_PUBLIC_SITE_URL=https://pedrolevi.com.br` e rebuild.
+4. Conferir em produção, nas 12 rotas: canonical, hreflang, `og:image` e `twitter:image` no domínio; as duas OG em 200 `image/png` sem redirecionamento; `_next/static` com `immutable`; o gmail legível em `/contato/` e `/info/`, sem `email-decode`; console sem erro; `/nao-existe/` em 404 com a página; `sitemap.xml` e `robots.txt` no domínio.
+
+#### Fase E: a Vercel vira redirecionamento
+
+1. No projeto da Vercel, Settings, Domains, `pedrolevi.vercel.app`, Edit: redirecionar para `https://pedrolevi.com.br` com **308**. Conferir com `curl -sI https://pedrolevi.vercel.app/info/` (tem que vir 308 com `location` no domínio novo, mesmo caminho).
+2. Desconectar o Git da Vercel, para não buildar em dobro. O projeto fica, só para o redirecionamento.
+3. Links para fora: o campo de site do repositório no GitHub (hoje aponta para um deploy antigo, `portfolio-tau-five-f86nc5khr8.vercel.app`), o perfil do GitHub e o LinkedIn. O PDF do currículo em `public/cv/` **não tem** link da Vercel (conferido em 14/10/2026).
+4. Search Console com propriedade de domínio (verificação por TXT na Cloudflare) e o sitemap enviado.
+
+#### Fase F: medir e registrar
+
+Lighthouse em produção no domínio novo, mobile e desktop, mediana de 3, nas 5 rotas, pelo método da §16.7. Depois, o registro: o resultado nesta seção, o estado no CLAUDE.md, o README e a memória.
+
+### 17.7 Como retomar
+
+1. Ler o CLAUDE.md e esta seção inteira.
+2. Autorizar o MCP da Cloudflare pelo `/mcp`.
+3. Perguntar ao Pedro se o `pedrolevi.com.br` já foi registrado. As fases A e B não esperam por isso.
+4. Base: **183 unitários e 166 E2E**, produção na Vercel em **97 a 100** no mobile (§16.9). É o número contra o qual a Cloudflare se compara.
+5. Começar pela fase A, num branch `claude/...` a partir da `main`.
+6. No Windows, matar os `workerd.exe` órfãos antes de buildar ou testar de novo, e derrubar a porta 3000 como sempre.
+
+### 17.8 Referências consultadas
+
+Cloudflare: [Next.js nos Workers](https://developers.cloudflare.com/workers/framework-guides/web-apps/nextjs/), [`_headers`](https://developers.cloudflare.com/workers/static-assets/headers/), [`_redirects`](https://developers.cloudflare.com/workers/static-assets/redirects/), [`html_handling`](https://developers.cloudflare.com/workers/static-assets/routing/advanced/html-handling/), [SSG e página 404](https://developers.cloudflare.com/workers/static-assets/routing/static-site-generation/), [cobrança dos assets](https://developers.cloudflare.com/workers/static-assets/billing-and-limitations/), [limites](https://developers.cloudflare.com/workers/platform/limits/), [Workers Builds](https://developers.cloudflare.com/workers/ci-cd/builds/), [configuração do build](https://developers.cloudflare.com/workers/ci-cd/builds/configuration/), [imagem de build](https://developers.cloudflare.com/workers/ci-cd/builds/build-image/), [limites do build](https://developers.cloudflare.com/workers/ci-cd/builds/limits-and-pricing/), [deploy hooks](https://developers.cloudflare.com/workers/ci-cd/builds/deploy-hooks/), [integração com o GitHub](https://developers.cloudflare.com/workers/ci-cd/builds/git-integration/github-integration/), [domínio próprio](https://developers.cloudflare.com/workers/configuration/routing/custom-domains/), [Email Address Obfuscation](https://developers.cloudflare.com/waf/tools/scrape-shield/email-address-obfuscation/), [DNSSEC](https://developers.cloudflare.com/dns/dnssec/).
+
+registro.br: [tutorial de DNSSEC](https://ftp.registro.br/pub/doc/tutorial-dnssec.pdf), e dois guias de terceiros sobre a troca de servidores e o DS com a Cloudflare ([1](https://tudosobrehospedagemdesites.com.br/como-alterar-dns-dominio-registro-br), [2](https://bedhosting.com.br/en/blog/ferramentas/configurar-dnssec-registrobr-cloudflare/)). Os nomes exatos dos botões no painel do registro.br não estão em documentação oficial que eu tenha achado: conferir na hora.
+
+Next: `node_modules/next/dist/docs/01-app/02-guides/static-exports.md` (o que o export não suporta: ISR, `headers`, `redirects`, rewrites, proxy, otimizador de imagem padrão).
