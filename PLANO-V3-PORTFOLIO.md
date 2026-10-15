@@ -2503,7 +2503,7 @@ Nada aqui é segredo: são identificadores, não credenciais.
 |---|---|
 | Conta | `fd64386c78c6bb5bbfc8ffa08c2c6ca5`, subdomínio `workers.dev`: `pedrolevidiass` |
 | Worker | `portfolio`, tag `e5de41a4bc0c4ac38fe216d86e351574`, em https://portfolio.pedrolevidiass.workers.dev (`noindex`, HTTP/3) e em `pedrolevi.com.br` (domínio próprio, pelo `routes` do `wrangler.jsonc`) |
-| Gatilho de build | `915cba66-1150-44be-8b9a-1f8b5015fe16`, branch `main`, `pnpm build` e `npx wrangler deploy`. Variável: `NEXT_PUBLIC_SITE_URL=https://pedrolevi.com.br`. Cache de build ligado. Sem gatilho de prévia |
+| Gatilho de build | `915cba66-1150-44be-8b9a-1f8b5015fe16`, branch `main`, `pnpm build` e `npx wrangler deploy`. Variável: `NEXT_PUBLIC_SITE_URL=https://pedrolevi.com.br`. Cache de build ligado. Prévias de branch ligadas desde a §17.13 (`npx wrangler preview`, configuração de build própria, com a mesma variável) |
 | Zona | `pedrolevi.com.br`, id `541ef630eb330536969e435487469f3b`, Free, servidores `damien` e `sunny.ns.cloudflare.com` |
 | DNS | `AAAA pedrolevi.com.br 100::` (criado pelo domínio próprio) e `AAAA www 100::`, os dois com proxy |
 | Redirect Rule | id `5d77c2a7670b4d26b54577bd793db9c2`: `www` para `https://pedrolevi.com.br` + caminho, 301, preservando a query |
@@ -2540,7 +2540,7 @@ Em `.captures/laboratorio-praia/medicao/`, ignorada pelo git:
 
 ### 17.13 Fase E: o `vercel.app` redireciona (14/10/2026)
 
-**O `pedrolevi.vercel.app` responde 308 para o mesmo caminho em `https://pedrolevi.com.br`**, com a query preservada, desde 15/10/2026, 00:24 UTC (21:24 de 14/10 em Brasília). O Git da Vercel está desconectado e o `vercel.json` saiu do repositório. Faltam o Search Console, os links que são do Pedro e uma decisão sobre as prévias da Cloudflare.
+**O `pedrolevi.vercel.app` responde 308 para o mesmo caminho em `https://pedrolevi.com.br`**, com a query preservada, desde 15/10/2026, 00:24 UTC (21:24 de 14/10 em Brasília). O Git da Vercel está desconectado e o `vercel.json` saiu do repositório. As prévias de branch da Cloudflare, que falhavam em todo PR, foram ligadas de verdade. Faltam o Search Console e os links que são do Pedro.
 
 #### Por que pelo `vercel.json`, e não pelo painel
 
@@ -2580,17 +2580,38 @@ A causa: a Vercel traduz o `source` com o `path-to-regexp` em modo estrito. `/:p
 - **README do perfil** (`tavinholoco/tavinholoco`): duas menções a `pedrolevi.vercel.app`, o selo "Portfolio" (com `logo=vercel`) e o rodapé. Funcionam pelo 308, mas devem apontar para o domínio. É outro repositório e conteúdo público: só com o OK do Pedro.
 - **Perfil do GitHub:** o campo de site está vazio. **LinkedIn:** com o Pedro.
 
-#### As prévias da Cloudflare (decisão pendente)
+#### As prévias da Cloudflare: ligadas
 
-O check "Workers Builds: portfolio" falha em todo PR, do #26 em diante. A §17.10 registrou que não havia prévia de branch, mas a configuração do Worker (`GET /accounts/<conta>/builds/workers/<tag>`) tem `previews_enabled: true`, e o `previews_base_config` builda cada branch com `pnpm build` e `npx wrangler preview` **sem nenhuma variável**. Sem `NEXT_PUBLIC_SITE_URL`, a guarda da lei 23 para o build, como foi feita para fazer. A produção, pelo gatilho da `main`, não é afetada. Duas saídas, a decidir com o Pedro:
+O check "Workers Builds: portfolio" falhava em todo PR, do #26 em diante. A §17.10 registrou que não havia prévia de branch, mas a configuração do Worker (`GET /accounts/<conta>/builds/workers/<tag>`) tem `previews_enabled: true`, e o `previews_base_config` builda cada branch com `pnpm build` e `npx wrangler preview` **sem nenhuma variável**. Sem `NEXT_PUBLIC_SITE_URL`, a guarda da lei 23 parava o build, como foi feita para fazer. A produção, pelo gatilho da `main`, nunca foi afetada. É o modelo novo de prévias da Cloudflare (Worker Previews, de 22/09/2026), que a §17 não conhecia.
 
-1. **Desligar as prévias** (`previews_enabled: false`). O check vermelho some, e o projeto segue sem ambiente de prévia, como sempre esteve na prática.
-2. **Dar às prévias `NEXT_PUBLIC_SITE_URL=https://pedrolevi.com.br`.** Cada PR ganha uma URL pública no `workers.dev`, com `noindex` pelo `_headers` e canonical apontando para produção. Ainda não se sabe se o `wrangler preview` aceita o `routes` com `custom_domain` do `wrangler.jsonc`; o primeiro build mostra. Nota de Lighthouse de lá não se compara, porque o `workers.dev` serve HTTP/3 (lei 18).
+**O Pedro decidiu ligar, depois de conferir que não pesa no plano Free.** A pesquisa, em 14/10/2026:
+
+| | Limite do Free | Este projeto |
+|---|---|---|
+| Minutos de build | 3.000 por mês, 1 build por vez, 20 min de teto | Cada build leva de 44 a 86 s (os 9 de produção até aqui) |
+| Volume | Sem teto de número de builds | Nos últimos 30 dias, o mês mais pesado, por causa da migração: 16 PRs e 24 pushes em branch de PR |
+| Estimativa com prévias | | ~24 prévias e ~20 builds de produção, a no máximo 1,5 min: **~65 min por mês, uns 2%**. Dez vezes isso daria ~22% |
+| Prévias por Worker | 100 | A mais antiga é apagada sozinha; 100 deploys por prévia, idem |
+| Excedente | Cobrado só nos planos pagos ($0,005/min) | `GET /builds/account/limits`: `has_reached_build_minutes_limit: false`, renova em 31/10 |
+
+- O que acontece no Free ao estourar os minutos a documentação não diz. A API expõe `has_reached_build_minutes_limit`, o que indica bloqueio até a renovação, sem cobrança. Se um dia chegar lá, o build de produção também para; a saída é `npx wrangler deploy` local.
+- **As prévias já gastavam minuto:** cada uma rodava cerca de 1 min antes de cair na guarda. Ligá-las direito acrescenta uns 30 s por push.
+- Visita na prévia é requisição de asset (o Worker não tem código), que é grátis e ilimitada (§17.3). A página das prévias não fala em cobrança à parte.
+- A Cloudflare põe `X-Robots-Tag: noindex` sozinha nas URLs de prévia do `workers.dev`, além da regra do `_headers`. As prévias não assumem rotas nem domínio próprio da produção: o `routes` do `wrangler.jsonc` continua só da produção.
+- O único efeito colateral é a fila: com 1 build por vez, uma prévia e um merge juntos fazem o deploy de produção esperar cerca de 1 min. A Cloudflare pula build enfileirado quando chega outro mais novo do mesmo gatilho.
+
+**Ligar pediu duas peças:**
+
+1. `NEXT_PUBLIC_SITE_URL=https://pedrolevi.com.br` nas variáveis de build das prévias, pela API, com OK do Pedro: `PATCH /accounts/<conta>/builds/workers/<tag>` com `previews_base_config.environment_variables`. É a mesma URL da produção de propósito: canonical, `og:image` e sitemap da prévia apontam para o site de verdade, e a prévia não é indexada. A configuração de produção não mudou (conferido no `GET` logo depois).
+2. `"previews": {}` no `wrangler.jsonc`. O wrangler 4.151.0 se recusa a publicar prévia sem esse bloco ("Your Wrangler configuration is missing a previews block"), mesmo vazio, e não há `--dry-run` no `wrangler preview` para testar antes; o `wrangler deploy --dry-run` de produção aceitou o bloco sem aviso. Vazio porque o site não tem código nem binding a separar.
+
+**A pegadinha: cada prévia copia a configuração base quando nasce, e não acompanha mudança depois.** O primeiro build depois das duas peças ainda falhou na guarda, com `environment_variables: {}` no build: a prévia deste branch tinha sido criada no primeiro push dele, antes da variável, e guardou a cópia vazia. `GET .../previews` lista as prévias, e `PATCH .../previews/<id>` com `settings.environment_variables` conserta uma por uma. Branches novos herdam a base já com a variável. **Mudou uma variável de build das prévias, mude na base e em cada prévia aberta.** Cada prévia nasce com `auto_delete: true`: apagar o branch, que o GitHub faz no merge, apaga a prévia junto.
+
+Nota de Lighthouse na prévia não se compara com a do domínio, porque o `workers.dev` serve HTTP/3 (lei 18).
 
 #### O que falta
 
 1. **Search Console:** o Pedro cria a propriedade de **domínio** `pedrolevi.com.br` e me passa o `google-site-verification=...`; eu crio o TXT na zona pela API, ele verifica e envia `https://pedrolevi.com.br/sitemap.xml`.
-2. **As prévias da Cloudflare:** a decisão acima.
-3. **README do perfil e LinkedIn**, acima.
-4. **`GITHUB_TOKEN`** no Worker, sem prazo (§17.12).
-5. **Fase F**, pela §17.12: Lighthouse no domínio, conferindo `h2` no JSON.
+2. **README do perfil e LinkedIn**, acima.
+3. **`GITHUB_TOKEN`** no Worker, sem prazo (§17.12). Se entrar, entra nas duas configurações de build, a de produção e a das prévias.
+4. **Fase F**, pela §17.12: Lighthouse no domínio, conferindo `h2` no JSON.

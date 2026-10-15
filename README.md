@@ -313,7 +313,7 @@ O anel de foco usa `currentColor` de propósito: com uma cor fixa, ele ficaria i
 
 ## 🚀 Deploy na Cloudflare
 
-O `next build` grava o site inteiro em `out/` (`output: "export"`), e um Worker só de assets o serve (`wrangler.jsonc`, sem código). Não há comando de deploy local: o **Workers Builds** da Cloudflare, ligado ao repositório, builda com `pnpm build` e publica com `npx wrangler deploy` a cada push na `main`, e gera prévia para os outros branches. O rebuild semanal entra pelo deploy hook.
+O `next build` grava o site inteiro em `out/` (`output: "export"`), e um Worker só de assets o serve (`wrangler.jsonc`, sem código). Não há comando de deploy local: o **Workers Builds** da Cloudflare, ligado ao repositório, builda com `pnpm build` e publica com `npx wrangler deploy` a cada push na `main`. Os outros branches viram prévia com `npx wrangler preview`, numa URL pública no `workers.dev` que a Cloudflare comenta no PR (com `noindex`; o bloco `previews` do `wrangler.jsonc` é obrigatório para isso, mesmo vazio). O rebuild semanal entra pelo deploy hook.
 
 O que o export troca, e onde cada coisa passou a morar (lei 22 do CLAUDE.md):
 
@@ -321,7 +321,7 @@ O que o export troca, e onde cada coisa passou a morar (lei 22 do CLAUDE.md):
 - **URL sem barra** vai para a com barra com **307** (a Vercel dava 308). Ninguém passa por esse salto: links, canonical e sitemap já levam barra.
 - **Rota inexistente** responde 404 com a página `out/404.html`.
 
-Variáveis de build no painel do Worker (Settings, Build):
+Variáveis de build no painel do Worker (Settings, Build). A produção e as prévias têm configurações separadas, e a `NEXT_PUBLIC_SITE_URL` precisa estar nas duas:
 
 | Variável | Para quê |
 |---|---|
