@@ -8,7 +8,7 @@ Na primeira visita da sessão há uma abertura: cortina preta, as letras do nome
 
 **Live:** [pedrolevi.com.br](https://pedrolevi.com.br)
 
-> 🚚 **Migrado para a Cloudflare em 14/10/2026, pela §17 do plano:** export estático servido por Workers Static Assets, no domínio próprio. O `pedrolevi.vercel.app` ainda serve a versão de antes da migração até virar redirecionamento para o domínio (fase E), e os números de Lighthouse abaixo ainda são os da Vercel até a medição da fase F.
+> 🚚 **Migrado para a Cloudflare em 14/10/2026, pela §17 do plano:** export estático servido por Workers Static Assets, no domínio próprio. Desde a fase E, o `pedrolevi.vercel.app` responde 308 para o mesmo caminho no domínio. Os números de Lighthouse abaixo ainda são os da Vercel até a medição da fase F.
 
 | | Desktop | Mobile |
 |---|---|---|
@@ -165,7 +165,6 @@ Captura as telas em `.captures/` (ignorada pelo git). Parametrizável por `LOOK_
 │                                 #   config própria, fora do CI
 ├── scripts/                      # o conserto pós-build do prefetch no Windows (§17.4)
 ├── wrangler.jsonc                # o Worker da Cloudflare: só assets, servindo out/
-├── vercel.json                   # o vercel.app vira 308 para o domínio; sai na fase E
 └── PLANO-V3-PORTFOLIO.md         # o plano, as auditorias e as notas de cada fase
 ```
 
@@ -273,12 +272,12 @@ Lighthouse 13.4.1 contra a URL de produção, mediana de 3 rodadas por rota, thr
 
 Medido com a abertura no ar. No desktop, Acessibilidade, Best Practices e SEO deram 100 em todas as rodadas. O mobile tem TBT de 37 a 65 ms, e o detalhe por rota (LCP, TBT, Speed Index e a comparação com antes da abertura) está na §16.9 do plano. O elemento de LCP é o mesmo nas cinco rotas e **não é imagem**: é o link "Pedro Levi" do header.
 
-Como rodar: a máquina de desenvolvimento não tem Chrome próprio, então aponte o `CHROME_PATH` para o Chromium do Playwright, e meça **produção**, nunca `localhost` (lei 18 do CLAUDE.md). Os números acima são da Vercel. Quando o domínio próprio entrar no ar, a URL dos comandos passa a ser `https://pedrolevi.com.br/`; no `workers.dev` só se mede performance, porque ele leva `noindex` de propósito e o SEO reprova lá.
+Como rodar: a máquina de desenvolvimento não tem Chrome próprio, então aponte o `CHROME_PATH` para o Chromium do Playwright, e meça **produção**, nunca `localhost` (lei 18 do CLAUDE.md). Os números acima são da Vercel; o `vercel.app` agora só redireciona, então meça no domínio. No `workers.dev` só se mede performance, porque ele leva `noindex` de propósito e o SEO reprova lá, e ele serve HTTP/3, que o simulador do Lighthouse trata como HTTP/1.1 (lei 18).
 
 ```bash
 export CHROME_PATH="$HOME/AppData/Local/ms-playwright/chromium-1234/chrome-win64/chrome.exe"
-npx lighthouse https://pedrolevi.vercel.app/ --only-categories=performance --chrome-flags="--headless=new"
-npx lighthouse https://pedrolevi.vercel.app/ --preset=desktop --chrome-flags="--headless=new"
+npx lighthouse https://pedrolevi.com.br/ --only-categories=performance --chrome-flags="--headless=new"
+npx lighthouse https://pedrolevi.com.br/ --preset=desktop --chrome-flags="--headless=new"
 ```
 
 O primeiro é o mobile, que é o padrão do Lighthouse. Rode cada rota 3 vezes e use a mediana, e confira `configSettings.throttlingMethod` no JSON antes de comparar duas medições. **Nunca use `--preset=perf`:** ele troca o throttling para `devtools` sem avisar, e o número deixa de ser comparável com qualquer outro deste projeto.
@@ -328,7 +327,8 @@ Variáveis de build no painel do Worker (Settings, Build):
 |---|---|
 | `NEXT_PUBLIC_SITE_URL` | **Obrigatória.** URL canônica, sem barra no fim. Sem ela o build falha de propósito, porque o fallback é localhost (lei 23) |
 | `GITHUB_TOKEN` (secret) | Opcional. Tira o build do limite de 60 requisições por IP da API do GitHub |
-| `PNPM_VERSION` | `10.32.1`, a do `packageManager`. O Node sai do `.node-version` |
+
+As versões não precisam de variável: a imagem de build lê o Node do `.node-version` e o pnpm do `packageManager` (§17.10).
 
 O roteiro completo da migração (Worker, domínio, DNS, DNSSEC, o redirecionamento da Vercel e a medição) está na §17 do plano.
 
