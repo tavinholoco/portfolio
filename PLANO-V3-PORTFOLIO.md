@@ -7,7 +7,7 @@
 > **Status:** ✅ **V3.5 no ar, com o passe de aperfeiçoamento fechado.** As 7 fases da v3 fechadas em 27/08/2026 (avaliação na seção 11), o refinamento **V3.5** mergeado pelo PR #4 em 6 rodadas de ajuste (avaliação na **§12.10**), e os **5 milestones da seção 13** mergeados pelo PR #7 em 31/08/2026 (fechamento na **§13.5**).
 >
 > **Produção:** https://pedrolevi.com.br, na Cloudflare desde 14/10/2026 (o `pedrolevi.vercel.app` responde 308 para lá).
-> **Última etapa:** a migração para a Cloudflare com o domínio próprio, feita nas seis fases da **§17** e medida na **§17.14**, que é por onde se retoma.
+> **Última etapa:** a migração para a Cloudflare com o domínio próprio, feita nas seis fases da **§17**, medida na **§17.14** e medida de novo, sem o beacon de RUM da zona, na **§17.15**, que é por onde se retoma.
 > **Versão do documento:** V3.5
 
 ---
@@ -2507,6 +2507,7 @@ Nada aqui é segredo: são identificadores, não credenciais.
 | Zona | `pedrolevi.com.br`, id `541ef630eb330536969e435487469f3b`, Free, servidores `damien` e `sunny.ns.cloudflare.com` |
 | DNS | `AAAA pedrolevi.com.br 100::` (criado pelo domínio próprio) e `AAAA www 100::`, os dois com proxy. Desde a §17.13, também o `TXT` de verificação do Search Console no apex, que não pode sair |
 | Redirect Rule | id `5d77c2a7670b4d26b54577bd793db9c2`: `www` para `https://pedrolevi.com.br` + caminho, 301, preservando a query |
+| Configuration Rule | desde a §17.15: ruleset `8c622bf7063c46a79e9a7cda435e40ef` (entrypoint da fase `http_config_settings`), regra `f124bd4ccdbb45bd92dcd211d081bd52`: `http.host eq "pedrolevi.com.br"`, `set_config` com `disable_rum: true`. É o que tira o beacon de RUM do HTML |
 | Ajustes da zona | HTTP/3 **desligado** (§17.10), Always Use HTTPS ligado, Email Address Obfuscation desligado; Bot Fight Mode, bloqueio de IA, robots.txt gerenciado, Rocket Loader e Speed Brain desligados |
 | DNSSEC | `active`. DS no registro.br: 2371, 13, 2, `365A7C0513A3F1D7B743B71F384A8CFF6E5431A1CD443F2AA288F9E4B8237934` |
 
@@ -2708,6 +2709,8 @@ No desktop o beacon custa **0 a 1 ponto** (FCP ~200 ms, LCP 80 a 160 ms, Speed I
 
 #### Decisão do Pedro: o beacon de RUM
 
+> **Decidido em 15/10/2026: desligar.** Feito pela Configuration Rule recomendada abaixo, e medido de novo na §17.15.
+
 O que ele dá: Core Web Vitals de visitantes reais (de fora do EEE, do Reino Unido e da Suíça), no painel da Cloudflare, sem cookie. O que ele custa: uma requisição a outra origem e um `POST` em toda visita, e 1 a 4 pontos no Lighthouse e no PageSpeed mobile, que são a nota que o README mostra e a que quem avalia o portfólio vê.
 
 **Recomendação: desligar**, que é o que a §17.5 já previa ("não ligar o Web Analytics, injeta script"), e o site não usa esse dado. Como, com o OK do Pedro:
@@ -2730,6 +2733,70 @@ Em `.captures/laboratorio-praia/medicao/`, ignorada pelo git:
 
 #### O que falta
 
-1. **A decisão do RUM** (acima), e a medição de novo se ele sair.
+1. ~~**A decisão do RUM** (acima), e a medição de novo se ele sair.~~ **Feito em 15/10/2026, na §17.15:** o Pedro decidiu desligar, e a medição de novo está lá.
 2. **README do perfil e LinkedIn**, com o Pedro (§17.13).
 3. **`GITHUB_TOKEN`** no Worker, sem prazo (§17.12), nas duas configurações de build.
+
+### 17.15 O beacon de RUM desligado, e a medição de novo (15/10/2026)
+
+O Pedro decidiu desligar o beacon (§17.14) em 15/10/2026, e foi pelo caminho recomendado lá: uma **Configuration Rule** na zona, criada pela API às **11:54:02 UTC** (08:54 em Brasília).
+
+| O quê | Valor |
+|---|---|
+| Ruleset | `8c622bf7063c46a79e9a7cda435e40ef`, entrypoint da fase `http_config_settings` da zona, versão 1. A zona não tinha nenhum (o `GET` do entrypoint dava `10003`), e o `PUT` o criou já com a regra |
+| Regra | `f124bd4ccdbb45bd92dcd211d081bd52`, `http.host eq "pedrolevi.com.br"`, ação `set_config` com `disable_rum: true`, ligada |
+| O resto | O ajuste `settings/rum` continua `off`, antes e depois: ele nunca foi o interruptor. O `www` não precisa entrar na expressão, porque a Redirect Rule (§17.12) responde 301 antes de servir HTML lá. Free tem 10 regras de configuração; esta é a única |
+
+Desfazer é apagar a regra (ou o ruleset inteiro, que só tem ela). Ela entrou no inventário da §17.12.
+
+#### A conferência
+
+O `curl` com o user agent de um Chrome 141 e `Accept: text/html`, nas 18 páginas do sitemap e na `/nao-existe/`:
+
+- **Antes da regra:** as 18 com `static.cloudflareinsights.com`.
+- **9 s depois:** 17 limpas e `/en/info/` ainda com o script, que é a regra se espalhando pela borda.
+- **30 s depois, em três varreduras seguidas:** **zero páginas com o script**, e `/en/info/` limpa em 10 de 10 buscas.
+- **E o HTML que o Chrome recebe é idêntico, byte a byte, ao do `curl` sem user agent** nas 18 páginas (`md5` igual). Ou seja, a borda não injeta mais nada para navegador: o que sai é o que o export gravou.
+
+#### A medição
+
+Lighthouse 13.4.1 contra https://pedrolevi.com.br, pelo mesmo `lh.cjs` da §17.14 (`chrome.exe` do Playwright, `simulate`, mediana de 3 por rota). Mobile entre 11:55 e 11:58 UTC, desktop entre 11:58 e 12:01 UTC. **Nas 30 rodadas, um host só na rede, o domínio, todo em `h2`**, nenhum JSON com `cloudflareinsights`, e o elemento de LCP é o link "Pedro Levi" do header em todas.
+
+**Mobile:**
+
+| Rota | Perf | Spread | LCP | TBT | CLS | FCP | Speed Index | Com o beacon (§17.14) | Vercel (§16.9) |
+|---|---|---|---|---|---|---|---|---|---|
+| `/` | **100** | 98 a 100 | 1388 ms | 46 ms | 0 | 938 ms | 1848 ms | 99 | 100 |
+| `/clientes/` | **100** | 99 a 100 | 1680 ms | 21 ms | 0 | 941 ms | 1824 ms | 99 | 98 |
+| `/projetos/` | **100** | 100 a 100 | 1538 ms | 22 ms | 0 | 938 ms | 1834 ms | 98 | 97 |
+| `/info/` | **100** | 100 a 100 | 1389 ms | 35 ms | 0 | 939 ms | 1836 ms | 99 | 99 |
+| `/contato/` | **100** | 99 a 100 | 1530 ms | 44 ms | 0 | 938 ms | 1844 ms | 99 | 99 |
+
+**Desktop**, com as quatro categorias:
+
+| Rota | Perf | Spread | LCP | TBT | CLS | FCP | Speed Index | A11y, BP, SEO | Com o beacon (§17.14) | Vercel (§16.9) |
+|---|---|---|---|---|---|---|---|---|---|---|
+| `/` | **99** | 99 a 99 | 361 ms | 0 ms | 0 | 281 ms | 1144 ms | 100, 100, 100 | 99 | 99 |
+| `/clientes/` | **100** | 99 a 100 | 389 ms | 0 ms | 0 | 269 ms | 1121 ms | 100, 100, 100 | 99 | 100 |
+| `/projetos/` | **99** | 99 a 100 | 394 ms | 0 ms | 0 | 274 ms | 1131 ms | 100, 100, 100 | 99 | 100 |
+| `/info/` | **99** | 99 a 99 | 358 ms | 0 ms | 0 | 278 ms | 1135 ms | 100, 100, 100 | 99 | 100 |
+| `/contato/` | **99** | 99 a 99 | 391 ms | 0 ms | 0 | 273 ms | 1153 ms | 100, 100, 100 | 99 | 100 |
+
+**O mobile foi a 100 nas cinco rotas**, contra 98 a 99 com o beacon e 97 a 100 na Vercel, e é o que o contrafactual da §17.14 previa (98 a 100). As duas colunas que tinham mudado de patamar voltaram: **o FCP simulado ficou entre 930 e 955 ms nas 15 rodadas** (era ~1.57 s com o beacon, ~0.91 s na Vercel) e **o Speed Index entre 1.78 e 1.96 s** (era ~2.1 s, ~1.85 s na Vercel). O TBT ficou onde estava (medianas de 21 a 46 ms). A única rodada abaixo de 99 foi a primeira de todas, em `/` (98, LCP de 2297 ms), e as duas seguintes da mesma rota deram 100 com 1386 e 1388 ms.
+
+**O desktop fica em 99 a 100**, o mesmo intervalo da Vercel, com A11y, BP e SEO em 100 nas 15 rodadas. O FCP desceu de ~470 ms para 263 a 292 ms, como no contrafactual, e o Speed Index ficou entre 1.12 e 1.18 s, abaixo dos ~1.27 s que o contrafactual dava sem o beacon. É isso que leva `/clientes/` a 100 e põe um 100 no spread de `/projetos/`: a mesma linha de ~1.13 s da §17.14, agora cruzada em algumas rodadas. Não isolei por que o Speed Index real ficou abaixo do contrafactual: o contrafactual tira o beacon só do log de rede, e parte do Speed Index que o Lantern estima vem do filmstrip observado, que naquela coleta ainda tinha o script; pode ser isso ou a hora da medição. A leitura não muda: o ponto que ainda falta em quatro rotas é a cortina da abertura (§16.9), não a rede.
+
+#### O veredito
+
+**Sem o beacon, o mobile fica em 100 nas cinco rotas, acima dos 97 a 100 que a Vercel deu em 13/10 (§16.9), e o desktop empata com ela (99 a 100).** O que mudou foi a nota simulada: quem visita não pagava o beacon antes (§17.14), e agora só deixa de baixar 10 KB de outra origem e de mandar um `POST` por visita. O que se perde é o painel de Core Web Vitals de visitantes reais da Cloudflare, que o site não usava.
+
+**Para as medições daqui em diante (lei 18):** se `static.cloudflareinsights.com` voltar a aparecer no `network-requests`, foi a regra que saiu ou o Web Analytics que foi ligado no painel. A nota da §17.14 e a desta seção não se comparam diretamente por causa dele.
+
+#### Ferramentas e rodadas
+
+Em `.captures/laboratorio-praia/medicao/`, ignorada pelo git: `lh-cloudflare-prod-sem-rum/` e `lh-cloudflare-prod-sem-rum-desktop/`, cada uma com os 15 JSON e o `resumo.json`, e os logs `lh-sem-rum-mobile.log` e `lh-sem-rum-desktop.log`.
+
+#### O que falta
+
+1. **README do perfil e LinkedIn**, com o Pedro (§17.13).
+2. **`GITHUB_TOKEN`** no Worker, sem prazo (§17.12), nas duas configurações de build.

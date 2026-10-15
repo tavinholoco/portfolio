@@ -8,7 +8,7 @@ Na primeira visita da sessão há uma abertura: cortina preta, as letras do nome
 
 **Live:** [pedrolevi.com.br](https://pedrolevi.com.br)
 
-> 🚚 **Migrado para a Cloudflare em 14/10/2026, pela §17 do plano:** export estático servido por Workers Static Assets, no domínio próprio. Desde a fase E, o `pedrolevi.vercel.app` responde 308 para o mesmo caminho no domínio. Os números de Lighthouse abaixo são os do domínio, medidos na fase F (§17.14), e empatam com os da Vercel.
+> 🚚 **Migrado para a Cloudflare em 14/10/2026, pela §17 do plano:** export estático servido por Workers Static Assets, no domínio próprio. Desde a fase E, o `pedrolevi.vercel.app` responde 308 para o mesmo caminho no domínio. Os números de Lighthouse abaixo são os do domínio, medidos depois da fase F com o beacon de RUM da zona desligado (§17.15): 100 no mobile e 99 a 100 no desktop, contra 97 a 100 e 99 a 100 na Vercel.
 
 | | Desktop | Mobile |
 |---|---|---|
@@ -260,19 +260,19 @@ As outras paletas (`graphite`, `cobalt`, `ember`, `moss`, `plum`, `sand`) ficam 
 
 ## ♿ Acessibilidade e performance
 
-Lighthouse 13.4.1 contra https://pedrolevi.com.br, na Cloudflare, mediana de 3 rodadas por rota, throttling `simulate`, todas as requisições em HTTP/2 (15/10/2026). As duas últimas colunas são a medição da §16.9 (13/10/2026), o mesmo site na Vercel, antes da migração:
+Lighthouse 13.4.1 contra https://pedrolevi.com.br, na Cloudflare, mediana de 3 rodadas por rota, throttling `simulate`, todas as requisições em HTTP/2 e o domínio como único host na rede (15/10/2026, §17.15). As duas últimas colunas são a medição da §16.9 (13/10/2026), o mesmo site na Vercel, antes da migração:
 
 | Rota | Perf desktop | Perf mobile | A11y | Best Practices | SEO | Desktop na Vercel | Mobile na Vercel |
 |---|---|---|---|---|---|---|---|
-| `/` | 99 | 99 | 100 | 100 | 100 | 99 | 100 |
-| `/clientes/` | 99 | 99 | 100 | 100 | 100 | 100 | 98 |
-| `/projetos/` | 99 | 98 | 100 | 100 | 100 | 100 | 97 |
-| `/info/` | 99 | 99 | 100 | 100 | 100 | 100 | 99 |
-| `/contato/` | 99 | 99 | 100 | 100 | 100 | 100 | 99 |
+| `/` | 99 | 100 | 100 | 100 | 100 | 99 | 100 |
+| `/clientes/` | 100 | 100 | 100 | 100 | 100 | 100 | 98 |
+| `/projetos/` | 99 | 100 | 100 | 100 | 100 | 100 | 97 |
+| `/info/` | 99 | 100 | 100 | 100 | 100 | 100 | 99 |
+| `/contato/` | 99 | 100 | 100 | 100 | 100 | 100 | 99 |
 
-Medido com a abertura no ar. No desktop, Acessibilidade, Best Practices e SEO deram 100 em todas as rodadas. O mobile tem TBT de 26 a 46 ms, e o detalhe por rota (LCP, TBT, FCP, Speed Index) está na §17.14 do plano. O elemento de LCP é o mesmo nas cinco rotas e **não é imagem**: é o link "Pedro Levi" do header.
+Medido com a abertura no ar. No desktop, Acessibilidade, Best Practices e SEO deram 100 em todas as rodadas. O mobile tem TBT de 21 a 46 ms, e o detalhe por rota (LCP, TBT, FCP, Speed Index) está na §17.15 do plano. O elemento de LCP é o mesmo nas cinco rotas e **não é imagem**: é o link "Pedro Levi" do header. O ponto que falta no desktop é o Speed Index, que só fecha quando a cortina da abertura sai.
 
-**A Cloudflare injeta no HTML um script que o site não tem:** o beacon de RUM (Web Analytics), que zona do plano Free já nasce com ligado. Ele não segura a pintura de quem visita, mas o simulador do Lighthouse o conta como bloqueante e sobe o FCP simulado do mobile em ~650 ms, o que custa 1 a 3 pontos por rota no mobile. A medição sem ele e a decisão de desligá-lo estão na §17.14.
+**A Cloudflare injetava no HTML um script que o site não tem:** o beacon de RUM (Web Analytics), que zona do plano Free já nasce com ligado. Ele não segurava a pintura de quem visita, mas o simulador do Lighthouse o contava como bloqueante e subia o FCP simulado do mobile em ~650 ms, o que custava 1 a 3 pontos por rota no mobile (§17.14). **Desde 15/10/2026 uma Configuration Rule da zona o desliga** (§17.15), e a tabela acima já é sem ele. Ao medir, confira no JSON que o único host na rede é o domínio: se `static.cloudflareinsights.com` voltar, a nota deixa de ser comparável.
 
 Como rodar: a máquina de desenvolvimento não tem Chrome próprio, então aponte o `CHROME_PATH` para o Chromium do Playwright, e meça **produção**, nunca `localhost` (lei 18 do CLAUDE.md). O `vercel.app` agora só redireciona, então meça no domínio, e confira no JSON (audit `network-requests`) que o protocolo é `h2`. No `workers.dev` só se mede performance, porque ele leva `noindex` de propósito e o SEO reprova lá, e ele serve HTTP/3, que o simulador do Lighthouse trata como HTTP/1.1 (lei 18).
 
