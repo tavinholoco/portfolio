@@ -2607,6 +2607,8 @@ O check "Workers Builds: portfolio" falhava em todo PR, do #26 em diante. A §17
 
 **A pegadinha: cada prévia copia a configuração base quando nasce, e não acompanha mudança depois.** O primeiro build depois das duas peças ainda falhou na guarda, com `environment_variables: {}` no build: a prévia deste branch tinha sido criada no primeiro push dele, antes da variável, e guardou a cópia vazia. `GET .../previews` lista as prévias, e `PATCH .../previews/<id>` com `settings.environment_variables` conserta uma por uma. Branches novos herdam a base já com a variável. **Mudou uma variável de build das prévias, mude na base e em cada prévia aberta.** Cada prévia nasce com `auto_delete: true`: apagar o branch, que o GitHub faz no merge, apaga a prévia junto.
 
+**Conferido no próprio #31** (build de 66 s, com `NEXT_PUBLIC_SITE_URL` no build): a prévia mora em `https://<branch com hífens>-portfolio.pedrolevidiass.workers.dev`, e o robô da Cloudflare comenta a URL no PR. Nela, as páginas em 200; as duas imagens de link em 200 `image/png`; `X-Robots-Tag: noindex`; canonical e `og:image` em `pedrolevi.com.br`; `_next/static` com `immutable`; `/info` em 307 para `/info/`; `/nao-existe/` em 404; o gmail legível em `/contato/`. A produção seguiu no deploy das 00:25 UTC (o do #30), sem `noindex`. O check "Workers Builds: portfolio" ficou verde pela primeira vez.
+
 Nota de Lighthouse na prévia não se compara com a do domínio, porque o `workers.dev` serve HTTP/3 (lei 18).
 
 #### O que falta
