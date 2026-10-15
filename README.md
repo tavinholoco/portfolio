@@ -299,8 +299,8 @@ O anel de foco usa `currentColor` de propósito: com uma cor fixa, ele ficaria i
 | `gitleaks.yml` | Varredura de segredos com Gitleaks, config em `.gitleaks.toml` |
 | `rebuild-semanal.yml` | Toda segunda, um POST no deploy hook da Cloudflare (secret `CF_DEPLOY_HOOK`) rebuilda o site, para o dado do GitHub não envelhecer. Roda à mão pela aba Actions |
 
-- **Unitários** (`pnpm test`): manifesto de rotas e os arquivos em disco, contraste das sete paletas nos dois temas, grain determinístico, aritmética do render target, o teto de quadros simulado de 60 a 240 Hz, os degraus de qualidade do fundo, as cores do ícone e da imagem de link, o teto de peso e de largura das imagens versionadas, o `_headers` e o `_redirects` da Cloudflare contra o caminho da imagem de link, a guarda da URL do site no build da Cloudflare, o momento do deslize da abertura, metadados, sitemap, GitHub com fallback e paridade dos dicionários.
-- **E2E** (`pnpm test:e2e`): roda contra o `wrangler dev` servindo `out/`, com as mesmas regras de `_headers` e `_redirects` de produção. Cobre a lei de camadas nas 11 rotas com controle negativo, o fallback sem WebGL, DPR por tamanho de tela, o teto de quadros do fundo (contado no próprio WebGL), o degrau leve do fundo quando não há GPU, movimento reduzido, as regras do showcase em ponteiro, teclado e toque, as prévias sem `lazy` e com cache `immutable`, a navegação nos dois idiomas, o `<html lang>` no SSR, a **hierarquia de cabeçalhos**, o **ícone de aba e a imagem de link em toda rota**, uma **auditoria de responsividade** em 6 rotas × 7 larguras, e a **abertura**: o nome pousa no pixel do header, o clique passa pela cortina, o nome do header (o LCP) nunca some, e sem JS a cortina sai sozinha.
+- **Unitários** (`pnpm test`): manifesto de rotas e os arquivos em disco, contraste das sete paletas nos dois temas, grain determinístico, aritmética do render target, o teto de quadros simulado de 60 a 240 Hz, os degraus de qualidade do fundo, as cores do ícone e da imagem de link, o teto de peso e de largura das imagens versionadas, o `_headers` e o `_redirects` da Cloudflare contra o caminho da imagem de link (e o HSTS em todo caminho, sem preload), a guarda da URL do site no build da Cloudflare, o momento do deslize da abertura, metadados, sitemap, GitHub com fallback e paridade dos dicionários.
+- **E2E** (`pnpm test:e2e`): roda contra o `wrangler dev` servindo `out/`, com as mesmas regras de `_headers` e `_redirects` de produção. Cobre a lei de camadas nas 11 rotas com controle negativo, o fallback sem WebGL, DPR por tamanho de tela, o teto de quadros do fundo (contado no próprio WebGL), o degrau leve do fundo quando não há GPU, movimento reduzido, as regras do showcase em ponteiro, teclado e toque, as prévias sem `lazy` e com cache `immutable`, o HSTS somado às outras regras do `_headers`, a navegação nos dois idiomas, o `<html lang>` no SSR, a **hierarquia de cabeçalhos**, o **ícone de aba e a imagem de link em toda rota**, uma **auditoria de responsividade** em 6 rotas × 7 larguras, e a **abertura**: o nome pousa no pixel do header, o clique passa pela cortina, o nome do header (o LCP) nunca some, e sem JS a cortina sai sozinha.
 - **Toda a suíte E2E roda sem a abertura**, porque cada contexto do Playwright nasce sem `sessionStorage` e ela cobriria o começo de todo teste. Teste novo importa `test` de `e2e/fixtures.ts`, que semeia a chave; os testes da própria abertura ligam com `test.use({ intro: true })`.
 - Os testes de responsividade e de marca existem porque a V3.5 acumulou seis defeitos que só apareceram quando alguém olhou a tela: ondas correndo para o lado errado, email cortado com reticências no celular, palavra por cima da coluna vizinha, ícone de três versões atrás e ícone ausente em `/en/`. Cada um virou asserção.
 - O `pnpm look` **não** roda no CI: tem config própria em `capture/`.
@@ -319,16 +319,19 @@ O `next build` grava o site inteiro em `out/` (`output: "export"`), e um Worker 
 
 O que o export troca, e onde cada coisa passou a morar (lei 22 do CLAUDE.md):
 
-- **Cabeçalhos e reescritas** não vêm mais do Next: `public/_headers` devolve o `immutable` de `_next/static` e o `Content-Type` das imagens de link, e `public/_redirects` reescreve a URL da imagem com barra para o arquivo que o export grava. `src/lib/cloudflare-assets.test.ts` confere os dois contra `ogImageMeta`.
+- **Cabeçalhos e reescritas** não vêm mais do Next: `public/_headers` devolve o HSTS que a Vercel mandava sozinha (em todo caminho, dois anos, `includeSubDomains`, sem `preload`), o `immutable` de `_next/static` e o `Content-Type` das imagens de link, e `public/_redirects` reescreve a URL da imagem com barra para o arquivo que o export grava. `src/lib/cloudflare-assets.test.ts` confere os dois contra `ogImageMeta`.
 - **URL sem barra** vai para a com barra com **307** (a Vercel dava 308). Ninguém passa por esse salto: links, canonical e sitemap já levam barra.
 - **Rota inexistente** responde 404 com a página `out/404.html`.
+- **TLS:** a zona recusa conexão abaixo do TLS 1.2, como a Vercel (§17.16).
+
+**Email do domínio** (§17.16): `contato@pedrolevi.com.br` existe pelo Email Routing da Cloudflare, que só recebe e repassa para o gmail do Pedro; a resposta sai do gmail. O DMARC da zona recusa email que se passe pelo domínio (`p=reject`), então enviar "como" `@pedrolevi.com.br` por um serviço que não esteja no SPF faz a mensagem voltar. O site continua mostrando o gmail.
 
 Variáveis de build no painel do Worker (Settings, Build). A produção e as prévias têm configurações separadas, e a `NEXT_PUBLIC_SITE_URL` precisa estar nas duas:
 
 | Variável | Para quê |
 |---|---|
 | `NEXT_PUBLIC_SITE_URL` | **Obrigatória.** URL canônica, sem barra no fim. Sem ela o build falha de propósito, porque o fallback é localhost (lei 23) |
-| `GITHUB_TOKEN` (secret) | Opcional. Tira o build do limite de 60 requisições por IP da API do GitHub |
+| `GITHUB_TOKEN` (secret) | Opcional, e basta na produção. Tira o build do limite de 60 requisições por IP da API do GitHub; numa prévia, sem ele, o pior caso é o case sair sem linguagem e sem data |
 
 As versões não precisam de variável: a imagem de build lê o Node do `.node-version` e o pnpm do `packageManager` (§17.10).
 

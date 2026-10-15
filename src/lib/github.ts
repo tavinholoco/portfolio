@@ -22,15 +22,37 @@ const REVALIDATE_SECONDS = 3600;
  * (§17.5). Com `GITHUB_TOKEN` (fine-grained, só leitura de repositório
  * público), o limite passa a ser da conta.
  */
-function githubHeaders(): HeadersInit {
+function githubHeaders(comToken = true): HeadersInit {
   const headers: Record<string, string> = {
     Accept: "application/vnd.github+json",
     "User-Agent": "pedrolevi-portfolio",
   };
-  if (process.env.GITHUB_TOKEN) {
+  if (comToken && process.env.GITHUB_TOKEN) {
     headers.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`;
   }
   return headers;
+}
+
+const REPOS_URL = `https://api.github.com/users/${GITHUB_USER}/repos?per_page=100&sort=updated`;
+
+/**
+ * Token vencido ou revogado faz a API responder 401 a toda chamada, e sem esta
+ * volta o fallback engoliria isso calado em todo build: as páginas de case
+ * sairiam sem linguagem e sem data, pior do que sem token nenhum (§17.16).
+ * No 401 a busca se repete sem o token, que é o limite por IP de antes, e o
+ * aviso fica no log do build.
+ */
+async function buscarRepos(): Promise<Response> {
+  const res = await fetch(REPOS_URL, {
+    next: { revalidate: REVALIDATE_SECONDS },
+    headers: githubHeaders(),
+  });
+  if (res.status !== 401 || !process.env.GITHUB_TOKEN) return res;
+  console.warn("GITHUB_TOKEN recusado pela API do GitHub (401): buscando sem ele. Troque o secret no Worker.");
+  return fetch(REPOS_URL, {
+    next: { revalidate: REVALIDATE_SECONDS },
+    headers: githubHeaders(false),
+  });
 }
 
 type GitHubRepo = {
@@ -77,13 +99,7 @@ export async function getFeaturedProjects(
   let repos: GitHubRepo[] = [];
 
   try {
-    const res = await fetch(
-      `https://api.github.com/users/${GITHUB_USER}/repos?per_page=100&sort=updated`,
-      {
-        next: { revalidate: REVALIDATE_SECONDS },
-        headers: githubHeaders(),
-      }
-    );
+    const res = await buscarRepos();
     if (res.ok) {
       repos = (await res.json()) as GitHubRepo[];
     }
