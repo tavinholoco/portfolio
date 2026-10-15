@@ -165,7 +165,7 @@ Captura as telas em `.captures/` (ignorada pelo git). Parametrizável por `LOOK_
 │                                 #   config própria, fora do CI
 ├── scripts/                      # o conserto pós-build do prefetch no Windows (§17.4)
 ├── wrangler.jsonc                # o Worker da Cloudflare: só assets, servindo out/
-├── vercel.json                   # congela a Vercel durante a migração; sai na fase E
+├── vercel.json                   # o vercel.app vira 308 para o domínio; sai na fase E
 └── PLANO-V3-PORTFOLIO.md         # o plano, as auditorias e as notas de cada fase
 ```
 
