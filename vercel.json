@@ -6,7 +6,7 @@
   "outputDirectory": "vercel-redirect",
   "redirects": [
     {
-      "source": "/:path*",
+      "source": "/:path(.*)",
       "destination": "https://pedrolevi.com.br/:path*",
       "permanent": true
     }
