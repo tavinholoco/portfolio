@@ -7,7 +7,7 @@
 > **Status:** ✅ **V3.5 no ar, com o passe de aperfeiçoamento fechado.** As 7 fases da v3 fechadas em 27/08/2026 (avaliação na seção 11), o refinamento **V3.5** mergeado pelo PR #4 em 6 rodadas de ajuste (avaliação na **§12.10**), e os **5 milestones da seção 13** mergeados pelo PR #7 em 31/08/2026 (fechamento na **§13.5**).
 >
 > **Produção:** https://pedrolevi.com.br, na Cloudflare desde 14/10/2026 (o `pedrolevi.vercel.app` responde 308 para lá).
-> **Última etapa:** a migração para a Cloudflare com o domínio próprio, feita nas seis fases da **§17**, medida na **§17.14** e medida de novo, sem o beacon de RUM da zona, na **§17.15**, que é por onde se retoma.
+> **Última etapa:** a migração para a Cloudflare com o domínio próprio, feita nas seis fases da **§17**, medida na **§17.14** medida de novo, sem o beacon de RUM da zona, na **§17.15**, e completada com o que o roteiro não previa (HSTS, TLS, email do domínio, renovação) na **§17.16**, que é por onde se retoma.
 > **Versão do documento:** V3.5
 
 ---
@@ -2508,13 +2508,14 @@ Nada aqui é segredo: são identificadores, não credenciais.
 | DNS | `AAAA pedrolevi.com.br 100::` (criado pelo domínio próprio) e `AAAA www 100::`, os dois com proxy. Desde a §17.13, também o `TXT` de verificação do Search Console no apex, que não pode sair |
 | Redirect Rule | id `5d77c2a7670b4d26b54577bd793db9c2`: `www` para `https://pedrolevi.com.br` + caminho, 301, preservando a query |
 | Configuration Rule | desde a §17.15: ruleset `8c622bf7063c46a79e9a7cda435e40ef` (entrypoint da fase `http_config_settings`), regra `f124bd4ccdbb45bd92dcd211d081bd52`: `http.host eq "pedrolevi.com.br"`, `set_config` com `disable_rum: true`. É o que tira o beacon de RUM do HTML |
-| Ajustes da zona | HTTP/3 **desligado** (§17.10), Always Use HTTPS ligado, Email Address Obfuscation desligado; Bot Fight Mode, bloqueio de IA, robots.txt gerenciado, Rocket Loader e Speed Brain desligados |
+| Email | desde a §17.16: Email Routing com `contato@pedrolevi.com.br` (regra `2945fbe077d44208b44a4b362226908c`) repassado para o gmail do Pedro; 3 MX, SPF e DKIM criados e travados pelo Email Routing; DMARC `p=reject` em `_dmarc` (`89649c68e1e18d83cb2757bd86a0ff7f`). Não apague nenhum deles |
+| Ajustes da zona | HTTP/3 **desligado** (§17.10), TLS mínimo 1.2 (§17.16), Always Use HTTPS ligado, Email Address Obfuscation desligado; Bot Fight Mode, bloqueio de IA, robots.txt gerenciado, Rocket Loader e Speed Brain desligados |
 | DNSSEC | `active`. DS no registro.br: 2371, 13, 2, `365A7C0513A3F1D7B743B71F384A8CFF6E5431A1CD443F2AA288F9E4B8237934` |
 
 #### Pendente com o Pedro, antes ou junto da fase E
 
 1. ~~**`CF_DEPLOY_HOOK`, com prazo**~~ **Feito em 14/10/2026, 23:47 UTC:** o Pedro criou o hook na `main` e o secret no repositório; `gh workflow run rebuild-semanal.yml` passou, e a Cloudflare abriu o build 5 s depois com `build_trigger_source: deploy_hook`, publicou no domínio e a conferência passou. O texto original: o `rebuild-semanal.yml` roda na **segunda, 19/10/2026, às 09:00 UTC**, e sem o secret ele falha (de propósito). No Worker: Settings, Builds, Deploy Hooks, criar um hook na `main` e copiar a URL. No GitHub: o repositório, Settings, Secrets and variables, Actions, New repository secret, nome `CF_DEPLOY_HOOK`. Depois, rodar o workflow à mão (aba Actions, "Rebuild semanal", Run workflow) e conferir que apareceu um build novo no Worker. Em 14/10 não existia hook nem secret nenhum no repositório.
-2. **`GITHUB_TOKEN`, sem prazo:** um token fine-grained no GitHub, só leitura de repositórios públicos; no Worker, Settings, Build, Variables and secrets, tipo **Secret**, nome `GITHUB_TOKEN`. Sem ele o build funciona, só arrisca o limite de 60 requisições por IP (§17.5). Credencial é com o Pedro: eu não digito token.
+2. **`GITHUB_TOKEN`, sem prazo** (a §17.16 revisou: basta na produção, e os passos estão lá): um token fine-grained no GitHub, só leitura de repositórios públicos; no Worker, Settings, Build, Variables and secrets, tipo **Secret**, nome `GITHUB_TOKEN`. Sem ele o build funciona, só arrisca o limite de 60 requisições por IP (§17.5). Credencial é com o Pedro: eu não digito token.
 
 #### A fase E, passo a passo
 
@@ -2799,4 +2800,93 @@ Em `.captures/laboratorio-praia/medicao/`, ignorada pelo git: `lh-cloudflare-pro
 #### O que falta
 
 1. **README do perfil e LinkedIn**, com o Pedro (§17.13).
-2. **`GITHUB_TOKEN`** no Worker, sem prazo (§17.12), nas duas configurações de build.
+2. **`GITHUB_TOKEN`** no Worker, sem prazo (§17.12). A §17.16 revisou: basta na produção.
+
+> **A revisão que veio depois desta seção está na §17.16**: o HSTS, o TLS mínimo, o email do domínio e a renovação, mais o que falta de tudo isso.
+
+### 17.16 Os pontos que o plano não cobria (15/10/2026)
+
+Depois da §17.15, uma revisão da §17 inteira contra o estado real (o repositório, a zona, a Vercel, o registro.br e o GitHub) achou quatro coisas que o roteiro não previa. O Pedro decidiu as quatro em 15/10/2026, e o que dava para fechar no mesmo dia foi fechado.
+
+#### O HSTS que a Vercel mandava
+
+A Vercel responde com `Strict-Transport-Security: max-age=63072000; includeSubDomains; preload` em tudo (ainda aparece no 308 do `vercel.app`). O domínio não mandava nada, e o HSTS da zona está desligado. É a família da lei 22: o que a Vercel fazia sozinha e o export deixou para trás, sem nada acusar. O Lighthouse não pega: a auditoria `has-hsts` tem peso 0, e o Best Practices continuou 100. Sem HSTS, o "Always Use HTTPS" da zona (§17.11) só redireciona o acesso por `http`; com ele, o navegador passa a ir direto para `https` nas visitas seguintes.
+
+- **A regra mora no `public/_headers`**, como manda a lei 22: `/*` com `Strict-Transport-Security: max-age=63072000; includeSubDomains`. Versionada e testada, ao contrário do ajuste da zona. Ela se soma às outras regras do arquivo, e o E2E prova isso.
+- **Sem `preload`, de propósito:** entrar na lista embutida dos navegadores é difícil de desfazer (sair leva meses), e é decisão do Pedro. O `includeSubDomains` cobre o `www`, que só redireciona e tem certificado.
+- O que a regra não alcança são as respostas da própria borda: o 301 de `http` (onde o navegador ignora HSTS de todo jeito) e o 301 do `www`, que o `includeSubDomains` do domínio cobre a partir da primeira visita.
+- **Testes:** em `src/lib/cloudflare-assets.test.ts`, a regra `/*` com pelo menos um ano, `includeSubDomains` e sem `preload`; controle negativo: sem a regra, e com `preload`, ele reprova. E um E2E novo, `e2e/cabecalhos.spec.ts`, contra o `wrangler dev`: o HSTS em três páginas dos dois idiomas, e somado ao `immutable` de um script de `_next/static` e ao `image/png` da imagem de link. Controle negativo: com a regra tirada do `out/_headers`, os dois reprovam (`Received has value: undefined`).
+- **Só vale em produção depois do merge.** O `confere-producao.mjs` passou a exigir o HSTS: rodado antes do merge, deu exatamente 18 falhas, todas de HSTS, uma por página do sitemap.
+
+#### O TLS mínimo
+
+A zona nasceu com `min_tls_version: 1.0`; a Vercel só aceita TLS 1.2 ou mais. **Trocado para 1.2 pela API às 12:49:20 UTC**, com OK do Pedro. No mesmo segundo a Cloudflare pediu e publicou um certificado novo da Let's Encrypt (log de auditoria da conta), sem queda. Conferido com `curl`: TLS 1.0 e 1.1 recusados no domínio e no `www`; 1.2 e 1.3 em 200.
+
+#### O email do domínio
+
+**Antes**, a zona não tinha registro de email nenhum: quem escrevesse para `@pedrolevi.com.br` recebia a mensagem de volta, e qualquer um podia mandar email se passando pelo domínio sem regra nenhuma contra (sem SPF e sem DMARC, o servidor de quem recebe não tem como recusar). Com o domínio no currículo e no LinkedIn, o risco concreto é golpe em nome do Pedro.
+
+Expliquei as duas saídas: só proteção (SPF `-all`, DMARC `reject` e MX nulo) ou receber num endereço do domínio. **O Pedro escolheu receber**, e foi pelo **Email Routing** da Cloudflare, que é grátis. Aplicado pela API entre 12:59 e 13:00 UTC:
+
+| O quê | Valor |
+|---|---|
+| Endereço | `contato@pedrolevi.com.br`, regra `2945fbe077d44208b44a4b362226908c`, repassa para `pedrolevidiass@gmail.com` |
+| Destino | `d8c0830a560c45169741da1c342292cd`. Veio **verificado na hora**, sem clique: é o mesmo email da conta da Cloudflare |
+| Outros endereços | O catch-all (`56c5db2190ea4a4d993bd8d4cc7adab1`) continua desligado: qualquer outro endereço do domínio é recusado |
+| Registros do Email Routing | 3 MX (`route1`, `route2` e `route3.mx.cloudflare.net`), o SPF `v=spf1 include:_spf.mx.cloudflare.net ~all` e o DKIM `cf2024-1._domainkey`. A Cloudflare os cria e os trava (`read_only`): só saem desligando o Email Routing |
+| DMARC | `_dmarc`, `v=DMARC1; p=reject; sp=reject; adkim=s; aspf=s`, id `89649c68e1e18d83cb2757bd86a0ff7f`, criado à parte, com comentário |
+
+- Conferido nos resolvedores da Cloudflare e do Google: MX, SPF, DMARC e DKIM respondem, todos com `AD` (DNSSEC validado). O TXT do Search Console continua lá.
+- A primeira tentativa de ligar o roteamento falhou com `2007: must be a subdomains of pedrolevi.com.br`: o `POST /zones/<zona>/email/routing/dns` só aceita `name` para subdomínio. Sem corpo, ele liga a raiz.
+- **O que isso não faz:** o Email Routing só recebe. A resposta sai do gmail, que é o normal. **Enviar "como" `@pedrolevi.com.br` por um serviço que não esteja no SPF é recusado pelo DMARC**, de propósito; se um dia o Pedro quiser enviar pelo domínio, o serviço de envio entra no SPF e assina DKIM antes.
+- O site continua mostrando o gmail. Trocar pelo `contato@` é decisão à parte: são os dois dicionários (`src/i18n/pt.ts` e `en.ts`), `src/data/profile.ts` e o PDF do currículo, e o `confere-producao.mjs` confere o gmail legível em `/contato/` e `/info/`.
+- **Falta o teste de entrega:** um email de outra conta para `contato@pedrolevi.com.br` (o Gmail costuma esconder a cópia que volta para o próprio remetente, então o teste é de outra conta).
+
+#### A renovação do domínio
+
+O domínio vence em **14/10/2027, 14:44 UTC** (RDAP). A ajuda oficial do registro.br ("Pagamento de domínio" e o tutorial "Emissão de cobrança") **não tem renovação automática**: o pagamento é manual, por Pix, cartão Visa ou Mastercard ou boleto, pelo botão PAGAR que aparece no período de renovação, e o aviso chega por email aos contatos do domínio 30 dias antes do vencimento. Dá para pagar de 1 a 10 anos de uma vez (5 anos por R$ 184, 10 por R$ 364, contra R$ 40 por ano). Sem o pagamento o domínio é congelado, e o site, o `contato@` e a verificação do Search Console caem juntos.
+
+- **O lembrete:** uma tarefa agendada no app do Claude, `renovar-dominio-pedrolevi`, única, em **01/09/2027 às 09:00** (Brasília). Ela confere o RDAP e, se o vencimento ainda for 14/10/2027, explica como pagar; não entra na conta. Só dispara com o app aberto, ou na próxima vez que ele abrir. Foi salva no modo Auto, o da sessão.
+- O email de cadastro no registro.br tem de estar em dia: é para ele que vai o aviso dos 30 dias.
+
+#### O `GITHUB_TOKEN`, e o que acontece quando ele vence
+
+O token continua sem existir, e hoje isso não custou nada: as páginas de case em produção têm o dado do GitHub ("atualizado out. de 2026 · TypeScript"). Mas a revisão achou um defeito que só apareceria **depois** de criar o token: **token vencido ou revogado faz a API responder 401, e o fallback engolia isso calado em todo build**, com as páginas de case sem linguagem e sem data, pior do que sem token nenhum. Corrigido em `src/lib/github.ts`: no 401, com token, a busca se repete sem ele (o limite por IP de antes) e um aviso sai no log do build. Teste novo em `src/lib/github.test.ts`, com controle negativo (sem a volta, reprova), e outro provando que sem token um 401 não gera segunda chamada.
+
+**Revisão da §17.12:** o token basta na produção. Numa prévia, sem ele, o pior caso é o case sair sem linguagem; e as prévias têm configuração própria, que teria de ser mantida à parte (§17.13). Os passos, que são do Pedro (credencial não passa por mim):
+
+1. GitHub, Settings, Developer settings, Personal access tokens, **Fine-grained tokens**, Generate new token.
+2. Nome `cloudflare-build-portfolio`, dono `tavinholoco`, **Repository access: Public repositories** (só leitura) e nenhuma permissão a mais. Validade: a maior que o GitHub oferecer, anotando a data. O GitHub também apaga token sem uso por um ano, o que o build semanal evita.
+3. Cloudflare, Workers & Pages, `portfolio`, Settings, Build, **Variables and secrets**, Add: tipo **Secret**, nome `GITHUB_TOKEN`, o valor colado.
+4. Depois, eu confiro pela API que o nome aparece no gatilho (o valor fica oculto) e disparo um rebuild.
+
+Quando o token vencer, o build continua com o dado (pela volta acima), e o log avisa.
+
+#### O bug do Windows no Next
+
+A §17.9 deixou para o Pedro decidir se abria uma issue. **Não precisa: ela existe.** É a [vercel/next.js#85374](https://github.com/vercel/next.js/issues/85374), aberta desde 26/10/2025, com 17 comentários; a #92339 foi fechada como duplicada dela. E há um conserto proposto, o [vercel/next.js#92340](https://github.com/vercel/next.js/pull/92340), aberto desde 04/04/2026 e esperando revisão. O bug continua no 16.4.1 (a versão estável de hoje) e no 16.5.0-canary.13: o `collectSegmentPaths` ainda usa `path.relative`, e o `convertSegmentPathToStaticExportFilename` só troca a barra normal. O `scripts/achata-prefetch-windows.mjs` fica até o conserto entrar numa versão; ao atualizar o Next, o controle negativo da §17.9 (buildar só com `next build` e rodar o E2E de movimento reduzido no Windows) diz se ele já pode sair.
+
+#### O rebuild semanal e o limite de 60 dias
+
+O `rebuild-semanal.yml` só rodou à mão até aqui (14/10, `workflow_dispatch`); **o primeiro agendado é segunda, 19/10/2026, 09:00 UTC**. O GitHub desliga workflow agendado de repositório público depois de 60 dias sem atividade, e a §17.6 só registrou isso. Não há contorno aceitável: o remédio conhecido, o `gautamkrishnar/keepalive-workflow`, foi **desativado pelo próprio GitHub por violar os termos de uso**. O efeito, se acontecer, é limitado: o site continua no ar com o dado do último build, qualquer commit na `main` zera o prazo, e reativar é um clique na aba Actions (ou `gh workflow enable rebuild-semanal.yml`).
+
+#### A conferência de produção, agora como navegador
+
+O `confere-producao.mjs` (local, em `.captures/laboratorio-praia/medicao/`) buscava sem user agent de navegador, e foi por isso que o beacon da §17.14 passou pelas fases D e E. Agora ele busca como um Chrome e exige, em cada página do sitemap: nada de `cloudflareinsights` nem `/cdn-cgi/rum`; o HTML do navegador **idêntico** ao que sai sem user agent de navegador (a borda não injeta nada); e o HSTS.
+
+#### Conferido e sem problema
+
+As menções à Vercel que sobraram no repositório são demos de clientes e comentários de histórico. O campo de site do repositório aponta para o domínio, o `CF_DEPLOY_HOOK` existe, o DNSSEC está validado, os ajustes da §17.5 seguem desligados e o HTTP/3 também. Antes da migração o site não usava o analytics da Vercel, então nada se perdeu ali.
+
+#### Verificação
+
+`pnpm lint` e `pnpm typecheck` limpos, **195 unitários** (192 + o HSTS + os dois do token) e **168 E2E** (166 + os dois de cabeçalho) contra o `wrangler dev`, no Windows.
+
+#### O que falta
+
+1. **O merge do PR desta seção**, e depois `node .captures/laboratorio-praia/medicao/confere-producao.mjs https://pedrolevi.com.br`, que tem de passar inteiro, HSTS incluído.
+2. **O teste do `contato@`**, de outra conta (Pedro).
+3. **O `GITHUB_TOKEN`**, pelos passos acima (Pedro), e eu confiro.
+4. **O rebuild de segunda, 19/10**: conferir que o agendamento rodou e publicou.
+5. **README do perfil e LinkedIn**, com o Pedro (§17.13).
+6. **A renovação do domínio**, em setembro de 2027, com o lembrete.

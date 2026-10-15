@@ -3,6 +3,14 @@
 # Com output: "export" o Next não manda cabeçalho nenhum: tudo o que a
 # Vercel dava de graça e o site depende está aqui.
 
+# HSTS: a Vercel mandava em toda resposta, e a migração o perdeu calada
+# (§17.16). Sem ele o "Always Use HTTPS" da zona só redireciona o primeiro
+# acesso por http; com ele o navegador passa a ir direto para https. Vale para
+# todo caminho e se soma às regras abaixo. Sem preload de propósito: entrar na
+# lista dos navegadores é difícil de desfazer, e é decisão do Pedro.
+/*
+  Strict-Transport-Security: max-age=63072000; includeSubDomains
+
 # Lei 19: asset com hash no nome nunca muda. Sem esta regra a Cloudflare
 # entrega max-age=0, must-revalidate, e o navegador revalida a cada visita.
 /_next/static/*

@@ -127,5 +127,46 @@ describe("getFeaturedProjects", () => {
       await getFeaturedProjects(featured, "pt");
       expect(cabecalhosDaChamada()).not.toHaveProperty("Authorization");
     });
+
+    /*
+     * Token vencido: a primeira chamada leva 401, e a segunda, sem o token,
+     * traz o dado. Sem a volta, o case sairia sem linguagem em todo build, e
+     * o build passaria (§17.16).
+     */
+    it("com o token recusado (401), busca de novo sem ele e o dado chega", async () => {
+      process.env.GITHUB_TOKEN = "github_pat_vencido";
+      const comDado = await mockFetchResponse(true, [
+        {
+          name: "newra-news",
+          description: null,
+          html_url: "https://github.com/tavinholoco/newra-news",
+          homepage: null,
+          language: "TypeScript",
+          stargazers_count: 0,
+          pushed_at: "2026-04-10T12:00:00Z",
+        },
+      ])();
+      const fetchMock = vi
+        .fn()
+        .mockResolvedValueOnce({ ok: false, status: 401, json: () => Promise.resolve({}) })
+        .mockResolvedValueOnce(comDado);
+      vi.stubGlobal("fetch", fetchMock);
+      const aviso = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+      const [project] = await getFeaturedProjects(featured, "pt");
+
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+      expect(fetchMock.mock.calls[1][1].headers).not.toHaveProperty("Authorization");
+      expect(project.language).toBe("TypeScript");
+      expect(aviso).toHaveBeenCalledOnce();
+      aviso.mockRestore();
+    });
+
+    it("sem token, um 401 não gera segunda chamada", async () => {
+      const fetchMock = mockFetchResponse(false, {}, 401);
+      vi.stubGlobal("fetch", fetchMock);
+      await getFeaturedProjects(featured, "pt");
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
   });
 });

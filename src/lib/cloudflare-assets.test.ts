@@ -81,6 +81,22 @@ describe("public/_redirects e public/_headers da Cloudflare", () => {
     expect(regra!.join("\n")).toMatch(/^Cache-Control: .*max-age=31536000.*immutable/m);
   });
 
+  /*
+   * A Vercel mandava HSTS sozinha, e a migração o perdeu sem nada acusar
+   * (§17.16). A regra vale para todo caminho, com pelo menos um ano, e cobre
+   * o www. O preload fica de fora até o Pedro decidir: sair da lista dos
+   * navegadores leva meses.
+   */
+  it("o _headers manda HSTS em todo caminho, sem preload", () => {
+    const regra = regrasDeCabecalho().get("/*");
+    expect(regra, "falta a regra /* com o HSTS").toBeDefined();
+    const hsts = regra!.find((c) => c.startsWith("Strict-Transport-Security:"));
+    expect(hsts, "a regra /* não manda Strict-Transport-Security").toBeDefined();
+    expect(Number(/max-age=(\d+)/.exec(hsts!)?.[1])).toBeGreaterThanOrEqual(31536000);
+    expect(hsts).toMatch(/includeSubDomains/);
+    expect(hsts).not.toMatch(/preload/i);
+  });
+
   it("o _headers tira do índice o workers.dev e as prévias", () => {
     const workersDev = [...regrasDeCabecalho()].find(([padrao]) =>
       /^https:\/\/:\w+\.:\w+\.workers\.dev\/\*$/.test(padrao)
