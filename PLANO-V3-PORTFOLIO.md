@@ -6,8 +6,8 @@
 > **Referência de inspiração:** [p5aholic.me](https://p5aholic.me) (Keita Yamada). Inspiração estrutural, **não cópia**. Ver seção 0.3.
 > **Status:** ✅ **V3.5 no ar, com o passe de aperfeiçoamento fechado.** As 7 fases da v3 fechadas em 27/08/2026 (avaliação na seção 11), o refinamento **V3.5** mergeado pelo PR #4 em 6 rodadas de ajuste (avaliação na **§12.10**), e os **5 milestones da seção 13** mergeados pelo PR #7 em 31/08/2026 (fechamento na **§13.5**).
 >
-> **Produção:** https://pedrolevi.vercel.app
-> **Próxima etapa:** a migração para a Cloudflare com o domínio `pedrolevi.com.br`, analisada e testada em 14/10/2026 e ainda não feita. Comece pela **§17**.
+> **Produção:** https://pedrolevi.com.br, na Cloudflare desde 14/10/2026 (o `pedrolevi.vercel.app` responde 308 para lá).
+> **Última etapa:** a migração para a Cloudflare com o domínio próprio, feita nas seis fases da **§17** e medida na **§17.14**, que é por onde se retoma.
 > **Versão do documento:** V3.5
 
 ---
@@ -2527,6 +2527,8 @@ A ordem importa: o `vercel.json` só sai do repositório **depois** de o Git da 
 
 #### A fase F, depois da E
 
+> **Feita em 15/10/2026, na §17.14:** empatou com a Vercel, e achou o beacon de RUM que a zona injeta.
+
 Lighthouse no domínio, pelo método da §16.7: mobile com `node .captures/laboratorio-praia/medicao/lh.cjs https://pedrolevi.com.br cloudflare-prod` (5 rotas, mediana de 3, `simulate`), e desktop com `--preset=desktop`. **Conferir no JSON que o protocolo é `h2`** (`network-requests`), senão a nota não é comparável (§17.10). A base é a da §16.9: 97 a 100 no mobile, 99 a 100 no desktop, LCP no link do header. Depois: a tabela do README e os comandos de Lighthouse dele (ainda apontam para `vercel.app`), o "Estado" do CLAUDE.md, e a memória.
 
 #### Ferramentas locais desta seção
@@ -2624,4 +2626,110 @@ Nota de Lighthouse na prévia não se compara com a do domínio, porque o `worke
 
 1. **README do perfil e LinkedIn**, com o Pedro, quando ele puder (acima).
 2. **`GITHUB_TOKEN`** no Worker: o Pedro deixou para depois, sem prazo (§17.12). Se entrar, entra nas duas configurações de build, a de produção e a das prévias.
-3. **Fase F**, pela §17.12: Lighthouse no domínio, conferindo `h2` no JSON.
+3. ~~**Fase F**, pela §17.12: Lighthouse no domínio, conferindo `h2` no JSON.~~ **Feita, na §17.14.**
+
+### 17.14 Fase F: a medição no domínio (15/10/2026)
+
+Lighthouse 13.4.1 contra https://pedrolevi.com.br, em 15/10/2026 entre 01:33 e 01:39 UTC (22:33 a 22:39 de 14/10 em Brasília), com o `chrome.exe` do Playwright (`chromium-1234`), `simulate`, mediana de 3 por rota, pelo `lh.cjs` da §17.12. Mobile com `--only-categories=performance`; desktop com `--preset=desktop` e as quatro categorias, como na §16.9. O `lh.cjs` passou a conferir o `formFactor` e a guardar, de cada rodada, o protocolo por host (audit `network-requests`) e o elemento de LCP.
+
+- **`h2` em todas as requisições das 30 rodadas**, nos dois hosts que aparecem: o domínio e `static.cloudflareinsights.com` (o segundo é novidade, e é o assunto desta seção). Nenhum `h3`: o `http3: off` da zona (§17.11) segura o Lighthouse no mesmo protocolo da Vercel, e a nota é comparável.
+- **O elemento de LCP é o link "Pedro Levi" do header nas 30 rodadas** (`header.pointer-events-none > div.flex > div.flex > a.focus-ring`), o mesmo da §16.9.
+
+#### Mobile
+
+| Rota | Perf | Spread | LCP | TBT | CLS | FCP | Speed Index | Vercel (§16.9) |
+|---|---|---|---|---|---|---|---|---|
+| `/` | **99** | 95 a 99 | 1832 ms | 46 ms | 0 | 1573 ms | 2136 ms | 100 |
+| `/clientes/` | **99** | 98 a 99 | 1980 ms | 26 ms | 0 | 1571 ms | 2055 ms | 98 |
+| `/projetos/` | **98** | 94 a 98 | 2181 ms | 37 ms | 0 | 1623 ms | 2136 ms | 97 |
+| `/info/` | **99** | 99 a 99 | 1834 ms | 45 ms | 0 | 1574 ms | 2095 ms | 99 |
+| `/contato/` | **99** | 98 a 99 | 1974 ms | 41 ms | 0 | 1569 ms | 2105 ms | 99 |
+
+#### Desktop
+
+| Rota | Perf | Spread | LCP | TBT | CLS | FCP | Speed Index | A11y, BP, SEO | Vercel (§16.9) |
+|---|---|---|---|---|---|---|---|---|---|
+| `/` | **99** | 99 a 99 | 353 ms | 0 ms | 0 | 273 ms | 1147 ms | 100, 100, 100 | 99 |
+| `/clientes/` | **99** | 99 a 99 | 472 ms | 0 ms | 0 | 470 ms | 1218 ms | 100, 100, 100 | 100 |
+| `/projetos/` | **99** | 99 a 99 | 507 ms | 0 ms | 0 | 462 ms | 1216 ms | 100, 100, 100 | 100 |
+| `/info/` | **99** | 99 a 99 | 479 ms | 0 ms | 0 | 479 ms | 1233 ms | 100, 100, 100 | 100 |
+| `/contato/` | **99** | 99 a 100 | 473 ms | 0 ms | 0 | 472 ms | 1233 ms | 100, 100, 100 | 100 |
+
+Acessibilidade, Best Practices e SEO em 100 nas 15 rodadas de desktop, já no domínio, onde o `noindex` não vale (o SEO não se media no `workers.dev`, §17.5).
+
+**A nota empata: 98 a 99 no mobile contra 97 a 100 na Vercel, 99 no desktop contra 99 a 100**, com TBT um pouco mais baixo (26 a 46 ms, eram 37 a 65) e CLS zero. Só que duas colunas mudaram de patamar, e não por ruído: **o FCP simulado do mobile foi de ~0.91 s para ~1.57 s nas 15 rodadas, e o Speed Index de ~1.85 s para ~2.1 s.** Na Vercel, no `workers.dev` com HTTP/2 forçado e no `workers.dev` com HTTP/3, o FCP simulado ficava em 0.90 a 1.0 s em todas as rodadas.
+
+#### A causa: o beacon de RUM que a Cloudflare injeta na zona
+
+Toda rodada no domínio traz duas requisições que o site não faz: `https://static.cloudflareinsights.com/beacon.min.js/...` (10 KB, `type="module"`, com `integrity`) e um `POST /cdn-cgi/rum`. É o **Real User Monitoring** (o Web Analytics) da Cloudflare, que a borda injeta no HTML de todas as páginas da zona:
+
+- **Não está no build:** `out/` não tem `cloudflareinsights` em lugar nenhum, o `workers.dev` não recebe o script, e as medições da Vercel (§16.9) e da fase B (§17.10) não têm a requisição.
+- **Ninguém ligou:** a documentação da Cloudflare diz que **zona no plano Free nasce com o RUM ligado**, com o tráfego do EEE, do Reino Unido e da Suíça excluído, e que dá para desligar ([Observatory](https://developers.cloudflare.com/speed/observatory/), [RUM beacon](https://developers.cloudflare.com/speed/observatory/rum-beacon/)). A §17.5 dizia "não ligar o Web Analytics"; ele já vinha ligado.
+- **A API não mostra:** `GET /zones/<zona>/settings/rum` responde `off`, e a conta não tem nenhum site de Web Analytics (`GET /accounts/<conta>/rum/site_info/list` vazio). Mesmo assim, as 18 páginas do sitemap e a `/nao-existe/` saem com o script.
+- **Só aparece com navegador:** o `curl` com o user agent padrão recebe o HTML sem o script; com o de um Chrome, recebe com. É por isso que a conferência das fases D e E (`confere-producao.mjs`, que busca sem user agent de navegador) não pegou.
+
+**Por que o Lantern cobra:** o `hasRenderBlockingPriority()` de `lantern/graph/NetworkNode.js` trata **todo script com prioridade `High` como bloqueante de renderização**, e o Chrome pede módulo com `High`. Os dois grafos do FCP (`lantern/metrics/FirstContentfulPaint.js`) levam os nós bloqueantes que **terminaram antes da primeira pintura observada**, e o beacon entra nos dois, porque é inserido no HTML e não por outro script. Na rodada real ele chega quase junto com a primeira pintura (os dois em ~150 a 250 ms na maioria das rodadas, e até ~600 ms em algumas): quando ele chega antes, a simulação paga uma conexão nova para outra origem (DNS, TCP e TLS, a 150 ms de RTT cada ida e volta) antes de pintar, e o FCP simulado sobe ~650 ms. Quando a pintura ganha a corrida, ele fica de fora: foi isso a rodada de 924 ms do A/B abaixo. O LCP e o Speed Index herdam parte do atraso.
+
+**O visitante não paga isso:** módulo é adiado por definição e não segura a pintura. O FCP observado ficou no mesmo intervalo de antes (160 a 600 ms, contra 159 a 746 ms na Vercel), e o LCP observado, que é o mesmo quadro, também. É a mesma família do HTTP/3 da §17.10: modelagem do simulador, não site mais lento. Mas é a nota que o PageSpeed mostra.
+
+#### Bloquear a URL não mede, e o contrafactual que mede
+
+A primeira tentativa foi um A/B com o beacon bloqueado pelo próprio Lighthouse (`--blocked-url-patterns=*static.cloudflareinsights.com*`, `lh-ab-rum.cjs`). **Não serve:** nas 8 rodadas bloqueadas o FCP simulado ficou em ~1.56 s, igual. A requisição bloqueada continua no log de rede como falha, e o Lighthouse monta o grafo com as requisições que falharam também (em `core/computed/page-dependency-graph.js`, o filtro que tiraria as falhas está comentado). O A/B foi interrompido.
+
+O que mede é o **contrafactual pareado** (`lh-contrafactual-rum.cjs`): cada rodada é coletada uma vez (`--gather-mode`) e simulada duas (`--audit-mode`), uma com o log de rede original e outra com o log sem as requisições de `static.cloudflareinsights.com` e de `/cdn-cgi/rum`. Mesmo carregamento, mesma rede, só o beacon a menos. Rodado entre 01:44 e 01:53 UTC:
+
+**Mobile**, 15 coletas (3 por rota), mediana:
+
+| Rota | Com o beacon | Sem o beacon | FCP com / sem | LCP com / sem | Speed Index com / sem |
+|---|---|---|---|---|---|
+| `/` | **99** (99 a 99) | **100** (100 a 100) | 1581 / 937 ms | 1834 / 1387 ms | 2127 / 1870 ms |
+| `/clientes/` | **99** (99 a 99) | **100** (100 a 100) | 1593 / 946 ms | 1996 / 1546 ms | 2106 / 1848 ms |
+| `/projetos/` | **97** (93 a 98) | **99** (97 a 100) | 1574 / 932 ms | 2131 / 1682 ms | 2070 / 1813 ms |
+| `/info/` | **99** (99 a 99) | **100** (100 a 100) | 1579 / 935 ms | 1833 / 1385 ms | 2100 / 1843 ms |
+| `/contato/` | **95** (93 a 96) | **98** (97 a 98) | 1577 / 932 ms | 2735 / 2287 ms | 2321 / 2066 ms |
+
+**Em cada uma das 15 coletas, sem o beacon: +1 a +4 pontos**, FCP de 635 a 647 ms menor, LCP de 446 a 600 ms menor, Speed Index ~255 ms menor, TBT igual. Sem ele, o FCP volta aos ~0.93 s da Vercel e o Speed Index aos ~1.85 s. `/contato/` deu 95 aqui e 99 na medição de cima porque o LCP dela mudou de patamar entre uma medição e outra (1.8 a 2.0 s na de cima, 2.7 a 3.0 s nesta, sempre no link do header), como o de `/projetos/` na §16.9; é por isso que o contrafactual compara dentro da mesma coleta, e não entre medições.
+
+**Desktop**, 15 coletas, mediana:
+
+| Rota | Com o beacon | Sem o beacon | FCP com / sem | LCP com / sem | Speed Index com / sem |
+|---|---|---|---|---|---|
+| `/` | **98** (98 a 99) | **99** (99 a 99) | 479 / 278 ms | 668 / 521 ms | 1377 / 1280 ms |
+| `/clientes/` | **99** (98 a 99) | **99** (99 a 99) | 469 / 269 ms | 667 / 509 ms | 1369 / 1273 ms |
+| `/projetos/` | **99** (98 a 99) | **99** (99 a 99) | 477 / 275 ms | 678 / 555 ms | 1372 / 1274 ms |
+| `/info/` | **98** (98 a 99) | **99** (99 a 99) | 478 / 271 ms | 631 / 510 ms | 1383 / 1284 ms |
+| `/contato/` | **99** (99 a 99) | **99** (99 a 99) | 468 / 270 ms | 589 / 510 ms | 1372 / 1275 ms |
+
+No desktop o beacon custa **0 a 1 ponto** (FCP ~200 ms, LCP 80 a 160 ms, Speed Index ~100 ms), e **sem ele o desktop continua em 99**, não volta aos 100 da Vercel. O ponto que falta é o Speed Index, que fica entre 1.24 e 1.41 s sem o beacon. Nas 45 rodadas de desktop desta seção, a nota só chega a 100 com ele abaixo de ~1.13 s (a de 1128 ms deu 100, com nota 0.95 no Speed Index; a de 1151 ms deu 99, com 0.94), e a página só fica visualmente completa quando a cortina da abertura sai (§16.9). A Vercel dava 100 em quatro rotas com a mesma abertura, mas as rodadas de desktop da §16.9 não foram guardadas, então não há Speed Index de lá para comparar; a diferença é de 1 ponto, no componente que a abertura domina, e não muda a leitura.
+
+#### O veredito
+
+**A Cloudflare empata com a Vercel.** Com o site como ele é servido hoje, beacon incluído: 98 a 99 no mobile (eram 97 a 100) e 99 no desktop (eram 99 a 100), A11y, BP e SEO em 100, CLS zero, TBT igual ou menor, o mesmo elemento de LCP nas 30 rodadas, e tudo em `h2`. A única diferença sistemática é o beacon, e o contrafactual mostra que, sem ele, o mobile fica em **98 a 100**, contra os 97 a 100 da Vercel. A migração não deixou o site mais lento para ninguém, e a nota é comparável com a de antes.
+
+#### Decisão do Pedro: o beacon de RUM
+
+O que ele dá: Core Web Vitals de visitantes reais (de fora do EEE, do Reino Unido e da Suíça), no painel da Cloudflare, sem cookie. O que ele custa: uma requisição a outra origem e um `POST` em toda visita, e 1 a 4 pontos no Lighthouse e no PageSpeed mobile, que são a nota que o README mostra e a que quem avalia o portfólio vê.
+
+**Recomendação: desligar**, que é o que a §17.5 já previa ("não ligar o Web Analytics, injeta script"), e o site não usa esse dado. Como, com o OK do Pedro:
+
+- O ajuste da zona não serve de interruptor: `GET /zones/<zona>/settings/rum` já responde `off` e o script sai mesmo assim.
+- **O caminho que eu recomendo é uma Configuration Rule** na zona, `http.host eq "pedrolevi.com.br"` com `disable_rum: true`, pela API. A documentação diz que ela tem precedência sobre qualquer regra de Web Analytics ([Configuration Rules](https://developers.cloudflare.com/rules/configuration-rules/settings/)), o plano Free tem 10 dessas regras e a zona não usa nenhuma, e ela fica registrada aqui como o resto da zona.
+- A alternativa é o painel (Web Analytics, "Manage Site" no `pedrolevi.com.br`, desligar), mas a conta não lista nenhum site lá pela API, e o estado do interruptor não aparece em lugar nenhum que eu consiga conferir.
+- Conferência depois: `curl` com user agent de Chrome nas 18 páginas sem `cloudflareinsights`, e o `lh.cjs` de novo, que deve ficar perto da coluna "sem o beacon" acima.
+
+Se o Pedro preferir manter o RUM, a nota fica como está nesta seção, e toda medição futura tem de dizer que o beacon estava lá (lei 18).
+
+#### Ferramentas desta seção
+
+Em `.captures/laboratorio-praia/medicao/`, ignorada pelo git:
+
+- `lh.cjs`: com `LH_PRESET=desktop` mede o desktop com as quatro categorias; confere `throttlingMethod` e `formFactor`; guarda o protocolo por host e o elemento de LCP de cada rodada em `resumo.json`. O elemento de LCP mora em `lcp-breakdown-insight` no Lighthouse 13, em profundidade variável: o `largest-contentful-paint-element` não existe mais.
+- `lh-contrafactual-rum.cjs <url> <rótulo>`: o contrafactual pareado (coleta com `--gather-mode`, simula com `--audit-mode` duas vezes), `LH_PRESET=desktop` para o desktop. Serve para medir o custo de qualquer requisição sem tirá-la de produção: é só trocar o filtro `ehRum`.
+- `lh-ab-rum.cjs`: o A/B com `--blocked-url-patterns`, guardado como registro de que bloquear não mede.
+- Rodadas desta seção: `lh-cloudflare-prod/`, `lh-cloudflare-prod-desktop/`, `lh-contrafactual-rum-mobile/`, `lh-contrafactual-rum-desktop/` e `lh-ab-rum-mobile/`.
+
+#### O que falta
+
+1. **A decisão do RUM** (acima), e a medição de novo se ele sair.
+2. **README do perfil e LinkedIn**, com o Pedro (§17.13).
+3. **`GITHUB_TOKEN`** no Worker, sem prazo (§17.12), nas duas configurações de build.
