@@ -2466,7 +2466,7 @@ A prova, no mesmo `workers.dev`, intercalando o Chrome padrão com o Chrome for�
 
 1. O que está esperando o Pedro: os secrets `GITHUB_TOKEN` (no Worker) e `CF_DEPLOY_HOOK` (no repositório; até lá o `rebuild-semanal.yml` fica vermelho), e três decisões: Always Use HTTPS, HTTP/3 no domínio, e o OK para o DNSSEC.
 2. A fase D vira um PR de código: `routes` com `custom_domain: true` no `wrangler.jsonc` (versionado, em vez de pelo painel), a variável `NEXT_PUBLIC_SITE_URL` trocada para `https://pedrolevi.com.br` **antes** do merge, o `www` com `AAAA 100::` e a Redirect Rule, e a conferência com o `confere-producao.mjs` apontado para o domínio. No domínio a regra de `noindex` não vale, então a conferência tem de inverter essa asserção.
-3. Só o gatilho de produção existe; prévias de branch não foram ligadas no painel.
+3. Só o gatilho de produção existe; prévias de branch não foram ligadas no painel. **Errado, corrigido na §17.13:** o Worker veio com `previews_enabled: true`, e as prévias falham em todo PR na guarda da lei 23.
 
 ### 17.11 Fase D: o domínio no ar (14/10/2026)
 
@@ -2491,6 +2491,8 @@ O Pedro decidiu as quatro pendências da §17.10, e tudo foi aplicado pela API a
 
 ### 17.12 O estado em 14/10/2026 e como retomar pela fase E
 
+> **A fase E está feita, na §17.13**, e o passo 1 dela saiu diferente do que está abaixo: o painel da Vercel não redireciona para domínio de fora do projeto, e o 308 foi pelo `vercel.json`. O `CF_DEPLOY_HOOK` também está feito (14/10, 23:47 UTC). O inventário da conta e a fase F continuam valendo daqui.
+
 **O site está no ar em https://pedrolevi.com.br desde 14/10/2026, 23:22 UTC**, servido pela Cloudflare a partir da `main`. O PR #27 (23:38 UTC) foi o último deploy, e a conferência das 18 páginas (`confere-producao.mjs`) passou inteira depois dele. **As fases A a D estão feitas**, a C inclusive com o DNSSEC validado. O `pedrolevi.vercel.app` continua em 200, servindo a versão de antes da migração, congelada pelo `vercel.json`.
 
 #### Inventário na Cloudflare
@@ -2501,7 +2503,7 @@ Nada aqui é segredo: são identificadores, não credenciais.
 |---|---|
 | Conta | `fd64386c78c6bb5bbfc8ffa08c2c6ca5`, subdomínio `workers.dev`: `pedrolevidiass` |
 | Worker | `portfolio`, tag `e5de41a4bc0c4ac38fe216d86e351574`, em https://portfolio.pedrolevidiass.workers.dev (`noindex`, HTTP/3) e em `pedrolevi.com.br` (domínio próprio, pelo `routes` do `wrangler.jsonc`) |
-| Gatilho de build | `915cba66-1150-44be-8b9a-1f8b5015fe16`, branch `main`, `pnpm build` e `npx wrangler deploy`. Variável: `NEXT_PUBLIC_SITE_URL=https://pedrolevi.com.br`. Cache de build ligado. Sem gatilho de prévia |
+| Gatilho de build | `915cba66-1150-44be-8b9a-1f8b5015fe16`, branch `main`, `pnpm build` e `npx wrangler deploy`. Variável: `NEXT_PUBLIC_SITE_URL=https://pedrolevi.com.br`. Cache de build ligado. Prévias de branch ligadas desde a §17.13 (`npx wrangler preview`, configuração de build própria, com a mesma variável) |
 | Zona | `pedrolevi.com.br`, id `541ef630eb330536969e435487469f3b`, Free, servidores `damien` e `sunny.ns.cloudflare.com` |
 | DNS | `AAAA pedrolevi.com.br 100::` (criado pelo domínio próprio) e `AAAA www 100::`, os dois com proxy |
 | Redirect Rule | id `5d77c2a7670b4d26b54577bd793db9c2`: `www` para `https://pedrolevi.com.br` + caminho, 301, preservando a query |
@@ -2510,7 +2512,7 @@ Nada aqui é segredo: são identificadores, não credenciais.
 
 #### Pendente com o Pedro, antes ou junto da fase E
 
-1. **`CF_DEPLOY_HOOK`, com prazo:** o `rebuild-semanal.yml` roda na **segunda, 19/10/2026, às 09:00 UTC**, e sem o secret ele falha (de propósito). No Worker: Settings, Builds, Deploy Hooks, criar um hook na `main` e copiar a URL. No GitHub: o repositório, Settings, Secrets and variables, Actions, New repository secret, nome `CF_DEPLOY_HOOK`. Depois, rodar o workflow à mão (aba Actions, "Rebuild semanal", Run workflow) e conferir que apareceu um build novo no Worker. Em 14/10 não existia hook nem secret nenhum no repositório.
+1. ~~**`CF_DEPLOY_HOOK`, com prazo**~~ **Feito em 14/10/2026, 23:47 UTC:** o Pedro criou o hook na `main` e o secret no repositório; `gh workflow run rebuild-semanal.yml` passou, e a Cloudflare abriu o build 5 s depois com `build_trigger_source: deploy_hook`, publicou no domínio e a conferência passou. O texto original: o `rebuild-semanal.yml` roda na **segunda, 19/10/2026, às 09:00 UTC**, e sem o secret ele falha (de propósito). No Worker: Settings, Builds, Deploy Hooks, criar um hook na `main` e copiar a URL. No GitHub: o repositório, Settings, Secrets and variables, Actions, New repository secret, nome `CF_DEPLOY_HOOK`. Depois, rodar o workflow à mão (aba Actions, "Rebuild semanal", Run workflow) e conferir que apareceu um build novo no Worker. Em 14/10 não existia hook nem secret nenhum no repositório.
 2. **`GITHUB_TOKEN`, sem prazo:** um token fine-grained no GitHub, só leitura de repositórios públicos; no Worker, Settings, Build, Variables and secrets, tipo **Secret**, nome `GITHUB_TOKEN`. Sem ele o build funciona, só arrisca o limite de 60 requisições por IP (§17.5). Credencial é com o Pedro: eu não digito token.
 
 #### A fase E, passo a passo
@@ -2535,3 +2537,83 @@ Em `.captures/laboratorio-praia/medicao/`, ignorada pelo git:
 - `lh-ab-hosts.cjs <hostA> <hostB> <rótulo>`: o portão, dois hosts intercalados rodada a rodada.
 - `lh-ab-flags.cjs`: o mesmo, com flag do Chrome por lado (`"url|--disable-quic"`).
 - `compara-rodadas.cjs <json>...`: LCP, elemento, fases e cascata de rede de cada rodada.
+
+### 17.13 Fase E: o `vercel.app` redireciona (14/10/2026)
+
+**O `pedrolevi.vercel.app` responde 308 para o mesmo caminho em `https://pedrolevi.com.br`**, com a query preservada, desde 15/10/2026, 00:24 UTC (21:24 de 14/10 em Brasília). O Git da Vercel está desconectado e o `vercel.json` saiu do repositório. As prévias de branch da Cloudflare, que falhavam em todo PR, foram ligadas de verdade. Faltam o Search Console e os links que são do Pedro.
+
+#### Por que pelo `vercel.json`, e não pelo painel
+
+O passo 1 da §17.12 previa o redirecionamento no painel (Settings, Domains, Edit). Só que o "Redirect to" do painel lista apenas domínios do próprio projeto da Vercel: para usá-lo, o `pedrolevi.com.br` teria de entrar no projeto de lá, onde ficaria como "Invalid Configuration", com o DNS na Cloudflare. A regra de firewall do painel só dá 307 para uma URL fixa, sem o caminho. O que a documentação da Vercel indica para o `vercel.app` de produção é `redirects` no `vercel.json`, e foi o que entrou, num deploy que só redireciona. O essencial:
+
+```json
+{
+  "framework": null,
+  "installCommand": "",
+  "buildCommand": "mkdir -p vercel-redirect && echo https://pedrolevi.com.br > vercel-redirect/index.txt",
+  "outputDirectory": "vercel-redirect",
+  "redirects": [
+    { "source": "/:path(.*)", "destination": "https://pedrolevi.com.br/:path*", "permanent": true }
+  ]
+}
+```
+
+Sem install e sem o build do Next: o build leva 2 s. O `index.txt` existe porque a Vercel recusa pasta de saída vazia (o primeiro build de prévia falhou com `The Output Directory "vercel-redirect" is empty`), e ele nunca é servido.
+
+#### O 308 que só pegava metade (24 minutos em produção)
+
+O PR #29 entrou às 00:00 UTC com `"source": "/:path*"`, e em produção **só os caminhos sem barra no fim redirecionaram**: `/info` ia para o domínio, mas a raiz servia o `index.txt` em 200, e todo caminho com barra, que é o formato canônico do site, dava 404. A prévia do PR não acusou porque fica atrás do SSO da Vercel (302 para o login); o `vercel curl`, que passaria por ele, cria um segredo de bypass no projeto, e isso é mudança na conta.
+
+A causa: a Vercel traduz o `source` com o `path-to-regexp` em modo estrito. `/:path*` vira `^(?:\/((?:[^\/]+?)(?:\/(?:[^\/]+?))*))?$`, um ou mais segmentos e nada depois do último, então nem `/` nem a barra final casam. `/:path(.*)` vira `^(?:\/(.*))$`. **Dá para provar sem publicar:** o `convertRedirects` de `@vercel/routing-utils/dist/superstatic.js` é o tradutor da própria Vercel, e com o padrão antigo ele reproduziu produção caminho a caminho (só `/info` e `/cv/curriculo.pdf` casavam). O PR #30, com o padrão novo, entrou às 00:24 UTC.
+
+**Conferência em produção, depois do #30:** as 18 páginas do sitemap e o PDF do currículo em 308, com o `location` exato no domínio; a raiz, as duas imagens de link, `/sitemap.xml` e `/nao-existe/` também; `/en/contact/?ref=teste&x=1` com a query preservada; um salto só até o 200. O endereço antigo que estava no campo de site do repositório (`portfolio-tau-five-f86nc5khr8.vercel.app`) dá 307 para o `vercel.app`, que dá 308 para o domínio. `http://pedrolevi.vercel.app` passa antes pelo 308 da própria Vercel para `https`.
+
+#### O Git desconectado e o `vercel.json` fora
+
+- O Pedro desconectou o Git no painel da Vercel. Conferido pela API: `GET /v9/projects/<id>` responde `link: null`. A consulta foi pelo Vercel CLI, que já estava logado nesta máquina (`npx vercel api`); no Git Bash o caminho da API precisa de `MSYS_NO_PATHCONV=1`, senão vira caminho do Windows.
+- Com o Git desconectado, o `vercel.json` saiu do repositório no PR que registra esta seção, e a Vercel não builda mais nada: o último deploy (o do #30) segue servindo o redirecionamento.
+- **Não reconecte o Git nem apague o projeto da Vercel.** Reconectado, o próximo push buildaria o Next sem o `vercel.json` e o redirecionamento sumiria; apagado, o redirecionamento some e o endereço `pedrolevi.vercel.app` fica livre.
+
+#### Links de fora
+
+- **Campo de site do repositório:** trocado para `https://pedrolevi.com.br`, com o OK do Pedro (`gh repo edit --homepage`).
+- **README do perfil** (`tavinholoco/tavinholoco`): duas menções a `pedrolevi.vercel.app`, o selo "Portfolio" (com `logo=vercel`) e o rodapé. Funcionam pelo 308, mas devem apontar para o domínio. É outro repositório e conteúdo público: só com o OK do Pedro.
+- **Perfil do GitHub:** o campo de site está vazio. **LinkedIn:** com o Pedro.
+
+#### As prévias da Cloudflare: ligadas
+
+O check "Workers Builds: portfolio" falhava em todo PR, do #26 em diante. A §17.10 registrou que não havia prévia de branch, mas a configuração do Worker (`GET /accounts/<conta>/builds/workers/<tag>`) tem `previews_enabled: true`, e o `previews_base_config` builda cada branch com `pnpm build` e `npx wrangler preview` **sem nenhuma variável**. Sem `NEXT_PUBLIC_SITE_URL`, a guarda da lei 23 parava o build, como foi feita para fazer. A produção, pelo gatilho da `main`, nunca foi afetada. É o modelo novo de prévias da Cloudflare (Worker Previews, de 22/09/2026), que a §17 não conhecia.
+
+**O Pedro decidiu ligar, depois de conferir que não pesa no plano Free.** A pesquisa, em 14/10/2026:
+
+| | Limite do Free | Este projeto |
+|---|---|---|
+| Minutos de build | 3.000 por mês, 1 build por vez, 20 min de teto | Cada build leva de 44 a 86 s (os 9 de produção até aqui) |
+| Volume | Sem teto de número de builds | Nos últimos 30 dias, o mês mais pesado, por causa da migração: 16 PRs e 24 pushes em branch de PR |
+| Estimativa com prévias | | ~24 prévias e ~20 builds de produção, a no máximo 1,5 min: **~65 min por mês, uns 2%**. Dez vezes isso daria ~22% |
+| Prévias por Worker | 100 | A mais antiga é apagada sozinha; 100 deploys por prévia, idem |
+| Excedente | Cobrado só nos planos pagos ($0,005/min) | `GET /builds/account/limits`: `has_reached_build_minutes_limit: false`, renova em 31/10 |
+
+- O que acontece no Free ao estourar os minutos a documentação não diz. A API expõe `has_reached_build_minutes_limit`, o que indica bloqueio até a renovação, sem cobrança. Se um dia chegar lá, o build de produção também para; a saída é `npx wrangler deploy` local.
+- **As prévias já gastavam minuto:** cada uma rodava cerca de 1 min antes de cair na guarda. Ligá-las direito acrescenta uns 30 s por push.
+- Visita na prévia é requisição de asset (o Worker não tem código), que é grátis e ilimitada (§17.3). A página das prévias não fala em cobrança à parte.
+- A Cloudflare põe `X-Robots-Tag: noindex` sozinha nas URLs de prévia do `workers.dev`, além da regra do `_headers`. As prévias não assumem rotas nem domínio próprio da produção: o `routes` do `wrangler.jsonc` continua só da produção.
+- O único efeito colateral é a fila: com 1 build por vez, uma prévia e um merge juntos fazem o deploy de produção esperar cerca de 1 min. A Cloudflare pula build enfileirado quando chega outro mais novo do mesmo gatilho.
+
+**Ligar pediu duas peças:**
+
+1. `NEXT_PUBLIC_SITE_URL=https://pedrolevi.com.br` nas variáveis de build das prévias, pela API, com OK do Pedro: `PATCH /accounts/<conta>/builds/workers/<tag>` com `previews_base_config.environment_variables`. É a mesma URL da produção de propósito: canonical, `og:image` e sitemap da prévia apontam para o site de verdade, e a prévia não é indexada. A configuração de produção não mudou (conferido no `GET` logo depois).
+2. `"previews": {}` no `wrangler.jsonc`. O wrangler 4.151.0 se recusa a publicar prévia sem esse bloco ("Your Wrangler configuration is missing a previews block"), mesmo vazio, e não há `--dry-run` no `wrangler preview` para testar antes; o `wrangler deploy --dry-run` de produção aceitou o bloco sem aviso. Vazio porque o site não tem código nem binding a separar.
+
+**A pegadinha: cada prévia copia a configuração base quando nasce, e não acompanha mudança depois.** O primeiro build depois das duas peças ainda falhou na guarda, com `environment_variables: {}` no build: a prévia deste branch tinha sido criada no primeiro push dele, antes da variável, e guardou a cópia vazia. `GET .../previews` lista as prévias, e `PATCH .../previews/<id>` com `settings.environment_variables` conserta uma por uma. Branches novos herdam a base já com a variável. **Mudou uma variável de build das prévias, mude na base e em cada prévia aberta.** Cada prévia nasce com `auto_delete: true`: apagar o branch, que o GitHub faz no merge, apaga a prévia junto.
+
+**Conferido no próprio #31** (build de 66 s, com `NEXT_PUBLIC_SITE_URL` no build): a prévia mora em `https://<branch com hífens>-portfolio.pedrolevidiass.workers.dev`, e o robô da Cloudflare comenta a URL no PR. Nela, as páginas em 200; as duas imagens de link em 200 `image/png`; `X-Robots-Tag: noindex`; canonical e `og:image` em `pedrolevi.com.br`; `_next/static` com `immutable`; `/info` em 307 para `/info/`; `/nao-existe/` em 404; o gmail legível em `/contato/`. A produção seguiu no deploy das 00:25 UTC (o do #30), sem `noindex`. O check "Workers Builds: portfolio" ficou verde pela primeira vez.
+
+Nota de Lighthouse na prévia não se compara com a do domínio, porque o `workers.dev` serve HTTP/3 (lei 18).
+
+#### O que falta
+
+1. **Search Console:** o Pedro cria a propriedade de **domínio** `pedrolevi.com.br` e me passa o `google-site-verification=...`; eu crio o TXT na zona pela API, ele verifica e envia `https://pedrolevi.com.br/sitemap.xml`.
+2. **README do perfil e LinkedIn**, acima.
+3. **`GITHUB_TOKEN`** no Worker, sem prazo (§17.12). Se entrar, entra nas duas configurações de build, a de produção e a das prévias.
+4. **Fase F**, pela §17.12: Lighthouse no domínio, conferindo `h2` no JSON.

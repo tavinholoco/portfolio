@@ -44,7 +44,7 @@ yarn-error.log*
 .env*
 !.env.example
 
-# vercel (o projeto antigo, que só redireciona depois da fase E da §17)
+# vercel (o projeto antigo, que só redireciona para o domínio desde a fase E da §17)
 .vercel
 
 # wrangler (estado local do wrangler dev)

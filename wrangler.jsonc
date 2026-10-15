@@ -24,10 +24,18 @@
     "html_handling": "auto-trailing-slash"
   },
   /* O endereço workers.dev fica ligado para o portão de medição da fase B
-     (§17.6), e as prévias de branch saem públicas para dar para medir nelas.
-     As duas levam `noindex` pelo `public/_headers`. */
+     (§17.6), e as prévias de branch saem públicas para dar para ver cada PR
+     antes do merge. As duas levam `noindex` pelo `public/_headers`. */
   "workers_dev": true,
   "preview_urls": true,
+  /* As prévias de branch (Worker Previews). O Workers Builds publica cada
+     branch que não é a `main` com `npx wrangler preview`, e ele se recusa a
+     rodar sem este bloco, mesmo vazio. O site não tem código nem binding,
+     então não há nada a separar da produção. A `NEXT_PUBLIC_SITE_URL` das
+     prévias mora na configuração de build delas, no painel, separada da
+     produção (lei 23): sem ela o build para. O `routes` abaixo só vale para
+     a produção. Por que ligar, e quanto custa no plano Free, na §17.13. */
+  "previews": {},
   /* O domínio próprio (fase D da §17.6). Com `custom_domain` a Cloudflare
      cria sozinha o registro DNS e o certificado; a zona já está na conta.
      O `www` não entra aqui: ele é um AAAA `100::` com uma Redirect Rule na
