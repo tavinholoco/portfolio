@@ -2505,7 +2505,7 @@ Nada aqui é segredo: são identificadores, não credenciais.
 | Worker | `portfolio`, tag `e5de41a4bc0c4ac38fe216d86e351574`, em https://portfolio.pedrolevidiass.workers.dev (`noindex`, HTTP/3) e em `pedrolevi.com.br` (domínio próprio, pelo `routes` do `wrangler.jsonc`) |
 | Gatilho de build | `915cba66-1150-44be-8b9a-1f8b5015fe16`, branch `main`, `pnpm build` e `npx wrangler deploy`. Variável: `NEXT_PUBLIC_SITE_URL=https://pedrolevi.com.br`. Cache de build ligado. Prévias de branch ligadas desde a §17.13 (`npx wrangler preview`, configuração de build própria, com a mesma variável) |
 | Zona | `pedrolevi.com.br`, id `541ef630eb330536969e435487469f3b`, Free, servidores `damien` e `sunny.ns.cloudflare.com` |
-| DNS | `AAAA pedrolevi.com.br 100::` (criado pelo domínio próprio) e `AAAA www 100::`, os dois com proxy |
+| DNS | `AAAA pedrolevi.com.br 100::` (criado pelo domínio próprio) e `AAAA www 100::`, os dois com proxy. Desde a §17.13, também o `TXT` de verificação do Search Console no apex, que não pode sair |
 | Redirect Rule | id `5d77c2a7670b4d26b54577bd793db9c2`: `www` para `https://pedrolevi.com.br` + caminho, 301, preservando a query |
 | Ajustes da zona | HTTP/3 **desligado** (§17.10), Always Use HTTPS ligado, Email Address Obfuscation desligado; Bot Fight Mode, bloqueio de IA, robots.txt gerenciado, Rocket Loader e Speed Brain desligados |
 | DNSSEC | `active`. DS no registro.br: 2371, 13, 2, `365A7C0513A3F1D7B743B71F384A8CFF6E5431A1CD443F2AA288F9E4B8237934` |
@@ -2540,7 +2540,7 @@ Em `.captures/laboratorio-praia/medicao/`, ignorada pelo git:
 
 ### 17.13 Fase E: o `vercel.app` redireciona (14/10/2026)
 
-**O `pedrolevi.vercel.app` responde 308 para o mesmo caminho em `https://pedrolevi.com.br`**, com a query preservada, desde 15/10/2026, 00:24 UTC (21:24 de 14/10 em Brasília). O Git da Vercel está desconectado e o `vercel.json` saiu do repositório. As prévias de branch da Cloudflare, que falhavam em todo PR, foram ligadas de verdade. Faltam o Search Console e os links que são do Pedro.
+**O `pedrolevi.vercel.app` responde 308 para o mesmo caminho em `https://pedrolevi.com.br`**, com a query preservada, desde 15/10/2026, 00:24 UTC (21:24 de 14/10 em Brasília). O Git da Vercel está desconectado e o `vercel.json` saiu do repositório. As prévias de branch da Cloudflare, que falhavam em todo PR, foram ligadas de verdade, e o Search Console está verificado, com o sitemap processado. Sobram os links que são do Pedro.
 
 #### Por que pelo `vercel.json`, e não pelo painel
 
@@ -2577,7 +2577,7 @@ A causa: a Vercel traduz o `source` com o `path-to-regexp` em modo estrito. `/:p
 #### Links de fora
 
 - **Campo de site do repositório:** trocado para `https://pedrolevi.com.br`, com o OK do Pedro (`gh repo edit --homepage`).
-- **README do perfil** (`tavinholoco/tavinholoco`): duas menções a `pedrolevi.vercel.app`, o selo "Portfolio" (com `logo=vercel`) e o rodapé. Funcionam pelo 308, mas devem apontar para o domínio. É outro repositório e conteúdo público: só com o OK do Pedro.
+- **README do perfil** (`tavinholoco/tavinholoco`): duas menções a `pedrolevi.vercel.app`, o selo "Portfolio" (com `logo=vercel`) e o rodapé. Funcionam pelo 308, mas devem apontar para o domínio. **O Pedro decidiu trocar ele mesmo, depois** (14/10): não mexer. O commit diário que aparece lá é do `stats.yml` (github-actions), que só atualiza os cards de estatística e não troca link nenhum.
 - **Perfil do GitHub:** o campo de site está vazio. **LinkedIn:** com o Pedro.
 
 #### As prévias da Cloudflare: ligadas
@@ -2611,9 +2611,17 @@ O check "Workers Builds: portfolio" falhava em todo PR, do #26 em diante. A §17
 
 Nota de Lighthouse na prévia não se compara com a do domínio, porque o `workers.dev` serve HTTP/3 (lei 18).
 
+**Depois do merge do #31** (01:18 UTC): o build da `main` passou e publicou às 01:18:50; a conferência das 18 páginas (`confere-producao.mjs`) passou inteira; o `vercel.app` seguiu em 308, sem nenhum status da Vercel no commit do merge; e a prévia do branch sumiu da lista sozinha quando o GitHub apagou o branch.
+
+#### Search Console
+
+- O Pedro criou a propriedade de **domínio** `pedrolevi.com.br`. O Google ofereceu configurar o DNS sozinho, por uma tela da Cloudflare chamada "Authorize DNS records from Google" (autorização de uma vez só, pelo Domain Connect). O Pedro me passou o valor sem autorizar essa tela, e o registro entrou pela API, como o resto da zona (conferido depois: a zona tem um TXT só): `TXT pedrolevi.com.br "google-site-verification=j14z19RSkb87xv6b0IzmvwbgYc7xMfEhiB5k5j9cCQA"`, TTL 3600, id `22a9b8fe0e93816d2d9c9345642b82f3`, com comentário dizendo para que serve. Não é segredo: é público no DNS.
+- Os resolvedores da Cloudflare e do Google responderam o TXT na hora, com `AD` (DNSSEC validado), e o servidor `damien` também.
+- **Verificado em 14/10/2026**, e o sitemap `https://pedrolevi.com.br/sitemap.xml` foi enviado: status **Processado**, com **18 páginas encontradas**, as mesmas 18 do sitemap.
+- **Não apague esse TXT.** O Google reconfere a propriedade de tempos em tempos, e sem o registro a verificação cai.
+
 #### O que falta
 
-1. **Search Console:** o Pedro cria a propriedade de **domínio** `pedrolevi.com.br` e me passa o `google-site-verification=...`; eu crio o TXT na zona pela API, ele verifica e envia `https://pedrolevi.com.br/sitemap.xml`.
-2. **README do perfil e LinkedIn**, acima.
-3. **`GITHUB_TOKEN`** no Worker, sem prazo (§17.12). Se entrar, entra nas duas configurações de build, a de produção e a das prévias.
-4. **Fase F**, pela §17.12: Lighthouse no domínio, conferindo `h2` no JSON.
+1. **README do perfil e LinkedIn**, com o Pedro, quando ele puder (acima).
+2. **`GITHUB_TOKEN`** no Worker: o Pedro deixou para depois, sem prazo (§17.12). Se entrar, entra nas duas configurações de build, a de produção e a das prévias.
+3. **Fase F**, pela §17.12: Lighthouse no domínio, conferindo `h2` no JSON.
