@@ -2503,7 +2503,7 @@ Nada aqui é segredo: são identificadores, não credenciais.
 |---|---|
 | Conta | `fd64386c78c6bb5bbfc8ffa08c2c6ca5`, subdomínio `workers.dev`: `pedrolevidiass` |
 | Worker | `portfolio`, tag `e5de41a4bc0c4ac38fe216d86e351574`, em https://portfolio.pedrolevidiass.workers.dev (`noindex`, HTTP/3) e em `pedrolevi.com.br` (domínio próprio, pelo `routes` do `wrangler.jsonc`) |
-| Gatilho de build | `915cba66-1150-44be-8b9a-1f8b5015fe16`, branch `main`, `pnpm build` e `npx wrangler deploy`. Variável: `NEXT_PUBLIC_SITE_URL=https://pedrolevi.com.br`. Cache de build ligado. Prévias de branch ligadas desde a §17.13 (`npx wrangler preview`, configuração de build própria, com a mesma variável) |
+| Gatilho de build | `915cba66-1150-44be-8b9a-1f8b5015fe16`, branch `main`, `pnpm build` e `npx wrangler deploy`. Variável: `NEXT_PUBLIC_SITE_URL=https://pedrolevi.com.br`. Cache de build ligado. Prévias de branch ligadas desde a §17.13 (`npx wrangler preview`, configuração de build própria, com a mesma variável). Desde a §17.16, o secret `GITHUB_TOKEN` só na produção |
 | Zona | `pedrolevi.com.br`, id `541ef630eb330536969e435487469f3b`, Free, servidores `damien` e `sunny.ns.cloudflare.com` |
 | DNS | `AAAA pedrolevi.com.br 100::` (criado pelo domínio próprio) e `AAAA www 100::`, os dois com proxy. Desde a §17.13, também o `TXT` de verificação do Search Console no apex, que não pode sair |
 | Redirect Rule | id `5d77c2a7670b4d26b54577bd793db9c2`: `www` para `https://pedrolevi.com.br` + caminho, 301, preservando a query |
@@ -2882,11 +2882,21 @@ As menções à Vercel que sobraram no repositório são demos de clientes e com
 
 `pnpm lint` e `pnpm typecheck` limpos, **195 unitários** (192 + o HSTS + os dois do token) e **168 E2E** (166 + os dois de cabeçalho) contra o `wrangler dev`, no Windows.
 
+#### O fecho, na mesma tarde
+
+- **O PR #35 entrou às 17:17 UTC**, e o build da `main` publicou às 17:18. A conferência de produção (`confere-producao.mjs`) **passou inteira** logo depois: as 18 páginas com HSTS, nenhum beacon, o HTML do navegador igual ao cru. TLS 1.0 e 1.1 seguem recusados.
+- **O `contato@` funciona.** O Pedro mandou o teste de outra conta, e o log do Email Routing (GraphQL, `emailRoutingAdaptive`) mostra a mensagem às 17:16:05 UTC com `action: forward` e `status: delivered`, SPF e DKIM do remetente em `pass`.
+- **O `GITHUB_TOKEN` está no build de produção, como secret** (`is_secret: true`, criado às 17:28:37 UTC). A primeira tentativa entrou com o tipo **Text**, que é o que o seletor do painel traz por padrão: assim a API devolve o valor em claro (`is_secret: false`), e foi o que apareceu na conferência. O token era só de leitura de repositório público, mas vazou para o registro da sessão, então o Pedro **revogou esse token no GitHub e gerou outro**, salvo como Secret. A revogação foi feita por ele e não foi conferida daqui: testar o token vazado seria usar a credencial.
+- **O rebuild com o token** foi disparado pelo próprio `rebuild-semanal.yml` (`gh workflow run`, 17:29:40 UTC), o que também exercita o caminho do agendamento: o workflow chamou o deploy hook, a Cloudflare abriu o build `788e5210-d82a-4f4f-912b-152fb0d9ed69` com origem `deploy_hook`, e ele terminou em 52 s com sucesso. **O log não tem o aviso de token recusado** nem nenhum 401.
+- **E a busca foi mesmo à rede com o token**, apesar de o build ter restaurado o cache: o `generateCacheKey` do Next (`server/lib/incremental-cache/index.js`) põe os cabeçalhos da chamada na chave, e com o `Authorization` novo a chave é outra. Depois do build, os quatro cases nos dois idiomas trazem o dado do GitHub ("atualizado out. de 2026 · TypeScript", "updated Sep 2026 · TypeScript").
+
+**Para conferir um secret de build:** depois de salvar, `GET /accounts/<conta>/builds/triggers/<gatilho>/environment_variables` tem de responder `is_secret: true` e nenhum valor. Se vier o valor, ele entrou como Text: apague a entrada e crie de novo, e troque a credencial.
+
 #### O que falta
 
-1. **O merge do PR desta seção**, e depois `node .captures/laboratorio-praia/medicao/confere-producao.mjs https://pedrolevi.com.br`, que tem de passar inteiro, HSTS incluído.
-2. **O teste do `contato@`**, de outra conta (Pedro).
-3. **O `GITHUB_TOKEN`**, pelos passos acima (Pedro), e eu confiro.
-4. **O rebuild de segunda, 19/10**: conferir que o agendamento rodou e publicou.
+1. ~~O merge do PR desta seção e a conferência de produção.~~ **Feito** (acima).
+2. ~~O teste do `contato@`.~~ **Feito**: entregue.
+3. ~~O `GITHUB_TOKEN`.~~ **Feito**, como secret, só na produção. Anotar a validade que o Pedro escolheu; quando vencer, o build segue com o dado e avisa no log.
+4. **O rebuild de segunda, 19/10**: conferir que o agendamento rodou sozinho. O caminho dele (workflow, deploy hook, build) já foi provado à mão aqui.
 5. **README do perfil e LinkedIn**, com o Pedro (§17.13).
 6. **A renovação do domínio**, em setembro de 2027, com o lembrete.

@@ -309,7 +309,7 @@ O anel de foco usa `currentColor` de propósito: com uma cor fixa, ele ficaria i
 
 `src/lib/github.ts` busca os repositórios em Server Component, **no build**: com o export estático não há ISR, e o dado é o do último build. O `rebuild-semanal.yml` o renova toda segunda. O dado alimenta a linha `atualizado <data> · <linguagem>` na página de case, e os links de repositório e demo.
 
-- **Rate limit:** 60 requisições/h **por IP** sem token, e a máquina de build da Cloudflare é compartilhada. Com o secret de build `GITHUB_TOKEN` (fine-grained, só leitura de repositório público), a chamada leva `Authorization` e o limite passa a ser da conta.
+- **Rate limit:** 60 requisições/h **por IP** sem token, e a máquina de build da Cloudflare é compartilhada. Com o secret de build `GITHUB_TOKEN` (fine-grained, só leitura de repositório público, ligado na produção desde 15/10/2026), a chamada leva `Authorization` e o limite passa a ser da conta. Se o token vencer ou for revogado, a API responde 401, a busca se repete sem ele e o log do build avisa: o dado não some.
 - **O `revalidate: 3600` continua, por outro motivo:** com o cache de build ligado, o Workers Builds guarda o `.next/cache` entre builds. Com `force-cache` o rebuild reaproveitaria a resposta velha para sempre; com `no-store` a rota deixa de ser estática e o export para.
 - **Fallback:** se a API falhar, o site usa os dados curados. Nunca quebra.
 
@@ -331,7 +331,7 @@ Variáveis de build no painel do Worker (Settings, Build). A produção e as pr�
 | Variável | Para quê |
 |---|---|
 | `NEXT_PUBLIC_SITE_URL` | **Obrigatória.** URL canônica, sem barra no fim. Sem ela o build falha de propósito, porque o fallback é localhost (lei 23) |
-| `GITHUB_TOKEN` (secret) | Opcional, e basta na produção. Tira o build do limite de 60 requisições por IP da API do GitHub; numa prévia, sem ele, o pior caso é o case sair sem linguagem e sem data |
+| `GITHUB_TOKEN` (secret) | Opcional, e basta na produção (ligado desde 15/10/2026). **Tipo Secret**: o seletor do painel vem em Text, e como Text o valor aparece em claro no painel e na API (§17.16). Tira o build do limite de 60 requisições por IP da API do GitHub; numa prévia, sem ele, o pior caso é o case sair sem linguagem e sem data |
 
 As versões não precisam de variável: a imagem de build lê o Node do `.node-version` e o pnpm do `packageManager` (§17.10).
 
