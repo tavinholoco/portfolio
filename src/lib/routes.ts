@@ -15,6 +15,13 @@ import type { Locale } from "@/i18n";
 export const routes = [
   { id: "home", pt: "/", en: "/en/", navPt: "Home", navEn: "Home" },
   {
+    id: "websites",
+    pt: "/criacao-de-sites/",
+    en: "/en/websites/",
+    navPt: "Criação de sites",
+    navEn: "Websites",
+  },
+  {
     id: "clients",
     pt: "/clientes/",
     en: "/en/clients/",
@@ -41,7 +48,7 @@ export const routes = [
 export type Route = (typeof routes)[number];
 export type RouteId = Route["id"];
 
-/** Ids na ordem da navegação: Home, Clientes, Projetos, Info, Contato. */
+/** Ids na ordem da navegação: Home, Criação de sites, Clientes, Projetos, Info, Contato. */
 export const routeIds: readonly RouteId[] = routes.map((route) => route.id);
 
 function findRoute(id: RouteId): Route {

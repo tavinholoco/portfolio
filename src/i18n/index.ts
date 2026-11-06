@@ -13,7 +13,7 @@ export function resolveLocale(value: string | null | undefined): Locale {
 }
 
 export type Fact = {
-  id: "formation" | "email" | "languages";
+  id: "formation" | "location" | "email" | "languages";
   label: string;
   value: string;
 };
@@ -77,6 +77,20 @@ export type ContactCard = {
   value: string;
 };
 
+/**
+ * Exemplo na página de criação de sites.
+ *
+ * `kind` existe para dizer o que cada um é: a Trak é projeto próprio, e só a
+ * Dandarkness é cliente. A página não pode sugerir o contrário.
+ */
+export type WebsiteExample = {
+  id: "trak" | "dandarkness";
+  name: string;
+  kind: string;
+  description: string;
+  url: string;
+};
+
 /** Estrutura completa de textos do site (pt-BR e en). */
 export type Dict = {
   meta: {
@@ -107,9 +121,32 @@ export type Dict = {
   hero: {
     role: string;
     name: string;
-    /** O h1 da home. O nome saiu para o header fixo na v3.5. */
-    thesis: string;
+    /** O h1 da home, em `sr-only`: uma frase verdadeira só, sem lista de termos. */
+    heading: string;
     downloadCv: string;
+  };
+  /** A página de criação de sites. O `h1` é `routes.websites.title`. */
+  websites: {
+    /**
+     * Partes do mesmo parágrafo. São duas porque uma frase única passaria do
+     * maior literal do dicionário, e `e2e/bundle.spec.ts` usa esse literal como
+     * marcador no HTML de `/info/`.
+     */
+    intro: string[];
+    cta: string;
+    servicesTitle: string;
+    services: { id: "landing" | "portfolio"; title: string; description: string }[];
+    examplesTitle: string;
+    openExample: string;
+    examples: WebsiteExample[];
+    stepsTitle: string;
+    steps: { title: string; description: string }[];
+    areaTitle: string;
+    area: string;
+    faqTitle: string;
+    faq: { question: string; answer: string }[];
+    /** O `serviceType` do JSON-LD. */
+    serviceType: string;
   };
   about: {
     title: string;
@@ -132,6 +169,7 @@ export type Dict = {
     previous: string;
     next: string;
     demoLabel: string;
+    websitesCta: string;
     categories: Record<ProjectCategory, string>;
     featured: FeaturedProject[];
   };
@@ -140,6 +178,7 @@ export type Dict = {
     projectKind: string;
     responsibilitiesLabel: string;
     previewAlt: string;
+    websitesCta: string;
     projects: ClientProject[];
   };
   process: {
@@ -167,6 +206,7 @@ export type Dict = {
     projectTitle: string;
     projectDescription: string;
     projectCta: string;
+    websitesCta: string;
     goToSection: string;
     cards: ContactCard[];
   };

@@ -14,6 +14,8 @@ import { expect, test } from "./fixtures";
 const rotas = [
   { rota: "/", minimo: 1 },
   { rota: "/en/", minimo: 1 },
+  { rota: "/criacao-de-sites/", minimo: 1 },
+  { rota: "/en/websites/", minimo: 1 },
   { rota: "/clientes/", minimo: 1 },
   { rota: "/en/clients/", minimo: 1 },
   { rota: "/projetos/", minimo: 1 },

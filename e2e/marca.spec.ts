@@ -16,6 +16,8 @@ import { expect, test } from "./fixtures";
 const rotas = [
   "/",
   "/en/",
+  "/criacao-de-sites/",
+  "/en/websites/",
   "/clientes/",
   "/en/clients/",
   "/projetos/",

@@ -12,6 +12,18 @@ export const profile = {
   linkedin: "https://www.linkedin.com/in/pedrolevidias/",
   whatsapp: "https://wa.me/5518996260781",
   /**
+   * Cidade e estado, e nunca a rua: o atendimento é só pelo WhatsApp, e o
+   * endereço dele não é público. Voltou para o site por causa da busca local,
+   * revogando a §12.4 do plano.
+   */
+  location: { city: "Rancharia", region: "SP", country: "BR" },
+  /**
+   * Onde ele atende hoje, e não onde gostaria de atender. O Brasil todo fica
+   * para quando ele decidir. Vale só para o `areaServed` do JSON-LD: uma lista
+   * de cidades no texto da página é o que o Google chama de keyword stuffing.
+   */
+  serviceAreas: ["Rancharia", "Presidente Prudente"],
+  /**
    * Foto do perfil, o avatar do GitHub salvo no repositório.
    *
    * Import, e não caminho em string: é a lei 19. Em `public/` o arquivo era

@@ -1,8 +1,13 @@
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
+
 import { JsonLd } from "@/components/json-ld";
+import { Section } from "@/components/section";
 import { ShowcaseList } from "@/components/showcase/showcase-list";
 import { clientShowcaseItems } from "@/components/showcase/items";
 import { dictionaries, type Locale } from "@/i18n";
 import { clientListJsonLd } from "@/lib/json-ld";
+import { pathFor } from "@/lib/routes";
 
 /**
  * A rota de clientes.
@@ -30,6 +35,15 @@ export function ClientsPage({ lang }: { lang: Locale }) {
         previewAlt={d.previewAlt}
         rolesLabel={d.responsibilitiesLabel}
       />
+      <Section id="clientes-site" variant="plain" wide className="pt-0 sm:pt-0">
+        <Link
+          href={pathFor("websites", lang)}
+          className="focus-ring inline-flex items-center gap-2 text-sm transition-opacity hover:opacity-70"
+        >
+          {d.websitesCta}
+          <ArrowRight className="size-4" aria-hidden />
+        </Link>
+      </Section>
     </>
   );
 }

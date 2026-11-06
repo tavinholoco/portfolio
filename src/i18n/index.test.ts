@@ -76,6 +76,51 @@ describe("dicionários pt-BR / en", () => {
     expect(enUrls).toEqual(ptUrls);
   });
 
+  /*
+   * A Trak é projeto próprio, e o site a apresentava como trabalho para cliente.
+   * Quem não é cliente não pode nascer como tal em nenhum dos dois idiomas.
+   */
+  it("só a Dandarkness é cliente, e o texto da Trak não diz o contrário", () => {
+    for (const locale of ["pt", "en"] as const) {
+      const d = dictionaries[locale];
+
+      expect(d.clients.projects.map((p) => p.name)).toEqual(["Dandarkness"]);
+
+      const trak = d.projects.featured.find((p) => p.slug === "trak-assessoria");
+      const texto = JSON.stringify(trak).toLowerCase();
+      expect(texto).not.toMatch(/cliente|client|entreg|deliver/);
+
+      const exemplo = d.websites.examples.find((e) => e.id === "trak");
+      expect(JSON.stringify(exemplo).toLowerCase()).not.toMatch(
+        /cliente|client|entreg|deliver/
+      );
+    }
+  });
+
+  it("os exemplos da página de serviço apontam para os endereços cadastrados", () => {
+    const demoTrak = projectMetas.find(
+      (meta) => meta.slug === "trak-assessoria"
+    )?.demoUrl;
+
+    for (const locale of ["pt", "en"] as const) {
+      const d = dictionaries[locale];
+      const url = (id: string) => d.websites.examples.find((e) => e.id === id)?.url;
+
+      expect(url("trak")).toBe(demoTrak);
+      expect(url("dandarkness")).toBe(d.clients.projects[0].url);
+    }
+  });
+
+  it("a página de serviço não promete valor nem prazo sem o Pedro decidir", () => {
+    /* P1 do plano. Quando ele decidir, este teste sai junto com o texto novo. */
+    expect(JSON.stringify(dictionaries.pt.websites)).not.toMatch(
+      /R\$|a partir de|\bdias\b|semanas?\b/i
+    );
+    expect(JSON.stringify(dictionaries.en.websites)).not.toMatch(
+      /R\$|starting at|\bdays\b|weeks?\b/i
+    );
+  });
+
   it("tem título e descrição para toda rota do manifesto", () => {
     for (const locale of ["pt", "en"] as const) {
       for (const id of routeIds) {

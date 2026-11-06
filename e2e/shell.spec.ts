@@ -14,11 +14,13 @@ import { expect, pularIntro, test, type Page } from "./fixtures";
 
 const rotas = [
   "/",
+  "/criacao-de-sites/",
   "/clientes/",
   "/projetos/",
   "/info/",
   "/contato/",
   "/en/",
+  "/en/websites/",
   "/en/clients/",
   "/en/projects/",
   "/en/info/",
@@ -500,7 +502,7 @@ test.describe("contraste: a regra de opacidade em texto", () => {
    */
   const MINIMO = 0.7;
 
-  for (const rota of ["/", "/projetos/", "/info/", "/contato/"]) {
+  for (const rota of ["/", "/criacao-de-sites/", "/projetos/", "/info/", "/contato/"]) {
     test(`${rota}: nenhum texto abaixo de ${MINIMO} de opacidade efetiva`, async ({
       page,
     }) => {

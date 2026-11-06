@@ -33,17 +33,59 @@ export function serializeJsonLd(data: JsonLdNode | JsonLdNode[]): string {
   return JSON.stringify(jsonLdDocument(data)).replace(/</g, "\\u003c");
 }
 
-/** Schema.org Person: perfil do dono do site (home). */
+/** O mesmo nos dois idiomas: é a mesma pessoa, e é o que o `Service` referencia. */
+const personId = `${siteUrl}/#person`;
+
+/**
+ * Schema.org Person: perfil do dono do site (home).
+ *
+ * O endereço para em cidade e estado, e a rua nunca entra: ele atende só pelo
+ * WhatsApp e não publica onde mora. O telefone já é público no contato.
+ *
+ * **Não trocar por `LocalBusiness`:** o Google exige endereço físico para esse
+ * tipo.
+ */
 export function personJsonLd(lang: Locale) {
   const d = dictionaries[lang];
   return {
     "@type": "Person",
+    "@id": personId,
     name: d.meta.name,
     url: siteUrl,
     jobTitle: d.hero.role,
     email: profile.email,
+    telephone: profile.phoneRaw,
+    address: {
+      "@type": "PostalAddress",
+      addressLocality: profile.location.city,
+      addressRegion: profile.location.region,
+      addressCountry: profile.location.country,
+    },
     sameAs: [profile.github, profile.linkedin],
     knowsAbout: d.meta.knowsAbout,
+  };
+}
+
+/**
+ * Schema.org Service: a página de criação de sites.
+ *
+ * O `provider` referencia a `Person` pelo `@id`, então a página precisa servir a
+ * `Person` no mesmo documento.
+ */
+export function serviceJsonLd(lang: Locale) {
+  const d = dictionaries[lang];
+  return {
+    "@type": "Service",
+    name: d.routes.websites.title,
+    serviceType: d.websites.serviceType,
+    description: d.routes.websites.description,
+    url: `${siteUrl}${pathFor("websites", lang)}`,
+    provider: { "@id": personId },
+    areaServed: profile.serviceAreas.map((city) => ({
+      "@type": "City",
+      name: city,
+      containedInPlace: { "@type": "State", name: "São Paulo" },
+    })),
   };
 }
 

@@ -195,13 +195,25 @@ export async function ProjectDetailPage({
           <h2 className="text-title font-semibold tracking-tight text-balance">
             {d.contact.title}
           </h2>
-          <Link
-            href={pathFor("contact", lang)}
-            className="focus-ring mt-6 inline-flex items-center gap-2 rounded-sm border border-current/40 px-5 py-2.5 text-sm transition-opacity hover:opacity-70"
-          >
-            {d.contact.goToSection}
-            <ArrowRight className="size-4" aria-hidden />
-          </Link>
+          <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-4">
+            <Link
+              href={pathFor("contact", lang)}
+              className="focus-ring inline-flex items-center gap-2 rounded-sm border border-current/40 px-5 py-2.5 text-sm transition-opacity hover:opacity-70"
+            >
+              {d.contact.goToSection}
+              <ArrowRight className="size-4" aria-hidden />
+            </Link>
+            {/* Só nas landings, que é o serviço da página. Vale para o case da Trak. */}
+            {project.category === "landing" && (
+              <Link
+                href={pathFor("websites", lang)}
+                className="focus-ring inline-flex items-center gap-2 text-sm transition-opacity hover:opacity-70"
+              >
+                {d.projects.websitesCta}
+                <ArrowRight className="size-4" aria-hidden />
+              </Link>
+            )}
+          </div>
         </div>
       </Section>
     </>

@@ -47,14 +47,14 @@ test.describe("showcase: ponteiro", () => {
     await page.goto("/projetos/");
 
     await linhas(page).nth(3).locator("a").hover();
-    await expect(problema(page)).toContainText("Assessoria contábil");
+    await expect(problema(page)).toContainText("assessoria contábil");
 
     /* Sai da lista para um ponto neutro do cabeçalho. */
     await page.mouse.move(10, 10);
     await page.waitForTimeout(300);
 
     /* O erro clássico deste padrão é voltar ao índice 0 exatamente aqui. */
-    await expect(problema(page)).toContainText("Assessoria contábil");
+    await expect(problema(page)).toContainText("assessoria contábil");
   });
 
   test("varrer a lista rápido não faz o preview estroboscopar (regra 4)", async ({
@@ -70,7 +70,7 @@ test.describe("showcase: ponteiro", () => {
     await alvo.hover();
 
     /* Só o destino final deve ter valido. */
-    await expect(problema(page)).toContainText("Assessoria contábil");
+    await expect(problema(page)).toContainText("assessoria contábil");
   });
 });
 
