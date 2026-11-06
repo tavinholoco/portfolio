@@ -61,6 +61,65 @@ describe("json-ld", () => {
   });
 });
 
+describe("o @context do documento", () => {
+  /* O que o E2E cobra no HTML servido, aqui sobre a função pura. */
+  function exigeSchemaOrg(documento: Record<string, unknown>) {
+    expect(documento["@context"]).toBe("https://schema.org");
+    expect(Array.isArray(documento["@graph"])).toBe(true);
+    expect((documento["@graph"] as unknown[]).length).toBeGreaterThan(0);
+  }
+
+  it("objeto e lista saem no mesmo formato, com o @context", async () => {
+    const { jsonLdDocument, personJsonLd, webSiteJsonLd } = await import(
+      "./json-ld"
+    );
+    const person = personJsonLd("pt");
+    const site = webSiteJsonLd("pt");
+
+    exigeSchemaOrg(jsonLdDocument(person));
+    exigeSchemaOrg(jsonLdDocument([person, site]));
+    expect(jsonLdDocument(person)["@graph"]).toEqual([person]);
+    expect(jsonLdDocument([person, site])["@graph"]).toEqual([person, site]);
+  });
+
+  it("controle negativo: o nó cru, como o site servia, reprova", async () => {
+    const { personJsonLd } = await import("./json-ld");
+    expect(() => exigeSchemaOrg(personJsonLd("pt"))).toThrow();
+  });
+
+  it("a serialização leva o @context e sobrevive ao parse", async () => {
+    const { serializeJsonLd, personJsonLd } = await import("./json-ld");
+    const texto = serializeJsonLd(personJsonLd("en"));
+
+    exigeSchemaOrg(JSON.parse(texto));
+  });
+
+  it("um texto com </script> não fecha a tag, e o parse devolve o original", async () => {
+    const { serializeJsonLd } = await import("./json-ld");
+    const texto = serializeJsonLd({
+      "@type": "Thing",
+      name: "</script><b>",
+    });
+
+    expect(texto).not.toContain("<");
+    expect(JSON.parse(texto)["@graph"][0].name).toBe("</script><b>");
+  });
+});
+
+describe("knowsAbout", () => {
+  it("lista competências, sem o nome dele e sem reaproveitar as keywords", async () => {
+    const { personJsonLd } = await import("./json-ld");
+    const { dictionaries } = await import("@/i18n");
+
+    for (const lang of ["pt", "en"] as const) {
+      const { knowsAbout } = personJsonLd(lang);
+      expect(knowsAbout.length).toBeGreaterThan(0);
+      expect(knowsAbout).not.toContain(dictionaries[lang].meta.name);
+      expect(knowsAbout).not.toEqual(dictionaries[lang].meta.keywords);
+    }
+  });
+});
+
 describe("itemListJsonLd", () => {
   /* Mesmo motivo do bloco acima: siteUrl é calculada na carga do módulo. */
   async function freshJsonLd() {

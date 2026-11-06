@@ -1,12 +1,20 @@
-type JsonLdData = Record<string, unknown> | Record<string, unknown>[] | null;
+import { serializeJsonLd, type JsonLdNode } from "@/lib/json-ld";
 
-/** Renderiza dados estruturados (Schema.org) como JSON-LD. */
+type JsonLdData = JsonLdNode | JsonLdNode[] | null;
+
+/**
+ * Renderiza dados estruturados (Schema.org) como JSON-LD.
+ *
+ * É o único lugar que escreve `application/ld+json`, e o `@context` entra na
+ * serialização: nenhuma rota consegue esquecer dele. `e2e/json-ld.spec.ts` lê o
+ * HTML servido e cobra o campo.
+ */
 export function JsonLd({ data }: { data: JsonLdData }) {
   if (!data) return null;
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }}
+      dangerouslySetInnerHTML={{ __html: serializeJsonLd(data) }}
     />
   );
 }

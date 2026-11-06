@@ -5,6 +5,34 @@ import { pathFor } from "@/lib/routes";
 
 const siteUrl = getSiteUrl();
 
+export type JsonLdNode = Record<string, unknown>;
+
+/**
+ * Embrulha um ou mais nós no documento que vai para o HTML.
+ *
+ * **Sem `@context` os dados não são schema.org**, e nada acusa: o build passa, a
+ * página serve e o Lighthouse não reclama. O site ficou assim desde a v2. Por
+ * isso o campo mora aqui, num ponto só, e os nós de cada rota não o declaram.
+ * Objeto e lista viram o mesmo formato, com `@graph`, para o `@context` não
+ * precisar ser repetido em cada nó.
+ */
+export function jsonLdDocument(data: JsonLdNode | JsonLdNode[]) {
+  return {
+    "@context": "https://schema.org",
+    "@graph": Array.isArray(data) ? data : [data],
+  };
+}
+
+/**
+ * O documento como texto, pronto para o `<script>`.
+ *
+ * Troca `<` pelo escape unicode, como manda o guia de JSON-LD do Next: um `</script>`
+ * dentro de um texto fecharia a tag. O `JSON.parse` devolve o caractere original.
+ */
+export function serializeJsonLd(data: JsonLdNode | JsonLdNode[]): string {
+  return JSON.stringify(jsonLdDocument(data)).replace(/</g, "\\u003c");
+}
+
 /** Schema.org Person: perfil do dono do site (home). */
 export function personJsonLd(lang: Locale) {
   const d = dictionaries[lang];
@@ -15,7 +43,7 @@ export function personJsonLd(lang: Locale) {
     jobTitle: d.hero.role,
     email: profile.email,
     sameAs: [profile.github, profile.linkedin],
-    knowsAbout: d.meta.keywords,
+    knowsAbout: d.meta.knowsAbout,
   };
 }
 

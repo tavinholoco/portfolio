@@ -16,6 +16,18 @@ export const pt: Dict = {
       "IA",
       "Portfólio",
     ],
+    knowsAbout: [
+      "Criação de sites",
+      "Landing pages",
+      "Desenvolvimento web",
+      "Desenvolvimento mobile",
+      "React",
+      "Next.js",
+      "Node.js",
+      "TypeScript",
+      "React Native",
+      "IA generativa",
+    ],
     ogSiteName: "Pedro Levi | Portfólio",
   },
   routes: {

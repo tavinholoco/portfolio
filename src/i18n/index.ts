@@ -82,6 +82,11 @@ export type Dict = {
   meta: {
     name: string;
     keywords: string[];
+    /**
+     * Competências do `knowsAbout` da `Person` no JSON-LD. É uma lista própria
+     * porque reaproveitar `keywords` dizia que o Pedro entende de "Pedro Levi".
+     */
+    knowsAbout: string[];
     ogSiteName: string;
   };
   /**
