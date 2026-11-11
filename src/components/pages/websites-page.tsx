@@ -26,13 +26,14 @@ function WhatsAppLink({ label, className }: { label: string; className?: string 
 }
 
 /**
- * A página de serviço: é ela que responde a "criador de sites em Rancharia".
+ * A página de serviço: é ela que responde a "criação de sites".
  *
- * **Uma página só, com as duas cidades no texto.** Uma página por cidade é o que
- * o Google chama de doorway abuse, e um bloco com lista de cidades, de keyword
- * stuffing. Só promete o que o Pedro faz hoje: landing pages e portfólios, em
- * Rancharia e Presidente Prudente, pelo WhatsApp. Valor e prazo ficam de fora
- * enquanto ele não decidir (P1 do plano).
+ * **Uma página só, para o Brasil todo.** Uma página por cidade é o que o Google
+ * chama de doorway abuse, e um bloco com lista de cidades, de keyword stuffing.
+ * Só promete o que o Pedro faz hoje: landing pages e portfólios, para clientes
+ * de todo o Brasil, pelo WhatsApp. Rancharia aparece como a cidade dele, não
+ * como limite de atendimento. Valor e prazo ficam de fora enquanto ele não
+ * decidir (P1 do plano).
  *
  * A Trak é projeto próprio, e nada aqui pode sugerir que foi encomenda.
  *

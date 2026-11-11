@@ -12,13 +12,13 @@ const paginas = [
   {
     rota: "/criacao-de-sites/",
     par: "/en/websites/",
-    titulo: "Criação de sites em Rancharia e Presidente Prudente",
+    titulo: "Criação de sites em todo o Brasil",
     pasta: "/criacao-de-sites/",
   },
   {
     rota: "/en/websites/",
     par: "/criacao-de-sites/",
-    titulo: "Web design in Rancharia and Presidente Prudente",
+    titulo: "Web design across Brazil",
     pasta: "/en/websites/",
   },
 ] as const;
@@ -63,7 +63,7 @@ test.describe("a página de serviço (SSR)", () => {
       expect(html).toMatch(/<meta[^>]*property="og:image"[^>]*opengraph-image/);
     });
 
-    test(`${rota} descreve o Service, com as duas cidades e a Person`, async ({
+    test(`${rota} descreve o Service, para o Brasil todo e com a Person`, async ({
       request,
     }) => {
       const html = await (await request.get(rota)).text();
@@ -73,14 +73,11 @@ test.describe("a página de serviço (SSR)", () => {
       const nos = JSON.parse(bloco ?? "{}")["@graph"] as Record<string, never>[];
 
       const servico = nos.find((no) => no["@type"] === "Service") as
-        | { provider: { "@id": string }; areaServed: { name: string }[] }
+        | { provider: { "@id": string }; areaServed: { identifier: string } }
         | undefined;
       const pessoa = nos.find((no) => no["@type"] === "Person");
 
-      expect(servico?.areaServed.map((a) => a.name)).toEqual([
-        "Rancharia",
-        "Presidente Prudente",
-      ]);
+      expect(servico?.areaServed.identifier).toBe("BR");
       expect(servico?.provider["@id"]).toBe(pessoa?.["@id"]);
     });
   }
@@ -146,15 +143,15 @@ test.describe("Rancharia de volta", () => {
     }
   });
 
-  test("a home diz o que ele faz e onde, no título e no h1", async ({
+  test("a home diz o que ele faz e para onde, no título e no h1", async ({
     request,
   }) => {
     const html = await (await request.get("/")).text();
     expect(html).toContain(
-      "<title>Pedro Levi | Criador de sites em Rancharia, SP</title>",
+      "<title>Pedro Levi | Criador de sites para todo o Brasil</title>",
     );
     expect(html.match(/<h1[^>]*>([^<]*)<\/h1>/)?.[1]).toBe(
-      "Pedro Levi, criador de sites em Rancharia, SP",
+      "Pedro Levi, criador de sites para todo o Brasil",
     );
   });
 });

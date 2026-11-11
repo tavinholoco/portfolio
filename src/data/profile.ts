@@ -18,11 +18,12 @@ export const profile = {
    */
   location: { city: "Rancharia", region: "SP", country: "BR" },
   /**
-   * Onde ele atende hoje, e não onde gostaria de atender. O Brasil todo fica
-   * para quando ele decidir. Vale só para o `areaServed` do JSON-LD: uma lista
-   * de cidades no texto da página é o que o Google chama de keyword stuffing.
+   * Onde ele atende: o Brasil todo, decidido pelo Pedro em 11/11/2026 (antes
+   * eram Rancharia e Presidente Prudente). O atendimento é só pelo WhatsApp, e
+   * por isso a área não depende da cidade dele. Vale para o `areaServed` do
+   * JSON-LD.
    */
-  serviceAreas: ["Rancharia", "Presidente Prudente"],
+  serviceArea: { name: "Brasil", code: "BR" },
   /**
    * Foto do perfil, o avatar do GitHub salvo no repositório.
    *

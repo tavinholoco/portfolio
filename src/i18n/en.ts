@@ -32,14 +32,14 @@ export const en: Dict = {
   },
   routes: {
     home: {
-      title: "Pedro Levi | Web design in Rancharia, SP, Brazil",
+      title: "Pedro Levi | Web designer for clients across Brazil",
       description:
-        "Full stack developer in Rancharia, SP, Brazil. I build landing pages and portfolios for Rancharia and Presidente Prudente.",
+        "Full stack developer in Rancharia, SP, Brazil. I build landing pages and portfolios for clients across Brazil.",
     },
     websites: {
-      title: "Web design in Rancharia and Presidente Prudente",
+      title: "Web design across Brazil",
       description:
-        "Hand-built landing pages and portfolios, fast and ready for mobile. Talk to me on WhatsApp.",
+        "Hand-built landing pages and portfolios, fast and ready for mobile, for clients across Brazil. Talk to me on WhatsApp.",
     },
     clients: {
       title: "Clients | Pedro Levi",
@@ -72,7 +72,7 @@ export const en: Dict = {
   hero: {
     role: "Full Stack Developer",
     name: "Pedro Levi",
-    heading: "Pedro Levi, web designer in Rancharia, SP, Brazil",
+    heading: "Pedro Levi, web designer for clients across Brazil",
     downloadCv: "Download CV",
   },
   websites: {
@@ -140,7 +140,7 @@ export const en: Dict = {
       },
     ],
     areaTitle: "Where I work",
-    area: "Rancharia and Presidente Prudente. Everything happens on WhatsApp, so you don't have to leave where you are.",
+    area: "I work with clients across Brazil. Everything happens on WhatsApp, so you don't have to leave where you are.",
     faqTitle: "Frequently asked questions",
     faq: [
       {

@@ -158,15 +158,16 @@ describe("serviceJsonLd", () => {
     expect(personJsonLd("en")["@id"]).toBe(personJsonLd("pt")["@id"]);
   });
 
-  it("lista só as duas cidades de hoje, e a URL é a do idioma", async () => {
+  it("atende o Brasil todo, e a URL é a do idioma", async () => {
     setEnv({ NEXT_PUBLIC_SITE_URL: "https://pedrolevi.com.br" });
     vi.resetModules();
     const { serviceJsonLd } = await import("./json-ld");
 
-    expect(serviceJsonLd("pt").areaServed.map((a) => a.name)).toEqual([
-      "Rancharia",
-      "Presidente Prudente",
-    ]);
+    expect(serviceJsonLd("pt").areaServed).toEqual({
+      "@type": "Country",
+      name: "Brasil",
+      identifier: "BR",
+    });
     expect(serviceJsonLd("pt").url).toBe(
       "https://pedrolevi.com.br/criacao-de-sites/"
     );

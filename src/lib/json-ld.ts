@@ -81,11 +81,11 @@ export function serviceJsonLd(lang: Locale) {
     description: d.routes.websites.description,
     url: `${siteUrl}${pathFor("websites", lang)}`,
     provider: { "@id": personId },
-    areaServed: profile.serviceAreas.map((city) => ({
-      "@type": "City",
-      name: city,
-      containedInPlace: { "@type": "State", name: "São Paulo" },
-    })),
+    areaServed: {
+      "@type": "Country",
+      name: profile.serviceArea.name,
+      identifier: profile.serviceArea.code,
+    },
   };
 }
 

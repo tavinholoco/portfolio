@@ -32,14 +32,14 @@ export const pt: Dict = {
   },
   routes: {
     home: {
-      title: "Pedro Levi | Criador de sites em Rancharia, SP",
+      title: "Pedro Levi | Criador de sites para todo o Brasil",
       description:
-        "Desenvolvedor full stack em Rancharia, SP. Crio landing pages e portfólios para Rancharia e Presidente Prudente.",
+        "Desenvolvedor full stack em Rancharia, SP. Crio landing pages e portfólios para clientes de todo o Brasil.",
     },
     websites: {
-      title: "Criação de sites em Rancharia e Presidente Prudente",
+      title: "Criação de sites em todo o Brasil",
       description:
-        "Landing pages e portfólios feitos à mão, rápidos e prontos para o celular. Fale comigo pelo WhatsApp.",
+        "Landing pages e portfólios feitos à mão, rápidos e prontos para o celular, para todo o Brasil. Fale comigo pelo WhatsApp.",
     },
     clients: {
       title: "Clientes | Pedro Levi",
@@ -72,7 +72,7 @@ export const pt: Dict = {
   hero: {
     role: "Desenvolvedor Full Stack",
     name: "Pedro Levi",
-    heading: "Pedro Levi, criador de sites em Rancharia, SP",
+    heading: "Pedro Levi, criador de sites para todo o Brasil",
     downloadCv: "Baixar CV",
   },
   websites: {
@@ -142,7 +142,7 @@ export const pt: Dict = {
       },
     ],
     areaTitle: "Onde atendo",
-    area: "Rancharia e Presidente Prudente. Todo o atendimento é pelo WhatsApp, sem você precisar sair de onde está.",
+    area: "Atendo clientes de todo o Brasil. Tudo é feito pelo WhatsApp, sem você precisar sair de onde está.",
     faqTitle: "Perguntas frequentes",
     faq: [
       {
