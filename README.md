@@ -1,6 +1,6 @@
 # 🚀 Portfólio · Pedro Levi
 
-Portfólio minimalista com fundo WebGL próprio, tipografia fluida e navegação em 5 rotas por idioma. O texto branco das seções usa `mix-blend-mode: difference` e inverte contra o que estiver embaixo, então o contraste sai de graça sem escurecer o fundo.
+Portfólio minimalista com fundo WebGL próprio, tipografia fluida e navegação em 6 rotas por idioma. O texto branco das seções usa `mix-blend-mode: difference` e inverte contra o que estiver embaixo, então o contraste sai de graça sem escurecer o fundo.
 
 **Versão atual: V3.5.** Identidade fixa no canto esquerdo (nome, cargo e nav vertical), home reduzida ao campo de ondas, e uma paleta só no site inteiro. O fundo é um campo procedural de ondas de praia: sol que anda sozinho, nuvens em perspectiva, mar com espuma de crista, e a onda se desfazendo na areia em renda de espuma, com a areia molhada secando depois. Tudo por pixel e por frame, **sem nenhum vídeo ou GIF envolvido**, e no tema claro com a paleta "praia" (§16 do plano).
 
@@ -17,7 +17,9 @@ Na primeira visita da sessão há uma abertura: cortina preta, as letras do nome
 
 CLS zero nas 5 rotas. Os dois são **medidos contra a URL de produção**, mediana de 3 rodadas por rota (15/10/2026, no domínio, em HTTP/2): o mesmo build servido localmente (pelo `next start`, antes do export) dava 80 a 94 no mobile, porque não tem CDN, HTTP/2 nem Brotli. Rodada única não serve como medida em nenhum dos dois ambientes.
 
-**192 testes unitários e 166 E2E.** A auditoria responsiva sozinha cobre 6 rotas × 7 larguras (320 a 2560) com 5 asserções cada.
+**208 testes unitários e 220 E2E.** A auditoria responsiva sozinha cobre 7 rotas × 7 larguras (320 a 2560) com 6 asserções cada.
+
+> 🔎 **Busca por serviço (§18 do plano):** a rota `/criacao-de-sites/` (`/en/websites/`) apresenta o serviço de criação de landing pages e portfólios para todo o Brasil, com `Service` no JSON-LD. Todo JSON-LD do site passa por `serializeJsonLd`, que põe o `@context` que ele nunca teve.
 
 > A referência estrutural foi [p5aholic.me](https://p5aholic.me), **sem reúso de código**: shader, paleta, composição e CSS foram escritos do zero. O plano completo está em [PLANO-V3-PORTFOLIO.md](PLANO-V3-PORTFOLIO.md): a V3 nas seções 0 a 11, a **V3.5 na seção 12** rodada por rodada, o **passe de aperfeiçoamento na seção 13**, a entrada suave na 14, as prévias do showcase e as imagens na 15, e a **evolução do fundo de praia na seção 16**, cuja §16.8 é o ponto de partida do trabalho atual.
 
@@ -36,7 +38,7 @@ CLS zero nas 5 rotas. Os dois são **medidos contra a URL de produção**, media
 | Componentes | **Base UI** (Sheet do menu mobile). Não é Radix: a API é `render={<a/>}`, não `asChild` |
 | Ícones | **Lucide React** |
 | Dados | **GitHub API** em Server Component, buscada no build, com rebuild semanal e fallback estático |
-| i18n | Rotas por idioma, 5 de cada: `/` (pt-BR) e `/en/`, com dicionários em `src/i18n/` |
+| i18n | Rotas por idioma, 6 de cada: `/` (pt-BR) e `/en/`, com dicionários em `src/i18n/` |
 | Deploy | **Export estático** (`output: "export"`) em **Cloudflare Workers Static Assets**, buildado pelo Workers Builds (§17 do plano) |
 
 ## ⚠️ A lei de camadas, leia antes de mexer no layout
@@ -300,7 +302,7 @@ O anel de foco usa `currentColor` de propósito: com uma cor fixa, ele ficaria i
 | `rebuild-semanal.yml` | Toda segunda, um POST no deploy hook da Cloudflare (secret `CF_DEPLOY_HOOK`) rebuilda o site, para o dado do GitHub não envelhecer. Roda à mão pela aba Actions |
 
 - **Unitários** (`pnpm test`): manifesto de rotas e os arquivos em disco, contraste das sete paletas nos dois temas, grain determinístico, aritmética do render target, o teto de quadros simulado de 60 a 240 Hz, os degraus de qualidade do fundo, as cores do ícone e da imagem de link, o teto de peso e de largura das imagens versionadas, o `_headers` e o `_redirects` da Cloudflare contra o caminho da imagem de link (e o HSTS em todo caminho, sem preload), a guarda da URL do site no build da Cloudflare, o momento do deslize da abertura, metadados, sitemap, GitHub com fallback e paridade dos dicionários.
-- **E2E** (`pnpm test:e2e`): roda contra o `wrangler dev` servindo `out/`, com as mesmas regras de `_headers` e `_redirects` de produção. Cobre a lei de camadas nas 11 rotas com controle negativo, o fallback sem WebGL, DPR por tamanho de tela, o teto de quadros do fundo (contado no próprio WebGL), o degrau leve do fundo quando não há GPU, movimento reduzido, as regras do showcase em ponteiro, teclado e toque, as prévias sem `lazy` e com cache `immutable`, o HSTS somado às outras regras do `_headers`, a navegação nos dois idiomas, o `<html lang>` no SSR, a **hierarquia de cabeçalhos**, o **ícone de aba e a imagem de link em toda rota**, uma **auditoria de responsividade** em 6 rotas × 7 larguras, e a **abertura**: o nome pousa no pixel do header, o clique passa pela cortina, o nome do header (o LCP) nunca some, e sem JS a cortina sai sozinha.
+- **E2E** (`pnpm test:e2e`): roda contra o `wrangler dev` servindo `out/`, com as mesmas regras de `_headers` e `_redirects` de produção. Cobre a lei de camadas nas 13 rotas com controle negativo, o `@context` em todo JSON-LD servido, a página de serviço contra o HTML bruto, o fallback sem WebGL, DPR por tamanho de tela, o teto de quadros do fundo (contado no próprio WebGL), o degrau leve do fundo quando não há GPU, movimento reduzido, as regras do showcase em ponteiro, teclado e toque, as prévias sem `lazy` e com cache `immutable`, o HSTS somado às outras regras do `_headers`, a navegação nos dois idiomas, o `<html lang>` no SSR, a **hierarquia de cabeçalhos**, o **ícone de aba e a imagem de link em toda rota**, uma **auditoria de responsividade** em 7 rotas × 7 larguras, com o rodapé medido em 320px, e a **abertura**: o nome pousa no pixel do header, o clique passa pela cortina, o nome do header (o LCP) nunca some, e sem JS a cortina sai sozinha.
 - **Toda a suíte E2E roda sem a abertura**, porque cada contexto do Playwright nasce sem `sessionStorage` e ela cobriria o começo de todo teste. Teste novo importa `test` de `e2e/fixtures.ts`, que semeia a chave; os testes da própria abertura ligam com `test.use({ intro: true })`.
 - Os testes de responsividade e de marca existem porque a V3.5 acumulou seis defeitos que só apareceram quando alguém olhou a tela: ondas correndo para o lado errado, email cortado com reticências no celular, palavra por cima da coluna vizinha, ícone de três versões atrás e ícone ausente em `/en/`. Cada um virou asserção.
 - O `pnpm look` **não** roda no CI: tem config própria em `capture/`.
