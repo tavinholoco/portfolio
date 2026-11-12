@@ -105,7 +105,7 @@ export const en: Dict = {
         name: "Trak Assessoria",
         kind: "Personal project",
         description:
-          "Example of an institutional landing page for an accounting firm.",
+          "Example of an institutional landing page for an artist management agency.",
         url: "https://trak-acessoria.vercel.app",
       },
       {
@@ -332,21 +332,21 @@ export const en: Dict = {
         slug: "trak-assessoria",
         title: "Trak Assessoria",
         tagline:
-          "Example institutional landing page for an accounting firm, with E2E tests.",
+          "Example institutional landing page for an artist management agency, with E2E tests.",
         description:
-          "Trak Assessoria case study: an example institutional landing page for an accounting firm, with Next.js 16 and E2E tests.",
+          "Trak Assessoria case study: an example institutional landing page for an artist management agency, with Next.js 16 and E2E tests.",
         context: [
-          "Trak Assessoria is a personal project: an example of an institutional landing page for an accounting firm.",
+          "Trak Assessoria is a personal project: an example of an institutional landing page for an artist management agency.",
           "I built it to show how to present a service clearly and take the visitor to the contact step, with E2E tests covering the page.",
         ],
-        problem: "How to present an accounting firm online with clarity.",
+        problem: "How to present an artist management agency online with clarity.",
         solution: "Institutional landing page with Next.js 16 and Tailwind v4.",
         highlight: "E2E tests with Vitest and Playwright.",
         stack: ["Next.js 16", "Tailwind v4", "Vitest", "Playwright"],
         category: "landing",
         learnings: [
           "Building an institutional landing page with E2E tests (Vitest + Playwright).",
-          "Translating what an accounting firm needs to show into design, content and code.",
+          "Translating what an artist management agency needs to show into design, content and code.",
           "Shipping with Next.js 16 and Tailwind v4 while keeping performance and accessibility.",
         ],
       },

@@ -106,7 +106,7 @@ export const pt: Dict = {
         name: "Trak Assessoria",
         kind: "Projeto próprio",
         description:
-          "Exemplo de landing page institucional para uma assessoria contábil.",
+          "Exemplo de landing page institucional para uma assessoria de artistas.",
         url: "https://trak-acessoria.vercel.app",
       },
       {
@@ -334,22 +334,22 @@ export const pt: Dict = {
         slug: "trak-assessoria",
         title: "Trak Assessoria",
         tagline:
-          "Exemplo de landing institucional para assessoria contábil, com testes E2E.",
+          "Exemplo de landing institucional para assessoria de artistas, com testes E2E.",
         description:
-          "Case da Trak Assessoria: exemplo de landing page institucional para assessoria contábil, com Next.js 16 e testes E2E.",
+          "Case da Trak Assessoria: exemplo de landing page institucional para assessoria de artistas, com Next.js 16 e testes E2E.",
         context: [
-          "A Trak Assessoria é um projeto próprio: um exemplo de landing page institucional para uma assessoria contábil.",
+          "A Trak Assessoria é um projeto próprio: um exemplo de landing page institucional para uma assessoria de artistas.",
           "Fiz para mostrar como apresentar um serviço com clareza e levar o visitante até o contato, com testes E2E cobrindo a página.",
         ],
         problem:
-          "Como apresentar uma assessoria contábil na internet com clareza.",
+          "Como apresentar uma assessoria de artistas na internet com clareza.",
         solution: "Landing institucional com Next.js 16 e Tailwind v4.",
         highlight: "Testes E2E com Vitest e Playwright.",
         stack: ["Next.js 16", "Tailwind v4", "Vitest", "Playwright"],
         category: "landing",
         learnings: [
           "Construir uma landing institucional com testes E2E (Vitest + Playwright).",
-          "Traduzir o que uma assessoria contábil precisa mostrar em design, conteúdo e código.",
+          "Traduzir o que uma assessoria de artistas precisa mostrar em design, conteúdo e código.",
           "Publicar com Next.js 16 e Tailwind v4 mantendo performance e acessibilidade.",
         ],
       },

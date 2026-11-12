@@ -393,6 +393,8 @@ CLS zero no mobile. **É a mesma faixa da §6.1** (98 a 99 e 97 a 98), então as
 - **F4.4** `X-Content-Type-Options`, `Referrer-Policy`, `X-Frame-Options` e `Permissions-Policy` na regra `/*` do `public/_headers`. Sem CSP, de propósito (§5).
 - **F4.5** Link de pular para o conteúdo, o primeiro foco de toda página, dentro do header (leis 1, 3 e 7), apontando para `main#conteudo`.
 
+- **Correção de texto, fora do roteiro:** a Trak era descrita como "assessoria contábil", e ela é uma **assessoria de artistas** (o lema do site dela é "Arte é negócio"). Corrigido nos dois idiomas, no exemplo da página de serviço e no case, por resposta do Pedro em 12/11/2026. Ele também confirmou "Universidade do Oeste Paulista" no `alumniOf`.
+
 Guardas: `src/lib/contact.test.ts` (novo), `e2e/cabecalhos.spec.ts` (os quatro cabeçalhos, com valor exato, também na 404 e na imagem de link) e `e2e/servico.spec.ts` (mensagens, contatos e o primeiro Tab). **Depois do merge:** os quatro cabeçalhos em produção, e um teste de mão no WhatsApp, que é do Pedro: abrir um botão de cada página e ver a mensagem certa.
 
 ## 7. Fontes da pesquisa
