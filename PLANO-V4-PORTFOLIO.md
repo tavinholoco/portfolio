@@ -281,13 +281,55 @@ Novos, desta análise:
 | Fase | Estado | Data | Observação |
 |---|---|---|---|
 | 0 | fechada | 12/11/2026 | D1 a D10 respondidas (§2) |
-| 1 | liberada, a fazer | 12/11/2026 | push liberado; #37 com CI verde; #38 com E2E a rodar de novo; merge do Pedro |
+| 1 | feita, com F1.6 do Pedro | 12/11/2026 | #37 e #38 mesclados pelo Pedro; produção medida (§6.1); falta a régua do Search Console |
 | 2 | não iniciada | | |
 | 3 | não iniciada | | |
 | 4 | não iniciada | | |
 | 5 | não iniciada | | do Pedro |
 | 6 | não iniciada | | |
 | 7 | não iniciada | | régua: §18.1 |
+
+### 6.1 Fase 1: a medição de produção (12/11/2026)
+
+O Pedro fez o merge do #37 e do #38 em 12/11/2026 (14:07 UTC), antes de a sessão da fase 1 começar: o push previsto em F1.1 e a troca de base de F1.3 não foram necessários, e F1.2 perdeu o objeto. O registro da §18 e este plano, que estavam só locais, entraram na `main` por um PR próprio, só de documentação.
+
+**O que foi conferido em `https://pedrolevi.com.br`:**
+
+- **Sitemap com 20 páginas**, e as 20 respondem **200 sem salto**. `/criacao-de-sites/` sem a barra responde 307 para a URL com barra.
+- **`@context` em toda rota com JSON-LD** (18 das 20; o contato não tem JSON-LD, de propósito). A página de serviço serve `Service` e `Person`, e a home `WebSite` e `Person`.
+- Rota nova: canonical próprio, hreflang (`pt-BR`, `en`, `x-default`), HSTS, e a imagem de link com 200, `image/png`, 39 KB, sem salto.
+- O `confere-producao.mjs` do laboratório: tudo certo.
+- **Validador de schema (F1.5):** 0 erros e 0 avisos em `/`, `/criacao-de-sites/` e `/projetos/newra-news/`. O Teste de pesquisa aprimorada não foi rodado: nenhum dos tipos servidos gera resultado enriquecido.
+
+**Lighthouse**, só performance, `simulate`, `--disable-quic` (`h2` em todas as requisições, o domínio como único host na rede), mediana de 3, Lighthouse 13.6.0:
+
+| Rota | Mobile | Desktop | TBT mobile | Speed Index mobile |
+|---|---|---|---|---|
+| `/` | 99 | 97 | 90 ms | 3.5 s |
+| `/criacao-de-sites/` | 98 | 97 | 122 ms | 3.3 s |
+| `/clientes/` | 99 | 98 | 102 ms | 3.4 s |
+| `/projetos/` | 99 | 98 | 62 ms | 3.3 s |
+| `/info/` | 99 | 98 | 84 ms | 3.2 s |
+| `/contato/` | 99 | 98 | 82 ms | 3.2 s |
+
+CLS zero no mobile e até 0.002 no desktop. A rota nova empata com as outras.
+
+**Fica 1 a 2 pontos abaixo da referência da §17.15** (100 no mobile, 99 a 100 no desktop), **e a causa não foi isolada.** O que se sabe:
+
+- A diferença está toda no **Speed Index**: 3.2 a 3.5 s no mobile contra ~1.85 s, e ~1.7 s no desktop contra ~1.13 s. FCP e LCP estão iguais ou melhores.
+- **Não é a versão do Lighthouse:** um controle com a 13.4.1, a da referência, deu 99 no mobile nas seis rotas, com o mesmo Speed Index de 3.2 a 3.5 s.
+- **Não é a página nova:** `/contato/`, que a §18 não tocou no conteúdo, tem o mesmo Speed Index.
+- A máquina estava mais lenta: `benchmarkIndex` de 2000 a 2700 nesta rodada contra 3000 a 3500 na referência, com outras sessões rodando. O Speed Index sai do que o Chrome pintou de verdade, e sem GPU o fundo é trabalho de processador (lei 20). É a hipótese mais provável, mas não foi provada.
+- Houve rodadas soltas de 89 a 95 (primeira rodada de `/info/` e de `/contato/`), que a mediana absorve.
+
+**O elemento de LCP deixou de ser o mesmo em todas as rotas.** Em `/` e `/criacao-de-sites/` segue o link do header; em `/clientes/` e `/projetos/` passou a ser a primeira prévia do showcase, em `/info/` o parágrafo de abertura, e em `/contato/` alterna entre o `h1` e o link. Isso aparece nas duas versões do Lighthouse, então é do site ou do Chromium desta rodada, não da ferramenta. O LCP em si não piorou (1.0 a 1.7 s no mobile). **Antes de F2.6, medir de novo com a máquina parada** e decidir se a frase do `CLAUDE.md` ("o LCP é o link do header nas cinco rotas") ainda vale.
+
+> O Chromium do Playwright precisou ser instalado de novo, desta vez pelo Terminal do painel do app. A instalação de 06/11 tinha ido para a pasta virtualizada do app (o `%LOCALAPPDATA%` que as ferramentas da sessão enxergam não é o do Windows), e de lá o `chrome.exe` não abre: erro de "configuração lado a lado". **Lighthouse se roda pelo Terminal do painel**, com o script `lh-v4-fase1.cjs` do laboratório; os JSON estão em `lh-v4-fase1/` e `lh-v4-fase1-controle-1341/`.
+
+**O que é do Pedro (F1.6 e fase 5):**
+
+- **Search Console:** inspecionar `https://pedrolevi.com.br/criacao-de-sites/` e `/en/websites/`, pedir a indexação, e anotar aqui quantas páginas constam em Indexação > Páginas. É a régua da fase 7.
+- **Fase 5**, que corre em paralelo desde já: o domínio no LinkedIn e no README do perfil do GitHub (F5.1), o pedido de crédito com link no site da Dandarkness e o crédito no da Trak (F5.2), o Bing Webmaster Tools importando do Search Console (F5.3), o DNS de `trak.pedrolevi.com.br` (F5.4, a combinar), o Planejador de Palavras-chave (F5.5), e usar o link da página de serviço na abordagem pelo WhatsApp (F5.6).
 
 ## 7. Fontes da pesquisa
 
