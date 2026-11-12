@@ -7,7 +7,8 @@
 > **Status:** ✅ **V3.5 no ar, com o passe de aperfeiçoamento fechado.** As 7 fases da v3 fechadas em 27/08/2026 (avaliação na seção 11), o refinamento **V3.5** mergeado pelo PR #4 em 6 rodadas de ajuste (avaliação na **§12.10**), e os **5 milestones da seção 13** mergeados pelo PR #7 em 31/08/2026 (fechamento na **§13.5**).
 >
 > **Produção:** https://pedrolevi.com.br, na Cloudflare desde 14/10/2026 (o `pedrolevi.vercel.app` responde 308 para lá).
-> **Última etapa:** a migração para a Cloudflare com o domínio próprio, feita nas seis fases da **§17**, medida na **§17.14** medida de novo, sem o beacon de RUM da zona, na **§17.15**, e completada com o que o roteiro não previa (HSTS, TLS, email do domínio, renovação) na **§17.16**, que é por onde se retoma.
+> **Última etapa:** a migração para a Cloudflare com o domínio próprio, feita nas seis fases da **§17**, medida na **§17.14** medida de novo, sem o beacon de RUM da zona, na **§17.15**, e completada com o que o roteiro não previa (HSTS, TLS, email do domínio, renovação) na **§17.16**.
+> **Em andamento:** a página de criação de sites e a busca por serviço, na **§18** (06 a 11/11/2026). Os PRs #37 e #38 estão abertos e guardados sem merge, por decisão do Pedro; retome pela **§18.6**.
 > **Versão do documento:** V3.5
 
 ---
@@ -946,6 +947,8 @@ A primeira rodada da V3.5 foi conferida por captura. Ver o site de verdade rende
 **2. As ondas corriam para o horizonte.** O Pedro viu antes da suíte. Com `sin(z * k - t * w)`, fase constante exige z crescente, e como z cresce em direção ao horizonte, a crista fugia mar adentro em vez de quebrar na praia. O conserto é o sinal: `+ t`. **Isto não gera erro nenhum**, o fundo continua animado e bonito, e por isso ganhou teste próprio, `pnpm waves`, que compila o GLSL real num contexto próprio e mede o deslocamento por correlação cruzada entre dois instantes. Com o sinal certo dá `-3px` de deslocamento e erro 1.65; com o sinal errado o teste reprova. Controle negativo conferido.
 
 **3. A localidade saiu do projeto.** "Rancharia, São Paulo" saiu do rodapé, de `profile.location`, do fato de `/info/` nos dois dicionários (com o `id` fora do union de `Fact`) e do `PostalAddress` do JSON-LD. **Ficou** "Prefeitura de Rancharia" na trajetória, que é nome de empregador e não localidade.
+
+> **Revogado pela §18 (06/11/2026).** O Pedro quer ser achado por quem procura quem faça um site, e a cidade voltou ao rodapé, a `profile.location`, ao fato de `/info/` e ao `PostalAddress`, só com cidade, estado e país.
 
 **4. O menu desceu.** Estava em `var(--pad)`, encostado na linha de cima da moldura. Foi para `calc(var(--pad)*2)` em `lg`, que é onde a referência põe o dela. No mobile ficou em `1.5x`, porque lá o conteúdo passa por baixo do bloco de identidade sem a coluna da nav para afastar, e `2x` encostava o `h1` no cargo. A primeira seção ganhou `pt-28` no mobile pelo mesmo motivo.
 
@@ -2900,3 +2903,101 @@ As menções à Vercel que sobraram no repositório são demos de clientes e com
 4. **O rebuild de segunda, 19/10**: conferir que o agendamento rodou sozinho. O caminho dele (workflow, deploy hook, build) já foi provado à mão aqui.
 5. **README do perfil e LinkedIn**, com o Pedro (§17.13).
 6. **A renovação do domínio**, em setembro de 2027, com o lembrete.
+
+---
+
+## 18. Busca por serviço: a página de criação de sites (06/11/2026)
+
+Em 06/11/2026 o Pedro trocou o foco de performance para busca: ele quer ser achado por quem procura quem faça um site. A análise e o plano foram de 06/11, num arquivo à parte (`PLANO-SEO-LOCAL.md`), e o código foi feito em 06 e 11/11. Esta seção substitui aquele arquivo, que foi apagado.
+
+**Estado:** os dois PRs estão abertos e **guardados sem merge, por decisão do Pedro em 11/11/2026**: o merge dispara rebuild na Cloudflare, e ele não quer isso por enquanto. O commit deste registro também ficou só local, porque push no branch de um PR aberto dispara build de prévia. Retome pela §18.6.
+
+### 18.1 O ponto de partida
+
+Medido em produção em 06/11/2026, com o user agent do Googlebot:
+
+- **O site não falava do serviço.** Nas 6 rotas auditadas, a palavra "site" não aparecia no texto do HTML.
+- **O site não dizia onde o Pedro atua.** "Rancharia" aparecia uma vez, como nome de empregador em `/info/`.
+- **A home não dizia o que ele faz.** Tinha 42 palavras, o título era "Pedro Levi | Desenvolvedor Full Stack", e o `h1` era a tese.
+- **O JSON-LD nunca teve `@context`.** Nenhuma rota o trazia, e `git log -S'@context'` não achava nada. Sem ele os dados provavelmente não são lidos como schema.org, e **nada acusava**: o build passava e o SEO do Lighthouse seguia em 100.
+- **`knowsAbout` estava errado.** Reaproveitava `meta.keywords` e dizia que o Pedro entende de "Pedro Levi" e de "Portfólio".
+- **A base técnica estava boa:** `robots.txt`, sitemap, canonical, `www` em 301 e `vercel.app` em 308.
+
+No Search Console (filtro de 3 meses, tipo Web) só havia "pedro levi" (4 impressões) e "pedro levy" (1), sem clique e sem nenhuma busca por serviço. As impressões começam por volta de 21/10/2026. É a régua para comparar depois.
+
+### 18.2 Decisões do Pedro
+
+| Assunto | Decisão |
+|---|---|
+| Área de atendimento | **O Brasil todo**, decidido em 11/11/2026 ao ver a página. Em 06/11 eram Rancharia e Presidente Prudente, com o Brasil "no futuro" |
+| Serviços | Landing pages e portfólios. Sites mais complexos ficam para o futuro, e a página não os promete |
+| Localização | Rancharia volta ao site como a cidade dele, só com cidade e estado. **Revoga a §12.4, item 3** |
+| Menu | A página nova entra logo depois de Home |
+| Atendimento | Só pelo WhatsApp, sem encontro presencial. Por isso não há Perfil da Empresa no Google (§18.5) |
+| Clientes | **A Dandarkness é a única cliente. A Trak Assessoria é uma landing page criada pelo Pedro, não um cliente** |
+| Título da página | Curto: "Criação de sites em todo o Brasil". A primeira versão, com as duas cidades, ocupava cinco linhas em 1440px |
+| Texto da página e títulos (P2) | **Aprovados em 11/11/2026**, inclusive os passos de "Como funciona", o inglês e os três links internos, que são redação minha |
+| Preço e prazo (P1) | **Sem resposta.** A página não cita valor nem prazo, e um teste trava isso |
+| Merge | **Adiado** em 11/11/2026, para não disparar rebuild na Cloudflare |
+
+### 18.3 PR #37: o `@context` e o `knowsAbout`
+
+Branch `claude/seo-local-json-ld`, um commit, base `main`.
+
+- **O `@context` mora num ponto só.** `serializeJsonLd` em `src/lib/json-ld.ts` monta `{ "@context": "https://schema.org", "@graph": [...] }`, normalizando objeto e lista no mesmo formato, e o `<JsonLd>` é o único que escreve `application/ld+json`. Nenhum nó declara o campo, então nenhuma rota consegue esquecê-lo. Virou a **lei 24** do `CLAUDE.md`.
+- **`<` escapado para `<`**, como manda o guia de JSON-LD do Next (`node_modules/next/dist/docs/01-app/02-guides/json-ld.md`): um `</script>` num texto fecharia a tag. O `JSON.parse` devolve o original.
+- **`knowsAbout` com lista própria**, `meta.knowsAbout`, nos dois dicionários.
+- **Testes:** 5 unitários, com controle negativo (o nó cru, como o site servia, reprova), e 13 E2E em `e2e/json-ld.spec.ts`, que leem o **HTML bruto** de 12 rotas. Cada rota tem um mínimo de blocos, para o teste não passar sem ler nada; o contato tem mínimo zero, mas entra na varredura para nascer cobrado se ganhar dados.
+
+### 18.4 PR #38: a página, a cidade, os títulos e a Trak
+
+Branch `claude/seo-local-pagina-servico`, **com base no branch do #37**, para o diff mostrar só o que é dele.
+
+- **A página:** `/criacao-de-sites/` e `/en/websites/` ("Criação de sites" e "Websites" no menu), em `src/components/pages/websites-page.tsx`. Uma seção `blend` só, porque é texto sem imagem (lei 5): abertura, WhatsApp, "O que eu faço", exemplos, "Como funciona", "Onde atendo", perguntas frequentes e WhatsApp de novo. Os exemplos dizem o que cada um é: Trak como "Projeto próprio", Dandarkness como "Cliente".
+- **JSON-LD:** `Service` com `provider` apontando para a `Person` pelo `@id` (`<site>/#person`, o mesmo nos dois idiomas) e `areaServed` como `Country` (Brasil, `BR`). A `Person` vai no mesmo documento, para a referência resolver. **Sem `LocalBusiness`** (o Google exige endereço físico) e **sem `FAQPage`** (o Google restringiu esse resultado enriquecido).
+- **Rancharia:** no rodapé, como fato em `/info/` (o `id` `"location"` voltou ao union de `Fact`), em `profile.location` e no `address` da `Person`, com `telephone` (o WhatsApp, que já era público). **Nunca a rua**, e um teste trava `streetAddress` e `postalCode`.
+- **Títulos e descrições:** home ("Pedro Levi | Criador de sites para todo o Brasil"), serviço, clientes e contato, e o `h1` da home, que segue em `sr-only` com uma frase só: "Pedro Levi, criador de sites para todo o Brasil". **`hero.thesis` saiu**: a tese continua viva no primeiro passo de `/info/`. "Desenvolvedor Full Stack" saiu do título da home, mas continua na descrição, no header e no JSON-LD, que é o risco aceito diante do público recrutador da §4.5.
+- **A Trak corrigida:** `tagline`, `problem` e dois aprendizados nos dois dicionários deixaram de falar em cliente real e em entrega. `routes.clients.description` deixou de sugerir volume. Um unitário exige que a Dandarkness seja a única cliente e que o texto da Trak não diga "cliente", "client", "entreg" nem "deliver".
+- **Links internos:** de `/clientes/`, de `/contato/` e do case da Trak. No case o link só aparece em projeto de categoria `landing`.
+
+**Três achados de execução:**
+
+1. **O rodapé com a cidade não cabia em 320px.** São 49 caracteres, e em 10px eles pedem mais que os 280px da faixa: o texto quebrava em duas linhas (280x30px numa faixa de 20px) e subia por cima da moldura, sem rolagem nenhuma para acusar. Ficou em `whitespace-nowrap`, com 9px só abaixo de 360px, em vez de cortar o nome ou a cidade. `e2e/responsivo.spec.ts` ganhou a **sexta asserção**, que mede o rodapé, e ela pegou o defeito antes do conserto.
+2. **A armadilha do `e2e/bundle.spec.ts` era real.** Ele usa o maior literal de cada dicionário como marcador no HTML de `/info/`, e a abertura da página, numa frase só, passaria a ser esse marcador. A abertura virou `intro: string[]`, juntada num `<p>`.
+3. **Dois testes do showcase** procuravam "Assessoria contábil" no texto antigo da Trak, e passaram a procurar "assessoria contábil".
+
+### 18.5 O que não fazer
+
+- **Uma página por cidade:** o Google chama de doorway abuse. Uma página só.
+- **Bloco com lista de cidades** ou `h1` invisível cheio de termos: keyword stuffing. Texto para leitor de tela é permitido, para manipular a busca não.
+- **Investir em `meta.keywords`:** o Google ignora a tag.
+- **`LocalBusiness`, endereço falso ou escritório virtual** para criar o Perfil da Empresa: o Google exige local físico ou atendimento no endereço do cliente, e o Pedro atende só pelo WhatsApp. Sem perfil não há resultado no mapa; a meta é o orgânico. Se ele passar a atender presencialmente, o perfil volta à mesa, com endereço oculto e o nome real.
+- **Comprar avaliações ou links**, ou marcar `Review` e `aggregateRating` sobre o próprio serviço.
+- **Prometer o que é futuro:** sites complexos, preço ou prazo, até o Pedro decidir.
+
+### 18.6 O que falta
+
+**Quando o Pedro liberar o merge:**
+
+1. Dar push no commit deste registro, que está só local no branch do #38.
+1. **Rodar de novo o E2E do CI do #38.** Em 11/11/2026 ele reprovou duas vezes no passo de instalar o navegador (`playwright install --with-deps chromium`), antes de qualquer teste: o runner não resolvia o DNS de `security.ubuntu.com` (`Temporary failure resolving`, `exit code 100` no `apt`). Não é do código: a suíte passou inteira na máquina (220), e o #37 passou no CI. Se voltar a acontecer com a rede do GitHub normal, o caminho é tirar o `--with-deps` ou fazer cache do navegador no `ci.yml`.
+2. Merge do #37, e só depois mudar a base do #38 para a `main` (`gh pr edit 38 --base main`) antes do merge dele.
+3. **Medir em produção**, como na §17.15: o `@context` em todas as rotas, o sitemap com **20 páginas**, `/criacao-de-sites/` respondendo 200 sem redirecionar, o `.captures/laboratorio-praia/medicao/confere-producao.mjs` passando (local, fora do git), e o Lighthouse com `--only-categories=performance`, mediana de 3, `h2` conferido no JSON e o domínio como único host na rede (lei 18), **incluindo a rota nova**. Referência: mobile 100 e desktop 99 a 100.
+4. Conferir no [validador de schema](https://validator.schema.org/) e no [Teste de pesquisa aprimorada](https://search.google.com/test/rich-results).
+5. No Search Console: inspecionar `/criacao-de-sites/` e pedir a indexação. O sitemap já está enviado e passa de 18 para 20 páginas sozinho.
+
+**Do Pedro, que não depende do merge (etapa 5):**
+
+- **Depoimento da Dandarkness**, com autorização para publicar, para a página de serviço. Sem marcação de avaliação.
+- **Links de fora:** crédito no rodapé do site da Dandarkness (com autorização) e no da Trak; o domínio no LinkedIn e no README do perfil do GitHub, pendentes desde a §17.13.
+- **Planejador de Palavras-chave do Google Ads**, para ter volume de busca, que hoje é desconhecido.
+- **P3:** quantas páginas constam em Indexação > Páginas no Search Console.
+- **Usar o link da página de serviço na abordagem pelo WhatsApp**, em vez da home, depois do merge.
+
+**Nas semanas seguintes:** filtrar no Search Console as consultas com "site" e comparar com a §18.1. Sucesso inicial é a página indexada e as primeiras impressões em busca de serviço. Mudança no site leva semanas para aparecer, e ninguém garante o primeiro lugar.
+
+### 18.7 Verificação
+
+No branch do #38, no Windows: `pnpm lint` e `pnpm typecheck` limpos, **208 unitários** (195 + 5 do #37 + 8 do #38) e **220 E2E** (168 + 13 do #37 + 39 do #38) contra o `wrangler dev`. O HTML da página foi conferido no `out/`: título, `h1`, canonical, hreflang, `og:image`, JSON-LD e sitemap com 20 páginas. O CI dos dois PRs passou, e as prévias de branch da Cloudflare publicaram.
+
+> ⚠️ **Esta máquina não tinha o Chromium do Playwright.** O primeiro E2E desta seção reprovou 149 testes em 33 s, todos com `Executable doesn't exist`, e só os que não abrem navegador passaram. Instalado com `pnpm exec playwright install chromium`: hoje é o `chromium-1234` (Chrome for Testing 151) em `%LOCALAPPDATA%\ms-playwright\`, e o `CHROME_PATH` do Lighthouse aponta para `chromium-1234\chrome-win64\chrome.exe`. Se o E2E reprovar quase inteiro em poucos segundos, olhe o erro antes do código.
