@@ -17,6 +17,8 @@ export const profile = {
    * revogando a §12.4 do plano.
    */
   location: { city: "Rancharia", region: "SP", country: "BR" },
+  /* Onde ele se formou, para o `alumniOf` da `Person` no JSON-LD. */
+  education: { name: "Universidade do Oeste Paulista", alternateName: "UNOESTE" },
   /**
    * Onde ele atende: o Brasil todo, decidido pelo Pedro em 11/11/2026 (antes
    * eram Rancharia e Presidente Prudente). O atendimento é só pelo WhatsApp, e

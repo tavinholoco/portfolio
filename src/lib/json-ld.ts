@@ -1,7 +1,8 @@
 import { profile } from "@/data/profile";
+import { projectMetas } from "@/data/projects";
 import { dictionaries, type Locale } from "@/i18n";
 import { getSiteUrl } from "@/lib/metadata";
-import { pathFor } from "@/lib/routes";
+import { navLabelFor, pathFor } from "@/lib/routes";
 
 const siteUrl = getSiteUrl();
 
@@ -52,7 +53,15 @@ export function personJsonLd(lang: Locale) {
     "@id": personId,
     name: d.meta.name,
     url: siteUrl,
+    /* A URL do avatar tem hash de conteúdo: sai do import, nunca à mão. */
+    image: `${siteUrl}${profile.avatar.src}`,
+    description: d.routes.home.description,
     jobTitle: d.hero.role,
+    alumniOf: {
+      "@type": "CollegeOrUniversity",
+      name: profile.education.name,
+      alternateName: profile.education.alternateName,
+    },
     email: profile.email,
     telephone: profile.phoneRaw,
     address: {
@@ -89,12 +98,53 @@ export function serviceJsonLd(lang: Locale) {
   };
 }
 
-/** Schema.org WebSite: home por idioma. */
+/**
+ * Schema.org FAQPage: as perguntas da página de serviço.
+ *
+ * **Não gera resultado enriquecido:** o Google encerrou o de FAQ em maio de
+ * 2026. Fica porque ele diz que continua lendo a marcação para entender a
+ * página, e porque sai de graça do mesmo texto que está na tela.
+ */
+export function faqJsonLd(lang: Locale) {
+  const d = dictionaries[lang];
+  return {
+    "@type": "FAQPage",
+    mainEntity: d.websites.faq.map((item) => ({
+      "@type": "Question",
+      name: item.question,
+      acceptedAnswer: { "@type": "Answer", text: item.answer.join(" ") },
+    })),
+  };
+}
+
+/**
+ * Schema.org ProfilePage: `/info/`, a página sobre ele.
+ *
+ * O `mainEntity` referencia a `Person` pelo `@id`, então a página precisa
+ * servir a `Person` no mesmo documento.
+ */
+export function profilePageJsonLd(lang: Locale) {
+  return {
+    "@type": "ProfilePage",
+    url: `${siteUrl}${pathFor("info", lang)}`,
+    inLanguage: lang === "pt" ? "pt-BR" : "en",
+    mainEntity: { "@id": personId },
+  };
+}
+
+/**
+ * Schema.org WebSite: home por idioma.
+ *
+ * O Google lê o `name` daqui e o `og:site_name` para o nome do site no
+ * resultado, e só na raiz do domínio. O `@id` é o mesmo nos dois idiomas.
+ */
 export function webSiteJsonLd(lang: Locale) {
   const d = dictionaries[lang];
   return {
     "@type": "WebSite",
+    "@id": `${siteUrl}/#website`,
     name: d.meta.ogSiteName,
+    alternateName: d.meta.siteAlternateName,
     url: siteUrl,
     inLanguage: lang === "pt" ? "pt-BR" : "en",
   };
@@ -150,19 +200,57 @@ export function clientListJsonLd(lang: Locale) {
   );
 }
 
-/** Schema.org SoftwareApplication: página individual de projeto. */
+/**
+ * Schema.org SoftwareSourceCode: página individual de projeto.
+ *
+ * Era `SoftwareApplication`, que pede preço e avaliação para valer alguma
+ * coisa e descrevia um aplicativo à venda. O que a página mostra é um projeto
+ * com repositório público. O `author` referencia a `Person` pelo `@id`,
+ * então a página precisa servir a `Person` no mesmo documento.
+ */
 export function projectJsonLd(slug: string, lang: Locale) {
   const d = dictionaries[lang];
   const project = d.projects.featured.find((p) => p.slug === slug);
-  if (!project) return null;
+  const meta = projectMetas.find((m) => m.slug === slug);
+  if (!project || !meta) return null;
   return {
-    "@type": "SoftwareApplication",
+    "@type": "SoftwareSourceCode",
     name: project.title,
     description: project.description,
     url: `${siteUrl}${pathFor("projects", lang)}${slug}/`,
-    applicationCategory: "WebApplication",
+    codeRepository: `${profile.github}/${meta.repo}`,
     keywords: project.stack.join(", "),
     inLanguage: lang === "pt" ? "pt-BR" : "en",
-    author: { "@type": "Person", name: d.meta.name, url: siteUrl },
+    author: { "@id": personId },
+  };
+}
+
+/** Schema.org BreadcrumbList do case: Home, Projetos, o projeto. */
+export function projectBreadcrumbJsonLd(slug: string, lang: Locale) {
+  const project = dictionaries[lang].projects.featured.find(
+    (p) => p.slug === slug
+  );
+  if (!project) return null;
+
+  const trilha = [
+    { name: navLabelFor("home", lang), url: `${siteUrl}${pathFor("home", lang)}` },
+    {
+      name: navLabelFor("projects", lang),
+      url: `${siteUrl}${pathFor("projects", lang)}`,
+    },
+    {
+      name: project.title,
+      url: `${siteUrl}${pathFor("projects", lang)}${slug}/`,
+    },
+  ];
+
+  return {
+    "@type": "BreadcrumbList",
+    itemListElement: trilha.map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: item.name,
+      item: item.url,
+    })),
   };
 }

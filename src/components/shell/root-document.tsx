@@ -33,6 +33,9 @@ const openSans = Open_Sans({
   subsets: ["latin"],
 });
 
+/** As variáveis das duas fontes, para o `<html>`. A 404 (`global-not-found`) usa as mesmas. */
+export const fontVariables = `${firaCode.variable} ${openSans.variable}`;
+
 export const viewport: Viewport = {
   themeColor: "#0b0b0c",
 };
@@ -51,7 +54,7 @@ export const metadata: Metadata = {
  * theme-color do meta (o viewport exporta o padrão escuro; aqui o meta é
  * atualizado para o tema real salvo, que já existe no DOM nesta ordem).
  */
-const themeScript = `(function(){try{var t=localStorage.getItem("theme");var dark=t?t==="dark":true;document.documentElement.classList.toggle("dark",dark);var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute("content",dark?"#0b0b0c":"#f0f0f0");}catch(e){document.documentElement.classList.add("dark");}})();`;
+export const themeScript = `(function(){try{var t=localStorage.getItem("theme");var dark=t?t==="dark":true;document.documentElement.classList.toggle("dark",dark);var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute("content",dark?"#0b0b0c":"#f0f0f0");}catch(e){document.documentElement.classList.add("dark");}})();`;
 
 /**
  * Decide a abertura antes do primeiro paint (§16.9): uma vez por sessão, e
@@ -74,7 +77,7 @@ export function RootDocument({
     <html
       lang={lang}
       suppressHydrationWarning
-      className={`${firaCode.variable} ${openSans.variable} h-full antialiased`}
+      className={`${fontVariables} h-full antialiased`}
     >
       {/*
         A regra `no-head-element` é do Pages Router, onde `<head>` competia com

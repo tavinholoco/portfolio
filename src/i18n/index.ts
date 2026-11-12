@@ -99,13 +99,18 @@ export type WebsiteExample = {
 export type Dict = {
   meta: {
     name: string;
-    keywords: string[];
     /**
-     * Competências do `knowsAbout` da `Person` no JSON-LD. É uma lista própria
-     * porque reaproveitar `keywords` dizia que o Pedro entende de "Pedro Levi".
+     * Competências do `knowsAbout` da `Person` no JSON-LD. Nunca leva o nome
+     * dele: a lista antiga dizia que o Pedro entende de "Pedro Levi".
      */
     knowsAbout: string[];
+    /**
+     * O nome do site: `og:site_name` e `WebSite.name`. O Google lê os dois
+     * para o nome que aparece no resultado, e pede nome curto.
+     */
     ogSiteName: string;
+    /** O `alternateName` do `WebSite`: o nome longo, que era o principal. */
+    siteAlternateName: string;
   };
   /**
    * Título e descrição de cada rota, para o generateMetadata correspondente.
@@ -115,6 +120,8 @@ export type Dict = {
    * O import é só de tipo, então o ciclo com lib/routes.ts some na compilação.
    */
   routes: Record<RouteId, { title: string; description: string }>;
+  /** A página 404 (`src/app/global-not-found.tsx`), que mostra os dois idiomas. */
+  notFound: { title: string; description: string; back: string };
   nav: {
     openMenu: string;
     sheetTitle: string;

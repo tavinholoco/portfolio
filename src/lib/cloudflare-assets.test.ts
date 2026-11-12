@@ -3,7 +3,7 @@ import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import { ogImageMeta } from "./metadata";
+import { ogImageMeta, ogImageVariants } from "./metadata";
 
 /**
  * Lei 22: com o export estático, o que a Vercel fazia sozinha passou a morar
@@ -39,12 +39,20 @@ function regrasDeCabecalho(): Map<string, string[]> {
   return regras;
 }
 
-const caminhos = (["pt", "en"] as const).map((lang) => {
-  const comBarra = ogImageMeta(lang).url;
-  return { lang, comBarra, semBarra: comBarra.replace(/\/$/, "") };
-});
+/* Toda imagem anunciada, nas duas variantes: a do site e a do serviço. */
+const caminhos = ogImageVariants.flatMap((variant) =>
+  (["pt", "en"] as const).map((lang) => {
+    const comBarra = ogImageMeta(lang, variant).url;
+    return { lang, variant, comBarra, semBarra: comBarra.replace(/\/$/, "") };
+  })
+);
 
 describe("public/_redirects e public/_headers da Cloudflare", () => {
+  it("cobre as quatro imagens: a do site e a do serviço, nos dois idiomas", () => {
+    expect(caminhos).toHaveLength(4);
+    expect(new Set(caminhos.map((c) => c.comBarra)).size).toBe(4);
+  });
+
   it("a meta anuncia as imagens com barra, que é o que as regras supõem", () => {
     for (const { comBarra, semBarra } of caminhos) {
       expect(comBarra.endsWith("/")).toBe(true);

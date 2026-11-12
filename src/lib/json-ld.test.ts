@@ -36,12 +36,14 @@ describe("json-ld", () => {
     );
   });
 
-  it("projectJsonLd gera SoftwareApplication com URL absoluta", async () => {
+  it("projectJsonLd gera SoftwareSourceCode com URL absoluta e repositório", async () => {
     setEnv({ NEXT_PUBLIC_SITE_URL: "https://pedrolevi.com.br" });
     const { projectJsonLd } = await freshJsonLd();
 
     const ld = projectJsonLd("newra-news", "pt");
-    expect(ld?.["@type"]).toBe("SoftwareApplication");
+    expect(ld?.["@type"]).toBe("SoftwareSourceCode");
+    expect(ld?.codeRepository).toBe("https://github.com/tavinholoco/newra-news");
+    expect(ld?.author).toEqual({ "@id": "https://pedrolevi.com.br/#person" });
     expect(ld?.url).toBe("https://pedrolevi.com.br/projetos/newra-news/");
     expect(ld?.keywords).toContain("Turborepo");
 
@@ -106,8 +108,68 @@ describe("o @context do documento", () => {
   });
 });
 
+/* Fase 3 do plano V4. */
+describe("o que a busca lê sobre o site e sobre ele", () => {
+  async function fresco() {
+    process.env.NEXT_PUBLIC_SITE_URL = "https://pedrolevi.com.br";
+    vi.resetModules();
+    return import("./json-ld");
+  }
+
+  it("o WebSite tem nome curto, @id e nome alternativo", async () => {
+    const { webSiteJsonLd } = await fresco();
+    for (const lang of ["pt", "en"] as const) {
+      const site = webSiteJsonLd(lang);
+      expect(site.name).toBe("Pedro Levi");
+      expect(site["@id"]).toBe("https://pedrolevi.com.br/#website");
+      expect(site.alternateName).not.toBe(site.name);
+    }
+  });
+
+  /* A imagem não entra aqui: a URL com hash só existe no build, e quem a
+     confere é o e2e/json-ld.spec.ts, no HTML bruto. */
+  it("a Person tem descrição e formação", async () => {
+    const { personJsonLd } = await fresco();
+    const pessoa = personJsonLd("pt");
+    expect(pessoa.description.length).toBeGreaterThan(40);
+    expect(pessoa.alumniOf.alternateName).toBe("UNOESTE");
+  });
+
+  it("a ProfilePage aponta para a Person pelo @id", async () => {
+    const { personJsonLd, profilePageJsonLd } = await fresco();
+    const pagina = profilePageJsonLd("en");
+    expect(pagina.url).toBe("https://pedrolevi.com.br/en/info/");
+    expect(pagina.mainEntity["@id"]).toBe(personJsonLd("en")["@id"]);
+  });
+
+  it("o case tem trilha de três níveis, com URL absoluta", async () => {
+    const { projectBreadcrumbJsonLd } = await fresco();
+    const trilha = projectBreadcrumbJsonLd("newra-news", "pt");
+    expect(trilha?.itemListElement.map((i) => i.item)).toEqual([
+      "https://pedrolevi.com.br/",
+      "https://pedrolevi.com.br/projetos/",
+      "https://pedrolevi.com.br/projetos/newra-news/",
+    ]);
+    expect(projectBreadcrumbJsonLd("nao-existe", "pt")).toBeNull();
+  });
+
+  it("o FAQPage repete as perguntas da página, uma a uma", async () => {
+    const { faqJsonLd } = await fresco();
+    const { dictionaries } = await import("@/i18n");
+    for (const lang of ["pt", "en"] as const) {
+      const faq = faqJsonLd(lang);
+      expect(faq.mainEntity.map((q) => q.name)).toEqual(
+        dictionaries[lang].websites.faq.map((item) => item.question)
+      );
+      for (const q of faq.mainEntity) {
+        expect(q.acceptedAnswer.text.length).toBeGreaterThan(20);
+      }
+    }
+  });
+});
+
 describe("knowsAbout", () => {
-  it("lista competências, sem o nome dele e sem reaproveitar as keywords", async () => {
+  it("lista competências, sem o nome dele", async () => {
     const { personJsonLd } = await import("./json-ld");
     const { dictionaries } = await import("@/i18n");
 
@@ -115,7 +177,6 @@ describe("knowsAbout", () => {
       const { knowsAbout } = personJsonLd(lang);
       expect(knowsAbout.length).toBeGreaterThan(0);
       expect(knowsAbout).not.toContain(dictionaries[lang].meta.name);
-      expect(knowsAbout).not.toEqual(dictionaries[lang].meta.keywords);
     }
   });
 });

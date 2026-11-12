@@ -282,8 +282,8 @@ Novos, desta análise:
 |---|---|---|---|
 | 0 | fechada | 12/11/2026 | D1 a D10 respondidas (§2) |
 | 1 | feita, com F1.6 do Pedro | 12/11/2026 | #37 e #38 mesclados pelo Pedro; produção medida (§6.1); falta a régua do Search Console |
-| 2 | no PR, aguardando merge | 12/11/2026 | F2.1 a F2.8 menos F2.5 (sem depoimento, D9); texto e capturas aprovados pelo Pedro; 210 unitários e 233 E2E; medir a home em produção depois do merge (LCP, §6.1) |
-| 3 | não iniciada | | |
+| 2 | feita e no ar | 12/11/2026 | PR #40 mesclado pelo Pedro; F2.1 a F2.8 menos F2.5 (sem depoimento, D9); conferida em produção, com o Lighthouse inconclusivo (§6.2) |
+| 3 | no PR, aguardando merge | 12/11/2026 | F3.1 a F3.10; 220 unitários e 260 E2E; a imagem de link do serviço e a 404 mostradas ao Pedro (§6.3) |
 | 4 | não iniciada | | |
 | 5 | não iniciada | | do Pedro |
 | 6 | não iniciada | | |
@@ -330,6 +330,34 @@ CLS zero no mobile e até 0.002 no desktop. A rota nova empata com as outras.
 
 - **Search Console:** inspecionar `https://pedrolevi.com.br/criacao-de-sites/` e `/en/websites/`, pedir a indexação, e anotar aqui quantas páginas constam em Indexação > Páginas. É a régua da fase 7.
 - **Fase 5**, que corre em paralelo desde já: o domínio no LinkedIn e no README do perfil do GitHub (F5.1), o pedido de crédito com link no site da Dandarkness e o crédito no da Trak (F5.2), o Bing Webmaster Tools importando do Search Console (F5.3), o DNS de `trak.pedrolevi.com.br` (F5.4, a combinar), o Planejador de Palavras-chave (F5.5), e usar o link da página de serviço na abordagem pelo WhatsApp (F5.6).
+
+### 6.2 Fase 2: a conferência de produção (12/11/2026)
+
+O PR #40 entrou em 12/11/2026 (15:43 UTC). Em `https://pedrolevi.com.br`: as 20 páginas com 200, o `confere-producao.mjs` certo, o h1 novo da página de serviço, a linha da home no HTML bruto, "Sobre | Pedro Levi" em `/info/` e a descrição própria nos cases.
+
+**O Lighthouse desta rodada não serve de régua.** Mesmo método da §6.1, com a máquina sem build rodando, e ainda assim as três rodadas de uma mesma rota variaram demais: `/clientes/` deu 62, 94 e 99 no mobile, e é uma rota que a fase 2 não tocou. As medianas ficaram em 93 a 99 no mobile e 90 a 97 no desktop, com o Speed Index de algumas rotas em 5 a 7 s. Isso é ruído desta máquina neste dia (o `benchmarkIndex` seguiu em 2250 a 2800, contra 3000 a 3500 da referência), e não dá para separar dele o efeito da fase 2. Uma primeira tentativa, que rodou junto com builds locais, deu 70 a 94 e foi descartada.
+
+**O que a rodada prova, porque não depende de nota:**
+
+- **Na home o LCP é igual ao FCP** nas seis rodadas (1.06 s no mobile, 0.29 s no desktop). O elemento de LCP passou a ser a frase nova, como previsto no F2.6, e ela pinta no mesmo quadro do header porque não entra com fade. Não houve custo de LCP.
+- CLS zero em todas as rotas, `h2` em todas as requisições e o domínio como único host na rede.
+
+**Fica devendo:** uma medição de régua, com a máquina parada e sem outras sessões, depois do merge da fase 3. Sem ela, a frase do `CLAUDE.md` sobre a nota em produção continua sendo a da §17.15.
+
+### 6.3 Fase 3: o que entrou (12/11/2026)
+
+- **F3.1** `og:site_name` e `WebSite.name` viram "Pedro Levi"; o `WebSite` ganha `@id` e o nome longo como `alternateName`.
+- **F3.2** A `Person` ganha `image` (o avatar, lido de `profile.avatar.src`), `description` e `alumniOf` (UNOESTE).
+- **F3.3** `ProfilePage` em `/info/`, com `mainEntity` apontando para a `Person`.
+- **F3.4** Os cases trocam `SoftwareApplication` por `SoftwareSourceCode`, com `codeRepository` e `author` por `@id`, e ganham `BreadcrumbList`.
+- **F3.5** O sitemap fica só com URL e hreflang: saem `priority`, `changefreq` e o `lastmod`, que era a data do build semanal.
+- **F3.6** A página de serviço tem a própria imagem de link, em `/criacao-de-sites/opengraph-image-1gx3em/` e `/en/websites/opengraph-image/`. O hash segue a regra da lei 17 e foi conferido contra o build; as duas entraram no `_headers` e no `_redirects` (lei 22).
+- **F3.7** Sai o `meta keywords`, do código e dos dicionários.
+- **F3.8** A 404 própria, por `global-not-found` (lei 25): em português e inglês, com o tema e as fontes do site. O export continua gravando `out/404.html`.
+- **F3.9** `og:locale:alternate` nas fábricas.
+- **F3.10** `FAQPage` na página de serviço, do mesmo texto da tela.
+
+Guardas: `e2e/json-ld.spec.ts` cobra os tipos de cada rota e que toda referência por `@id` aponte para um nó da mesma página; `e2e/nao-encontrada.spec.ts` é novo; `e2e/marca.spec.ts` e `src/lib/cloudflare-assets.test.ts` passaram a cobrir as quatro imagens de link. **Depois do merge:** validador de schema nas rotas tocadas e as duas URLs de imagem novas com 200 sem salto, em produção.
 
 ## 7. Fontes da pesquisa
 

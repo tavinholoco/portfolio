@@ -18,52 +18,29 @@ export const dynamic = "force-static";
  * registrou que nesta versão do Next o `robots.ts` precisa ficar fora do group
  * e o `sitemap.ts` dentro. A assimetria não é descuido, e "arrumar" ela quebra
  * a geração (F15).
+ *
+ * **Só URL e hreflang.** O Google ignora `priority` e `changefreq`, e ignora
+ * o `lastmod` quando todas as datas mudam juntas. O daqui era a data do
+ * build, que muda toda segunda com o rebuild semanal: dizia que as 20 páginas
+ * mudaram na mesma hora, toda semana. Sem data nenhuma é mais honesto do que
+ * uma data que não quer dizer nada.
  */
 export default function sitemap(): MetadataRoute.Sitemap {
-  const lastModified = new Date();
-
   const entries: MetadataRoute.Sitemap = [];
 
   for (const route of routes) {
     const alternates = { languages: languageUrlsForRoute(route.id) };
-    /* A home é o ponto de entrada principal; as demais rotas vêm logo abaixo. */
-    const priority = route.id === "home" ? 1 : 0.8;
-
     entries.push(
-      {
-        url: `${siteUrl}${route.pt}`,
-        lastModified,
-        changeFrequency: "monthly",
-        priority,
-        alternates,
-      },
-      {
-        url: `${siteUrl}${route.en}`,
-        lastModified,
-        changeFrequency: "monthly",
-        priority: priority - 0.1,
-        alternates,
-      }
+      { url: `${siteUrl}${route.pt}`, alternates },
+      { url: `${siteUrl}${route.en}`, alternates }
     );
   }
 
   for (const meta of projectMetas) {
     const alternates = { languages: languageUrlsFor(meta.slug) };
     entries.push(
-      {
-        url: `${siteUrl}${pathFor("projects", "pt")}${meta.slug}/`,
-        lastModified,
-        changeFrequency: "monthly",
-        priority: 0.7,
-        alternates,
-      },
-      {
-        url: `${siteUrl}${pathFor("projects", "en")}${meta.slug}/`,
-        lastModified,
-        changeFrequency: "monthly",
-        priority: 0.7,
-        alternates,
-      }
+      { url: `${siteUrl}${pathFor("projects", "pt")}${meta.slug}/`, alternates },
+      { url: `${siteUrl}${pathFor("projects", "en")}${meta.slug}/`, alternates }
     );
   }
 

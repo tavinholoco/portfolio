@@ -5,7 +5,7 @@ import { JsonLd } from "@/components/json-ld";
 import { Process } from "@/components/process";
 import { Skills } from "@/components/skills";
 import type { Locale } from "@/i18n";
-import { personJsonLd } from "@/lib/json-ld";
+import { personJsonLd, profilePageJsonLd } from "@/lib/json-ld";
 
 /**
  * A rota Info funde quatro seções: sobre, processo, trajetória e habilidades.
@@ -24,7 +24,7 @@ import { personJsonLd } from "@/lib/json-ld";
 export function InfoPage({ lang }: { lang: Locale }) {
   return (
     <>
-      <JsonLd data={personJsonLd(lang)} />
+      <JsonLd data={[personJsonLd(lang), profilePageJsonLd(lang)]} />
       <About lang={lang} />
       <Identity lang={lang} />
       <Process lang={lang} />

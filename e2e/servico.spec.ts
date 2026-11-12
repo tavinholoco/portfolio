@@ -277,6 +277,36 @@ test.describe("a home e os cases (fase 2 do plano V4)", () => {
   });
 });
 
+test.describe("SEO técnico (fase 3 do plano V4)", () => {
+  test("o sitemap só tem URL e hreflang, sem o que o Google ignora", async ({
+    request,
+  }) => {
+    const xml = await (await request.get("/sitemap.xml")).text();
+    expect(xml.match(/<loc>/g)).toHaveLength(20);
+    expect(xml).not.toContain("<priority>");
+    expect(xml).not.toContain("<changefreq>");
+    expect(xml).not.toContain("<lastmod>");
+    expect(xml).toContain('hreflang="x-default"');
+  });
+
+  for (const rota of ["/", "/en/websites/", "/projetos/newra-news/"]) {
+    test(`${rota} não manda meta keywords e declara o outro idioma no og`, async ({
+      request,
+    }) => {
+      const html = await (await request.get(rota)).text();
+      expect(html).not.toMatch(/<meta name="keywords"/);
+
+      const ingles = rota.startsWith("/en/");
+      expect(html).toContain(
+        `<meta property="og:locale" content="${ingles ? "en_US" : "pt_BR"}"/>`,
+      );
+      expect(html).toContain(
+        `<meta property="og:locale:alternate" content="${ingles ? "pt_BR" : "en_US"}"/>`,
+      );
+    });
+  }
+});
+
 test.describe("Rancharia de volta", () => {
   test("/info/ e o rodapé dizem a cidade, sem rua", async ({ request }) => {
     for (const rota of ["/info/", "/en/info/"]) {

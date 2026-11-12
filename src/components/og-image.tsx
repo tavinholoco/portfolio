@@ -30,8 +30,42 @@ export const ogImageAlt: Record<Locale, string> = {
   en: "Pedro Levi | Full Stack Developer",
 };
 
-export function ogImage(lang: Locale): ImageResponse {
+/**
+ * As duas imagens de link do site.
+ *
+ * `home` é a de sempre, que apresenta a pessoa, e vale para todas as rotas
+ * menos uma. `service` é a da página de criação de sites (F3.6 do plano V4):
+ * o link dela, colado no WhatsApp, mostrava "Desenvolvedor Full Stack" para
+ * quem estava procurando um site.
+ */
+export type OgVariant = "home" | "service";
+
+/** O `alt` da imagem do serviço: o mesmo texto do título da página. */
+export function ogImageAltFor(lang: Locale, variant: OgVariant): string {
+  return variant === "service"
+    ? dictionaries[lang].routes.websites.title
+    : ogImageAlt[lang];
+}
+
+export function ogImage(lang: Locale, variant: OgVariant = "home"): ImageResponse {
   const d = dictionaries[lang];
+
+  /* O mesmo desenho, três linhas de texto diferentes. O título do serviço é
+     mais longo que o nome, então desce de tamanho e pode quebrar. */
+  const texto =
+    variant === "service"
+      ? {
+          acima: d.meta.name,
+          titulo: d.websites.heading,
+          tamanho: 76,
+          abaixo: d.hero.pitch,
+        }
+      : {
+          acima: d.hero.role,
+          titulo: d.meta.name,
+          tamanho: 92,
+          abaixo: profile.stack.join(" · "),
+        };
 
   return new ImageResponse(
     (
@@ -93,17 +127,19 @@ export function ogImage(lang: Locale): ImageResponse {
             marginBottom: 18,
           }}
         >
-          {d.hero.role}
+          {texto.acima}
         </div>
         <div
           style={{
             display: "flex",
-            fontSize: 92,
+            flexWrap: "wrap",
+            fontSize: texto.tamanho,
             fontWeight: 700,
             letterSpacing: -2,
+            lineHeight: 1.05,
           }}
         >
-          {d.meta.name}
+          {texto.titulo}
         </div>
         <div
           style={{
@@ -113,7 +149,7 @@ export function ogImage(lang: Locale): ImageResponse {
             color: "#9a9a9e",
           }}
         >
-          {profile.stack.join(" · ")}
+          {texto.abaixo}
         </div>
         <div
           style={{
