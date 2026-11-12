@@ -72,14 +72,15 @@ describe("sitemap", () => {
     }
   });
 
-  it("a home é a de maior prioridade", async () => {
-    const entries = await freshSitemap();
-    const home = entries.find((e) => e.url === "https://pedrolevi.com.br/");
-    const outras = entries.filter((e) => e.url !== "https://pedrolevi.com.br/");
-
-    expect(home?.priority).toBe(1);
-    for (const entry of outras) {
-      expect(entry.priority ?? 0).toBeLessThan(1);
+  /*
+   * O Google ignora `priority` e `changefreq`, e ignora o `lastmod` quando
+   * todas as datas mudam juntas, que era o caso: a data do build semanal.
+   */
+  it("não declara prioridade, frequência nem data, que o Google ignora", async () => {
+    for (const entry of await freshSitemap()) {
+      expect(entry.priority, entry.url).toBeUndefined();
+      expect(entry.changeFrequency, entry.url).toBeUndefined();
+      expect(entry.lastModified, entry.url).toBeUndefined();
     }
   });
 

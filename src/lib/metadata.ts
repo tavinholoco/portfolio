@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 
-import { ogImageAlt, size as ogImageSize } from "@/components/og-image";
+import {
+  ogImageAltFor,
+  size as ogImageSize,
+  type OgVariant,
+} from "@/components/og-image";
 import { dictionaries, type Locale } from "@/i18n";
 import { pathFor, type RouteId } from "@/lib/routes";
 
@@ -76,10 +80,26 @@ export const languageUrls: Record<string, string> =
  * despercebido porque tanto o Playwright quanto `curl -L` seguem redirecionamento
  * por padrão: por isso o teste agora exige **200 sem seguir**.
  */
-const ogImagePath: Record<Locale, string> = {
-  pt: "/opengraph-image-12gd74/",
-  en: "/en/opengraph-image/",
+const ogImagePath: Record<OgVariant, Record<Locale, string>> = {
+  home: {
+    pt: "/opengraph-image-12gd74/",
+    en: "/en/opengraph-image/",
+  },
+  /* A da página de serviço, pela mesma regra: o pai do português é
+     `/(home)/criacao-de-sites`, com grupo, e ganha hash; o do inglês não. */
+  service: {
+    pt: "/criacao-de-sites/opengraph-image-1gx3em/",
+    en: "/en/websites/opengraph-image/",
+  },
 };
+
+/** Todas as imagens de link anunciadas, para os testes do `_headers`. */
+export const ogImageVariants: readonly OgVariant[] = ["home", "service"];
+
+/** Qual imagem cada rota anuncia: só a de serviço tem a própria. */
+export function ogVariantForRoute(id: RouteId): OgVariant {
+  return id === "websites" ? "service" : "home";
+}
 
 /**
  * O bloco de imagem para espalhar em `openGraph` e `twitter`.
@@ -87,14 +107,17 @@ const ogImagePath: Record<Locale, string> = {
  * Dimensões e `alt` saem de `src/components/og-image.tsx`, que é quem desenha,
  * para não existirem duas verdades sobre a mesma imagem.
  */
-export function ogImageMeta(lang: Locale) {
+export function ogImageMeta(lang: Locale, variant: OgVariant = "home") {
   return {
-    url: ogImagePath[lang],
+    url: ogImagePath[variant][lang],
     width: ogImageSize.width,
     height: ogImageSize.height,
-    alt: ogImageAlt[lang],
+    alt: ogImageAltFor(lang, variant),
   };
 }
+
+/** `og:locale` de cada idioma; o outro vai em `og:locale:alternate`. */
+const ogLocale: Record<Locale, string> = { pt: "pt_BR", en: "en_US" };
 
 /**
  * Metadados de uma rota do manifesto, num idioma.
@@ -107,12 +130,12 @@ export function buildRouteMetadata(id: RouteId, lang: Locale): Metadata {
   const d = dictionaries[lang];
   const route = d.routes[id];
   const path = pathFor(id, lang);
+  const image = ogImageMeta(lang, ogVariantForRoute(id));
 
   return {
     metadataBase: new URL(siteUrl),
     title: route.title,
     description: route.description,
-    keywords: d.meta.keywords,
     authors: [{ name: "Pedro Levi Dias Rosa Paula", url: siteUrl }],
     creator: "Pedro Levi Dias Rosa Paula",
     alternates: {
@@ -121,18 +144,19 @@ export function buildRouteMetadata(id: RouteId, lang: Locale): Metadata {
     },
     openGraph: {
       type: "website",
-      locale: lang === "pt" ? "pt_BR" : "en_US",
+      locale: ogLocale[lang],
+      alternateLocale: [ogLocale[lang === "pt" ? "en" : "pt"]],
       url: `${siteUrl}${path}`,
       siteName: d.meta.ogSiteName,
       title: route.title,
       description: route.description,
-      images: [ogImageMeta(lang)],
+      images: [image],
     },
     twitter: {
       card: "summary_large_image",
       title: route.title,
       description: route.description,
-      images: [ogImageMeta(lang)],
+      images: [image],
     },
     robots: {
       index: true,
@@ -174,7 +198,8 @@ export function buildProjectMetadata(slug: string, lang: Locale): Metadata {
     },
     openGraph: {
       type: "website",
-      locale: lang === "pt" ? "pt_BR" : "en_US",
+      locale: ogLocale[lang],
+      alternateLocale: [ogLocale[lang === "pt" ? "en" : "pt"]],
       url: `${siteUrl}${path}`,
       siteName: d.meta.ogSiteName,
       title: project.title,

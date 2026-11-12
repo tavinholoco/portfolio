@@ -17,6 +17,13 @@ const nextConfig: NextConfig = {
    * - O `pnpm start` passa a ser o `wrangler dev` servindo `out/`.
    */
   output: "export",
+  /*
+   * A 404 própria (`src/app/global-not-found.tsx`). Com dois root layouts não há
+   * layout único de onde montar um `not-found`, e esta é a convenção do Next
+   * para o caso. O export continua gravando `out/404.html`, que é o que o
+   * `wrangler.jsonc` serve; `e2e/nao-encontrada.spec.ts` confere.
+   */
+  experimental: { globalNotFound: true },
   // URLs estáveis com barra final (ex.: /en/), consistente com canonical e sitemap.
   trailingSlash: true,
   images: {

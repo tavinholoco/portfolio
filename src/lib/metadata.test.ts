@@ -1,6 +1,12 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { getSiteUrl, ogImageMeta } from "./metadata";
+import {
+  buildRouteMetadata,
+  getSiteUrl,
+  ogImageMeta,
+  ogVariantForRoute,
+} from "./metadata";
+import { routeIds } from "@/lib/routes";
 import { ogImageAlt, size as ogImageSize } from "@/components/og-image";
 
 function setEnv(vars: Record<string, string | undefined>) {
@@ -236,6 +242,44 @@ function rotaDeImagem(caminhoPai: string): string {
   const url = segmentos.filter((seg) => !ehGrupo(seg)).join("/");
   return `${url ? `/${url}` : ""}/opengraph-image${sufixo}`;
 }
+
+/* F3.6 do plano V4: a página de serviço tem a própria imagem de link. */
+describe("a imagem de link da página de serviço", () => {
+  const comBarra = (caminho: string) => `${caminho}/`;
+
+  it("o caminho do português leva o hash do pai com grupo de rota", () => {
+    expect(ogImageMeta("pt", "service").url).toBe(
+      comBarra(rotaDeImagem("/(home)/criacao-de-sites"))
+    );
+  });
+
+  it("o caminho do inglês não leva hash", () => {
+    expect(ogImageMeta("en", "service").url).toBe(
+      comBarra(rotaDeImagem("/en/websites"))
+    );
+    expect(ogImageMeta("en", "service").url).toBe("/en/websites/opengraph-image/");
+  });
+
+  it("só a rota de serviço anuncia essa imagem, em og e em twitter", () => {
+    for (const id of routeIds) {
+      for (const lang of ["pt", "en"] as const) {
+        const meta = buildRouteMetadata(id, lang);
+        const esperado = ogImageMeta(lang, ogVariantForRoute(id));
+        expect(meta.openGraph?.images).toEqual([esperado]);
+        expect(meta.twitter?.images).toEqual([esperado]);
+        expect(esperado.url.includes("/opengraph-image")).toBe(true);
+      }
+    }
+    expect(ogVariantForRoute("websites")).toBe("service");
+    expect(ogImageMeta("pt", "service").url).not.toBe(ogImageMeta("pt").url);
+  });
+
+  it("o alt é o título da página, e não o cargo dele", () => {
+    expect(ogImageMeta("pt", "service").alt).toBe(
+      "Criação de sites e landing pages | Pedro Levi"
+    );
+  });
+});
 
 describe("ogImageMeta: a imagem de link", () => {
   /*

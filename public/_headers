@@ -34,6 +34,19 @@
 /en/opengraph-image/
   Content-Type: image/png
 
+# A imagem de link da página de serviço (F3.6 do plano V4), pela mesma regra.
+/criacao-de-sites/opengraph-image-1gx3em
+  Content-Type: image/png
+
+/criacao-de-sites/opengraph-image-1gx3em/
+  Content-Type: image/png
+
+/en/websites/opengraph-image
+  Content-Type: image/png
+
+/en/websites/opengraph-image/
+  Content-Type: image/png
+
 # O endereço workers.dev e as prévias de branch servem o mesmo conteúdo do
 # domínio próprio: fora do índice, para não haver página duplicada. Por isso
 # o SEO do Lighthouse só se mede no domínio final.

@@ -8,7 +8,11 @@ import { Section } from "@/components/section";
 import { projectMetas } from "@/data/projects";
 import { dictionaries, type Locale } from "@/i18n";
 import { getFeaturedProjects } from "@/lib/github";
-import { projectJsonLd } from "@/lib/json-ld";
+import {
+  personJsonLd,
+  projectBreadcrumbJsonLd,
+  projectJsonLd,
+} from "@/lib/json-ld";
 import { pathFor } from "@/lib/routes";
 
 /** Rota da página individual de um projeto, no idioma da rota atual. */
@@ -53,13 +57,18 @@ export async function ProjectDetailPage({
   const prev = projects[(index - 1 + projects.length) % projects.length];
   const next = projects[(index + 1) % projects.length];
 
-  const jsonLd = projectJsonLd(slug, lang);
+  /* A Person entra junto para o `author` do projeto apontar para ela. */
+  const jsonLd = [
+    personJsonLd(lang),
+    projectJsonLd(slug, lang),
+    projectBreadcrumbJsonLd(slug, lang),
+  ].filter((no) => no !== null);
   const image = projectMetas.find((meta) => meta.slug === slug)?.image;
   const alt = `${d.projects.previewAlt}: ${project.title}`;
 
   return (
     <>
-      {jsonLd && <JsonLd data={jsonLd} />}
+      <JsonLd data={jsonLd} />
 
       <Section id="projeto" variant="blend">
         {/* A entrada suave não está mais aqui: é do container do <Section>. */}

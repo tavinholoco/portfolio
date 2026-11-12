@@ -6,16 +6,6 @@ import type { Dict } from "./index";
 export const en: Dict = {
   meta: {
     name: "Pedro Levi",
-    keywords: [
-      "Pedro Levi",
-      "Full Stack Developer",
-      "React",
-      "Next.js",
-      "Node.js",
-      "TypeScript",
-      "AI",
-      "Portfolio",
-    ],
     knowsAbout: [
       "Web design",
       "Landing pages",
@@ -28,7 +18,8 @@ export const en: Dict = {
       "React Native",
       "Generative AI",
     ],
-    ogSiteName: "Pedro Levi | Portfolio",
+    ogSiteName: "Pedro Levi",
+    siteAlternateName: "Pedro Levi | Portfolio",
   },
   routes: {
     home: {
@@ -61,6 +52,11 @@ export const en: Dict = {
       description:
         "Want a website, or are you hiring? Reach me on WhatsApp, in Rancharia, SP, Brazil, or by email.",
     },
+  },
+  notFound: {
+    title: "Page not found",
+    description: "The address you opened does not exist or has moved.",
+    back: "Back to the start",
   },
   nav: {
     openMenu: "Open menu",

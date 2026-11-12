@@ -78,6 +78,40 @@ function conteudoMeta(html: string, chave: string): string | null {
 /* O padrão do `viewport`, antes de o script de tema tocar no DOM. */
 const THEME_COLOR = "#0b0b0c";
 
+test.describe("a imagem de link da página de serviço", () => {
+  test("é outra imagem, com o alt do serviço, e só nessa rota", async ({
+    request,
+  }) => {
+    const og = async (rota: string) =>
+      conteudoMeta(await (await request.get(rota)).text(), "og:image");
+
+    const servico = await og("/criacao-de-sites/");
+    expect(servico).toContain("/criacao-de-sites/opengraph-image");
+    expect(servico).not.toBe(await og("/"));
+    expect(await og("/en/websites/")).toContain("/en/websites/opengraph-image/");
+    /* As outras rotas seguem com a do site. */
+    expect(await og("/clientes/")).toBe(await og("/"));
+    expect(await og("/projetos/newra-news/")).toBe(await og("/"));
+
+    const html = await (await request.get("/criacao-de-sites/")).text();
+    expect(conteudoMeta(html, "og:image:alt")).toBe(
+      "Criação de sites e landing pages | Pedro Levi",
+    );
+  });
+
+  test("as duas imagens são arquivos diferentes das do site", async ({
+    request,
+  }) => {
+    const bytes = async (rota: string) => {
+      const html = await (await request.get(rota)).text();
+      const url = new URL(conteudoMeta(html, "og:image")!).pathname;
+      return (await (await request.get(url)).body()).length;
+    };
+    expect(await bytes("/criacao-de-sites/")).not.toBe(await bytes("/"));
+    expect(await bytes("/en/websites/")).not.toBe(await bytes("/en/"));
+  });
+});
+
 test.describe("metadados do documento (SSR)", () => {
   for (const rota of rotas) {
     test(`${rota} serve theme-color e imagem de link`, async ({ request }) => {
@@ -96,7 +130,7 @@ test.describe("metadados do documento (SSR)", () => {
 
       /* O idioma certo: a imagem do inglês vive sob /en/. */
       const ehIngles = rota.startsWith("/en/");
-      expect(og?.includes("/en/opengraph-image")).toBe(ehIngles);
+      expect(new URL(og!).pathname.startsWith("/en/")).toBe(ehIngles);
 
       expect(conteudoMeta(html, "twitter:image")).toBeTruthy();
     });
@@ -129,10 +163,12 @@ test.describe("metadados do documento (SSR)", () => {
   test("as duas imagens respondem 200 sem redirecionamento", async ({
     request,
   }) => {
-    for (const rota of ["/", "/en/"] as const) {
+    /* As quatro: a do site e a da página de serviço (F3.6 do plano V4). */
+    for (const rota of ["/", "/en/", "/criacao-de-sites/", "/en/websites/"] as const) {
       const html = await (await request.get(rota)).text();
       const url = conteudoMeta(html, "og:image");
       expect(url).toBeTruthy();
+      expect(conteudoMeta(html, "twitter:image")).toBe(url);
 
       const img = await request.get(new URL(url!).pathname, {
         maxRedirects: 0,

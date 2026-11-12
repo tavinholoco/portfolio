@@ -8,7 +8,7 @@ import { Section } from "@/components/section";
 import { SectionIntro } from "@/components/section-intro";
 import { profile } from "@/data/profile";
 import { dictionaries, type Locale, type WebsiteExample } from "@/i18n";
-import { personJsonLd, serviceJsonLd } from "@/lib/json-ld";
+import { faqJsonLd, personJsonLd, serviceJsonLd } from "@/lib/json-ld";
 
 /** Mesmo botão do contato: borda em `currentColor`, para inverter no blend. */
 const ctaClass =
@@ -63,7 +63,9 @@ export function WebsitesPage({ lang }: { lang: Locale }) {
   return (
     <>
       {/* A Person entra junto para o `provider` do Service apontar para ela. */}
-      <JsonLd data={[personJsonLd(lang), serviceJsonLd(lang)]} />
+      <JsonLd
+        data={[personJsonLd(lang), serviceJsonLd(lang), faqJsonLd(lang)]}
+      />
 
       <Section id="criacao-de-sites" variant="blend" className="pb-0 sm:pb-0">
         <h1 className="text-display font-semibold text-balance break-words hyphens-auto">
@@ -169,8 +171,8 @@ export function WebsitesPage({ lang }: { lang: Locale }) {
         <SectionIntro className="mt-20" title={d.areaTitle} description={d.area.join(" ")} />
 
         {/*
-          Conteúdo para quem lê, sem marcação `FAQPage`: o Google restringiu esse
-          resultado enriquecido, então não vale contar com ele.
+          O mesmo texto vai no `FAQPage` do JSON-LD (`faqJsonLd`). Não gera
+          resultado enriquecido, que o Google encerrou: serve de leitura.
         */}
         <div className="mt-20">
           <SectionIntro title={d.faqTitle} />
