@@ -34,6 +34,10 @@ export type FeaturedProject = {
   slug: string;
   title: string;
   tagline: string;
+  /** A descrição da página do case para a busca. Não é a `tagline`. */
+  description: string;
+  /** O que era, para quem e o que resolveu. Partes do mesmo parágrafo. */
+  context: string[];
   problem: string;
   solution: string;
   highlight: string;
@@ -124,9 +128,14 @@ export type Dict = {
     /** O h1 da home, em `sr-only`: uma frase verdadeira só, sem lista de termos. */
     heading: string;
     downloadCv: string;
+    /** A linha visível da home (D2 do plano V4) e o texto do link dela. */
+    pitch: string;
+    pitchCta: string;
   };
-  /** A página de criação de sites. O `h1` é `routes.websites.title`. */
+  /** A página de criação de sites. */
   websites: {
+    /** O `h1`. O título da aba é `routes.websites.title`, com o nome dele. */
+    heading: string;
     /**
      * Partes do mesmo parágrafo. São duas porque uma frase única passaria do
      * maior literal do dicionário, e `e2e/bundle.spec.ts` usa esse literal como
@@ -138,13 +147,16 @@ export type Dict = {
     services: { id: "landing" | "portfolio"; title: string; description: string }[];
     examplesTitle: string;
     openExample: string;
+    examplePreviewAlt: string;
     examples: WebsiteExample[];
     stepsTitle: string;
     steps: { title: string; description: string }[];
     areaTitle: string;
-    area: string;
+    /** Partes do mesmo parágrafo, pelo mesmo motivo de `intro`. */
+    area: string[];
     faqTitle: string;
-    faq: { question: string; answer: string }[];
+    /** `answer` em partes, pelo mesmo motivo de `intro`. */
+    faq: { question: string; answer: string[] }[];
     /** O `serviceType` do JSON-LD. */
     serviceType: string;
   };
@@ -169,6 +181,7 @@ export type Dict = {
     previous: string;
     next: string;
     demoLabel: string;
+    previewAlt: string;
     websitesCta: string;
     categories: Record<ProjectCategory, string>;
     featured: FeaturedProject[];

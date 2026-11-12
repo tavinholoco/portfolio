@@ -1,9 +1,11 @@
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowRight, ArrowUpRight } from "lucide-react";
 
 import { JsonLd } from "@/components/json-ld";
 import { Section } from "@/components/section";
+import { projectMetas } from "@/data/projects";
 import { dictionaries, type Locale } from "@/i18n";
 import { getFeaturedProjects } from "@/lib/github";
 import { projectJsonLd } from "@/lib/json-ld";
@@ -52,6 +54,8 @@ export async function ProjectDetailPage({
   const next = projects[(index + 1) % projects.length];
 
   const jsonLd = projectJsonLd(slug, lang);
+  const image = projectMetas.find((meta) => meta.slug === slug)?.image;
+  const alt = `${d.projects.previewAlt}: ${project.title}`;
 
   return (
     <>
@@ -123,6 +127,43 @@ export async function ProjectDetailPage({
       </Section>
 
       <Section id="case" variant="plain">
+        {/*
+          A prévia do projeto, a mesma do showcase (lei 19: importada, com
+          `loading` escrito). Fica aqui e não no hero porque o hero é `blend`,
+          e imagem em `difference` sai em negativo (lei 5). Sem `priority`:
+          ela começa abaixo do título, e preload disputaria com o primeiro
+          paint. Projeto sem captura, como o Netsheet, fica sem o bloco.
+        */}
+        {image &&
+          (project.category === "mobile" ? (
+            <div className="mb-12 flex h-[28rem] justify-center">
+              <div className="relative h-full overflow-hidden rounded-lg border border-border [aspect-ratio:385/814]">
+                <Image
+                  src={image}
+                  alt={alt}
+                  fill
+                  loading="eager"
+                  className="object-cover object-top"
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="relative mb-12 aspect-16/10 overflow-hidden rounded-md border border-border">
+              <Image
+                src={image}
+                alt={alt}
+                fill
+                loading="eager"
+                className="object-cover object-top"
+              />
+            </div>
+          ))}
+
+        {/* O contexto: o que era, para quem e o que resolveu, em frase corrida. */}
+        <p className="font-body mb-12 max-w-3xl text-lede leading-relaxed text-pretty">
+          {project.context.join(" ")}
+        </p>
+
         {/* O argumento do projeto, em três blocos separados só por linha. */}
         <dl className="border-t border-border">
           {[

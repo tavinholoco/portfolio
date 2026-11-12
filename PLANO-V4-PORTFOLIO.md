@@ -282,7 +282,7 @@ Novos, desta análise:
 |---|---|---|---|
 | 0 | fechada | 12/11/2026 | D1 a D10 respondidas (§2) |
 | 1 | feita, com F1.6 do Pedro | 12/11/2026 | #37 e #38 mesclados pelo Pedro; produção medida (§6.1); falta a régua do Search Console |
-| 2 | não iniciada | | |
+| 2 | no PR, aguardando merge | 12/11/2026 | F2.1 a F2.8 menos F2.5 (sem depoimento, D9); texto e capturas aprovados pelo Pedro; 210 unitários e 233 E2E; medir a home em produção depois do merge (LCP, §6.1) |
 | 3 | não iniciada | | |
 | 4 | não iniciada | | |
 | 5 | não iniciada | | do Pedro |

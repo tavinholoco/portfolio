@@ -9,6 +9,8 @@ const featured: FeaturedProject[] = [
     slug: "newra-news",
     title: "Newra News",
     tagline: "Portal de notícias.",
+    description: "Descrição.",
+    context: ["Contexto."],
     problem: "Problema.",
     solution: "Solução.",
     highlight: "Destaque.",

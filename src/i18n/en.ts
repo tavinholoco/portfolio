@@ -37,9 +37,9 @@ export const en: Dict = {
         "Full stack developer in Rancharia, SP, Brazil. I build landing pages and portfolios for clients across Brazil.",
     },
     websites: {
-      title: "Web design across Brazil",
+      title: "Websites and landing pages | Pedro Levi",
       description:
-        "Hand-built landing pages and portfolios, fast and ready for mobile, for clients across Brazil. Talk to me on WhatsApp.",
+        "Hand-built websites, landing pages and portfolios, fast and ready for mobile. Based in western São Paulo state, working across Brazil on WhatsApp.",
     },
     clients: {
       title: "Clients | Pedro Levi",
@@ -52,7 +52,7 @@ export const en: Dict = {
         "Personal projects across web, mobile and AI. Each one starts from the problem it solved.",
     },
     info: {
-      title: "Info | Pedro Levi",
+      title: "About | Pedro Levi",
       description:
         "Who I am, how I got here, what I work with and where to find me.",
     },
@@ -74,11 +74,15 @@ export const en: Dict = {
     name: "Pedro Levi",
     heading: "Pedro Levi, web designer for clients across Brazil",
     downloadCv: "Download CV",
+    pitch: "I build websites and landing pages for professionals and small businesses.",
+    pitchCta: "See how it works",
   },
   websites: {
+    heading: "Websites and landing pages",
     intro: [
       "I'm Pedro Levi, a developer from Rancharia, SP, Brazil.",
-      "I build landing pages and portfolios for people who need to be found online and hear directly from their customers.",
+      "I build websites, landing pages and portfolios for professionals and small businesses that need to be found online.",
+      "I work with Rancharia, Presidente Prudente and all of western São Paulo state, and with clients anywhere in Brazil on WhatsApp.",
     ],
     cta: "Talk on WhatsApp",
     servicesTitle: "What I do",
@@ -97,6 +101,7 @@ export const en: Dict = {
     ],
     examplesTitle: "Examples of my work",
     openExample: "Open",
+    examplePreviewAlt: "Site preview",
     examples: [
       {
         id: "trak",
@@ -140,20 +145,59 @@ export const en: Dict = {
       },
     ],
     areaTitle: "Where I work",
-    area: "I work with clients across Brazil. Everything happens on WhatsApp, so you don't have to leave where you are.",
+    area: [
+      "I'm in Rancharia, in western São Paulo state, near Presidente Prudente, and I work with clients across Brazil.",
+      "Everything happens on WhatsApp, so you don't have to leave where you are.",
+    ],
     faqTitle: "Frequently asked questions",
     faq: [
       {
         question: "How do I start?",
-        answer: "Message me on WhatsApp and tell me what you need.",
+        answer: [
+          "Message me on WhatsApp and tell me what you need.",
+          "Then I ask whatever is still missing and explain the next steps.",
+        ],
+      },
+      {
+        question: "What do I need to send?",
+        answer: [
+          "The copy, photos and logo you already have, and the contact details that should appear on the site.",
+          "If something is missing, I help you organize the content.",
+        ],
+      },
+      {
+        question: "What about the domain and hosting?",
+        answer: [
+          "We agree on that case by case, before starting.",
+          "I guide you through the choice and set everything up for the site to go live.",
+        ],
+      },
+      {
+        question: "How does payment work?",
+        answer: [
+          "The price and the payment terms are agreed in our conversation, before I start the work.",
+        ],
+      },
+      {
+        question: "What if I need to change something later?",
+        answer: [
+          "Changes after the site is live are agreed separately.",
+          "Just message me on WhatsApp and tell me what needs to change.",
+        ],
       },
       {
         question: "Does the site work on phones?",
-        answer: "Yes, every site is built to work well on phones and computers.",
+        answer: [
+          "Yes, every site is built to work well on phones and computers.",
+          "I check both before publishing.",
+        ],
       },
       {
         question: "Do I need to meet you in person?",
-        answer: "No, we handle everything on WhatsApp.",
+        answer: [
+          "No, we handle everything on WhatsApp.",
+          "That is how I work with clients nearby and anywhere in Brazil.",
+        ],
       },
     ],
     serviceType: "Web design",
@@ -210,6 +254,7 @@ export const en: Dict = {
     previous: "Previous",
     next: "Next",
     demoLabel: "Demo",
+    previewAlt: "Project preview",
     websitesCta: "Want a site like this? See how it works",
     categories: {
       fullstack: "Full Stack",
@@ -222,6 +267,12 @@ export const en: Dict = {
         title: "Newra News",
         tagline:
           "Full stack news portal with AI-powered automated content generation.",
+        description:
+          "Newra News case study: a full stack news portal with Next.js, Fastify and Gemini that generates and organizes content every day.",
+        context: [
+          "Newra News is a personal project: a news portal that needs fresh content every day.",
+          "I built the frontend and the API in one monorepo and wired text generation to Gemini, from data modeling to daily publishing.",
+        ],
         problem:
           "The portal needed to generate and organize daily news content.",
         solution: "Full stack architecture with Next.js + Fastify + Gemini.",
@@ -239,6 +290,12 @@ export const en: Dict = {
         title: "Netsheet Engine",
         tagline:
           "Character sheet suite and product documentation for Cyberpunk 2020.",
+        description:
+          "Netsheet Engine case study: a character sheet suite for Cyberpunk 2020, built with React 19, Express and Supabase.",
+        context: [
+          "Netsheet Engine is a personal project for Cyberpunk 2020 players whose character sheets are scattered and inconsistent.",
+          "I gathered the sheets into a suite with full CRUD and wrote the PRD and the product documentation alongside the code.",
+        ],
         problem:
           "Cyberpunk 2020 character sheets scattered, inconsistent and hard to maintain.",
         solution: "Suite with full CRUD, PRD and product documentation.",
@@ -256,6 +313,12 @@ export const en: Dict = {
         title: "Repertório Progressivo",
         tagline:
           "Mobile study organization app with notifications and routines.",
+        description:
+          "Repertório Progressivo case study: a React Native study organization app with notifications, routines and 144 tests.",
+        context: [
+          "Repertório Progressivo is a personal project: an app for students who struggle to organize their studies and stay consistent.",
+          "The app organizes study into routines and reminds the student with push notifications, backed by 144 automated tests.",
+        ],
         problem:
           "Students with no study repertoire organization and no consistency.",
         solution: "Mobile app with push notifications and study routines.",
@@ -273,6 +336,12 @@ export const en: Dict = {
         title: "Trak Assessoria",
         tagline:
           "Example institutional landing page for an accounting firm, with E2E tests.",
+        description:
+          "Trak Assessoria case study: an example institutional landing page for an accounting firm, with Next.js 16 and E2E tests.",
+        context: [
+          "Trak Assessoria is a personal project: an example of an institutional landing page for an accounting firm.",
+          "I built it to show how to present a service clearly and take the visitor to the contact step, with E2E tests covering the page.",
+        ],
         problem: "How to present an accounting firm online with clarity.",
         solution: "Institutional landing page with Next.js 16 and Tailwind v4.",
         highlight: "E2E tests with Vitest and Playwright.",

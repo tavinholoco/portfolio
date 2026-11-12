@@ -12,13 +12,17 @@ const paginas = [
   {
     rota: "/criacao-de-sites/",
     par: "/en/websites/",
-    titulo: "Criação de sites em todo o Brasil",
+    titulo: "Criação de sites e landing pages | Pedro Levi",
+    h1: "Criação de sites e landing pages",
+    regiao: ["Rancharia", "Presidente Prudente", "Oeste Paulista"],
     pasta: "/criacao-de-sites/",
   },
   {
     rota: "/en/websites/",
     par: "/criacao-de-sites/",
-    titulo: "Web design across Brazil",
+    titulo: "Websites and landing pages | Pedro Levi",
+    h1: "Websites and landing pages",
+    regiao: ["Rancharia", "Presidente Prudente", "western São Paulo"],
     pasta: "/en/websites/",
   },
 ] as const;
@@ -32,7 +36,7 @@ function pathname(url: string | null): string | null {
 }
 
 test.describe("a página de serviço (SSR)", () => {
-  for (const { rota, par, titulo, pasta } of paginas) {
+  for (const { rota, par, titulo, h1, regiao, pasta } of paginas) {
     test(`${rota} responde 200 sem redirecionar, com título e h1`, async ({
       request,
     }) => {
@@ -41,7 +45,60 @@ test.describe("a página de serviço (SSR)", () => {
 
       const html = await resposta.text();
       expect(html).toContain(`<title>${titulo}</title>`);
-      expect(html.match(/<h1[^>]*>([^<]*)<\/h1>/)?.[1]).toBe(titulo);
+      expect(html.match(/<h1[^>]*>([^<]*)<\/h1>/)?.[1]).toBe(h1);
+    });
+
+    /*
+     * A fase 2 do plano V4. A região entra em frase corrida (D1), e o que a
+     * busca lê é o HTML bruto: texto que só aparecesse depois do JS não conta.
+     */
+    test(`${rota} cita a região no texto, sem virar lista de cidades`, async ({
+      request,
+    }) => {
+      const html = await (await request.get(rota)).text();
+      const principal = html.slice(html.indexOf("<main"), html.indexOf("</main>"));
+
+      for (const lugar of regiao) expect(principal).toContain(lugar);
+
+      /* Lista de cidades é keyword stuffing (§5): nenhuma cidade em <li>. */
+      const itens = [...principal.matchAll(/<li[^>]*>([\s\S]*?)<\/li>/g)];
+      for (const [, item] of itens) {
+        expect(item.replace(/<[^>]+>/g, "").trim()).not.toMatch(
+          /^(Rancharia|Presidente Prudente)/,
+        );
+      }
+    });
+
+    test(`${rota} responde as perguntas de quem vai contratar`, async ({
+      request,
+    }) => {
+      const html = await (await request.get(rota)).text();
+      const secao = html.slice(html.indexOf('id="como-funciona"'));
+      const perguntas = [...secao.matchAll(/<h3[^>]*class="text-lg[^>]*>/g)];
+      expect(perguntas.length).toBeGreaterThanOrEqual(7);
+    });
+
+    test(`${rota} mostra os exemplos com imagem, fora da seção misturada`, async ({
+      request,
+    }) => {
+      const html = await (await request.get(rota)).text();
+      const inicio = html.indexOf('id="exemplos"');
+      expect(inicio).toBeGreaterThan(-1);
+
+      const secao = html.slice(inicio, html.indexOf('id="como-funciona"'));
+      /* Lei 5: imagem em `difference` sai em negativo. */
+      expect(html.slice(inicio - 200, inicio + 200)).toContain(
+        'data-variant="plain"',
+      );
+
+      const imagens = [...secao.matchAll(/<img[^>]*>/g)].map((m) => m[0]);
+      expect(imagens).toHaveLength(2);
+      for (const img of imagens) {
+        /* Lei 19: importada (hash e immutable) e com `loading` escrito. */
+        expect(img).toMatch(/src="\/_next\/static\/media\/[^"]+\.webp"/);
+        expect(img).toContain('loading="lazy"');
+        expect(img).toMatch(/alt="[^"]+"/);
+      }
     });
 
     test(`${rota} tem canonical, hreflang e imagem de link próprios`, async ({
@@ -105,6 +162,7 @@ test.describe("a página de serviço (no navegador)", () => {
 
     const linha = (nome: string) =>
       page.locator("main li").filter({ hasText: nome });
+    await expect(linha("Trak Assessoria")).toHaveCount(1);
     await expect(linha("Trak Assessoria")).toContainText("Projeto próprio");
     await expect(linha("Dandarkness")).toContainText("Cliente");
   });
@@ -131,6 +189,91 @@ test.describe("a página de serviço (no navegador)", () => {
   test("o link não aparece no case que não é landing", async ({ page }) => {
     await page.goto("/projetos/newra-news/");
     await expect(page.locator('main a[href="/criacao-de-sites/"]')).toHaveCount(0);
+  });
+});
+
+test.describe("a home e os cases (fase 2 do plano V4)", () => {
+  for (const [rota, destino] of [
+    ["/", "/criacao-de-sites/"],
+    ["/en/", "/en/websites/"],
+  ] as const) {
+    test(`${rota} tem uma linha visível e um link para o serviço`, async ({
+      page,
+      request,
+    }) => {
+      /* No HTML bruto, que é o que a busca lê. */
+      const html = await (await request.get(rota)).text();
+      const principal = html.slice(html.indexOf("<main"), html.indexOf("</main>"));
+      expect(principal).toMatch(/<p[^>]*>[^<]{30,}<\/p>/);
+
+      await page.goto(rota);
+      const link = page.locator(`main a[href="${destino}"]`);
+      await expect(link).toHaveCount(1);
+      await expect(link).toBeVisible();
+      await expect(page.locator("main p")).toBeVisible();
+
+      /* A linha não pode criar rolagem: a home continua sendo uma tela só. */
+      const rola = await page.evaluate(
+        () => document.documentElement.scrollHeight > window.innerHeight + 1,
+      );
+      expect(rola).toBe(false);
+    });
+  }
+
+  test("a linha da home não entra com fade, para o LCP não esperar", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    const animado = await page.locator("main p").evaluate((p) => {
+      for (let el: Element | null = p; el && el.tagName !== "MAIN"; el = el.parentElement) {
+        if (getComputedStyle(el).animationName !== "none") return true;
+      }
+      return false;
+    });
+    expect(animado).toBe(false);
+  });
+
+  for (const rota of ["/projetos/newra-news/", "/en/projects/trak-assessoria/"]) {
+    test(`${rota} tem descrição própria, contexto e a prévia`, async ({
+      request,
+    }) => {
+      const html = await (await request.get(rota)).text();
+
+      const descricao = html.match(
+        /<meta name="description" content="([^"]*)"/,
+      )?.[1];
+      const lede = html.match(/<p[^>]*text-lede[^>]*>([^<]*)<\/p>/)?.[1];
+      /* A descrição reusava a tagline de uma linha, que é o lede do hero. */
+      expect(descricao).toBeTruthy();
+      expect(descricao).not.toBe(lede);
+      expect(descricao!.length).toBeGreaterThan(80);
+
+      const corpo = html.slice(html.indexOf('id="case"'));
+      const img = corpo.match(/<img[^>]*>/)?.[0] ?? "";
+      expect(img).toMatch(/src="\/_next\/static\/media\/[^"]+\.webp"/);
+      expect(img).toContain('loading="eager"');
+      expect(corpo).toMatch(/<p[^>]*text-lede[^>]*>[^<]{120,}<\/p>/);
+    });
+  }
+
+  test("o case sem captura fica sem a moldura, e com o contexto", async ({
+    request,
+  }) => {
+    const html = await (await request.get("/projetos/netsheet-engine/")).text();
+    const corpo = html.slice(html.indexOf('id="case"'), html.indexOf("</main>"));
+    expect(corpo).not.toContain("<img");
+    expect(corpo).toMatch(/<p[^>]*text-lede[^>]*>[^<]{120,}<\/p>/);
+  });
+
+  test("/info/ se chama Sobre no título, sem mudar de endereço", async ({
+    request,
+  }) => {
+    const pt = await request.get("/info/", { maxRedirects: 0 });
+    expect(pt.status()).toBe(200);
+    expect(await pt.text()).toContain("<title>Sobre | Pedro Levi</title>");
+    expect(await (await request.get("/en/info/")).text()).toContain(
+      "<title>About | Pedro Levi</title>",
+    );
   });
 });
 

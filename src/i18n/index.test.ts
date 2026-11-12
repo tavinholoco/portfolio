@@ -121,6 +121,40 @@ describe("dicionários pt-BR / en", () => {
     );
   });
 
+  /*
+   * Fase 2 do plano V4. A descrição do case reusava a `tagline`, e a FAQ tinha
+   * três respostas de uma linha.
+   */
+  it("cada case tem descrição própria para a busca, e contexto", () => {
+    for (const locale of ["pt", "en"] as const) {
+      const cases = dictionaries[locale].projects.featured;
+      const descricoes = cases.map((c) => c.description);
+
+      expect(new Set(descricoes).size).toBe(cases.length);
+      for (const c of cases) {
+        expect(c.description).not.toBe(c.tagline);
+        expect(c.description.length).toBeGreaterThan(80);
+        expect(c.description.length).toBeLessThanOrEqual(160);
+        expect(c.context.join(" ").length).toBeGreaterThan(120);
+      }
+    }
+  });
+
+  it("a página de serviço cita a região e responde o que o cliente pergunta", () => {
+    for (const locale of ["pt", "en"] as const) {
+      const d = dictionaries[locale];
+      const abertura = d.websites.intro.join(" ");
+
+      expect(abertura).toContain("Rancharia");
+      expect(abertura).toContain("Presidente Prudente");
+      expect(d.websites.area.join(" ")).toContain("Presidente Prudente");
+      expect(d.websites.faq.length).toBeGreaterThanOrEqual(7);
+      expect(d.routes.websites.description.length).toBeLessThanOrEqual(160);
+      /* O h1 não leva o nome dele; o título da aba leva. */
+      expect(d.routes.websites.title).toBe(`${d.websites.heading} | Pedro Levi`);
+    }
+  });
+
   it("tem título e descrição para toda rota do manifesto", () => {
     for (const locale of ["pt", "en"] as const) {
       for (const id of routeIds) {
