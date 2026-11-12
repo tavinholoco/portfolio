@@ -1,15 +1,27 @@
+import Image, { type StaticImageData } from "next/image";
 import { ArrowUpRight } from "lucide-react";
 
+import dandarkness from "@/assets/projects/dandarkness.webp";
+import trakAssessoria from "@/assets/projects/trak-assessoria.webp";
 import { JsonLd } from "@/components/json-ld";
 import { Section } from "@/components/section";
 import { SectionIntro } from "@/components/section-intro";
 import { profile } from "@/data/profile";
-import { dictionaries, type Locale } from "@/i18n";
+import { dictionaries, type Locale, type WebsiteExample } from "@/i18n";
 import { personJsonLd, serviceJsonLd } from "@/lib/json-ld";
 
 /** Mesmo botão do contato: borda em `currentColor`, para inverter no blend. */
 const ctaClass =
   "focus-ring inline-flex items-center gap-2 rounded-sm border border-current/40 px-5 py-2.5 text-sm transition-opacity hover:opacity-70";
+
+/**
+ * A prévia de cada exemplo. Mesmos arquivos do showcase, importados de
+ * `@/assets/` (lei 19): saem com hash e `immutable`, sem passar por otimizador.
+ */
+const examplePreview: Record<WebsiteExample["id"], StaticImageData> = {
+  trak: trakAssessoria,
+  dandarkness,
+};
 
 function WhatsAppLink({ label, className }: { label: string; className?: string }) {
   return (
@@ -37,20 +49,25 @@ function WhatsAppLink({ label, className }: { label: string; className?: string 
  *
  * A Trak é projeto próprio, e nada aqui pode sugerir que foi encomenda.
  *
- * Em `blend` porque é só texto, sem imagem (lei 5). Por isso nada aqui tem cor
- * própria: a hierarquia é tamanho, opacidade e linha de 1px.
+ * **Três seções, por causa da lei 5.** O texto vai em `blend`, onde nada tem cor
+ * própria: a hierarquia é tamanho, opacidade e linha de 1px. Os exemplos têm
+ * imagem, e imagem em `difference` sai em negativo, então eles ficam numa seção
+ * `plain` no meio. As três são irmãs dentro do `<main>`, sem wrapper (lei 1).
+ *
+ * A região (Rancharia, Presidente Prudente, Oeste Paulista) aparece em frase
+ * corrida, na abertura e em "Onde atendo". Nunca em lista de cidades.
  */
 export function WebsitesPage({ lang }: { lang: Locale }) {
-  const { websites: d, routes } = dictionaries[lang];
+  const { websites: d } = dictionaries[lang];
 
   return (
     <>
       {/* A Person entra junto para o `provider` do Service apontar para ela. */}
       <JsonLd data={[personJsonLd(lang), serviceJsonLd(lang)]} />
 
-      <Section id="criacao-de-sites" variant="blend">
+      <Section id="criacao-de-sites" variant="blend" className="pb-0 sm:pb-0">
         <h1 className="text-display font-semibold text-balance break-words hyphens-auto">
-          {routes.websites.title}
+          {d.heading}
         </h1>
         <p className="font-body mt-8 max-w-2xl text-lede opacity-80 text-pretty">
           {d.intro.join(" ")}
@@ -76,39 +93,58 @@ export function WebsitesPage({ lang }: { lang: Locale }) {
           </ul>
         </div>
 
-        <div className="mt-20">
-          <SectionIntro title={d.examplesTitle} />
-          <ul className="mt-8 border-t border-current/15">
-            {d.examples.map((example) => (
-              <li
-                key={example.id}
-                className="grid gap-3 border-b border-current/15 py-7 sm:grid-cols-[minmax(0,14rem)_minmax(0,1fr)_auto] sm:items-baseline sm:gap-8"
-              >
-                <div>
-                  <h3 className="text-xl font-medium tracking-tight sm:text-2xl">
-                    {example.name}
-                  </h3>
-                  <p className="mt-1 font-mono text-xs opacity-70">{example.kind}</p>
-                </div>
-                <p className="font-body text-sm leading-relaxed opacity-70 text-pretty">
-                  {example.description}
-                </p>
-                <a
-                  href={example.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={`${d.openExample}: ${example.name}`}
-                  className="focus-ring inline-flex items-center gap-2 justify-self-start text-sm transition-opacity hover:opacity-70"
-                >
-                  {d.openExample}
-                  <ArrowUpRight className="size-4" aria-hidden />
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div>
+      </Section>
 
-        <div className="mt-20">
+      {/*
+        Em `plain` por causa das prévias. Aqui a cor é a normal do tema, então
+        `text-muted-foreground` e `border-border` valem, como no corpo do case.
+      */}
+      <Section id="exemplos" variant="plain" className="py-20 sm:py-20">
+        <SectionIntro title={d.examplesTitle} />
+        <ul className="mt-8 grid gap-x-8 gap-y-12 sm:grid-cols-2">
+          {d.examples.map((example) => (
+            <li key={example.id}>
+              {/*
+                `lazy` de propósito, e escrito: a lei 19 pede `eager` nas
+                prévias do showcase porque lá elas trocam no hover, empilhadas e
+                invisíveis. Estas ficam no fluxo, abaixo da dobra, e não podem
+                disputar banda com o primeiro paint.
+              */}
+              <div className="relative aspect-16/10 overflow-hidden rounded-md border border-border">
+                <Image
+                  src={examplePreview[example.id]}
+                  alt={`${d.examplePreviewAlt}: ${example.name}`}
+                  fill
+                  loading="lazy"
+                  className="object-cover object-top"
+                />
+              </div>
+              <h3 className="mt-5 text-xl font-medium tracking-tight sm:text-2xl">
+                {example.name}
+              </h3>
+              <p className="mt-1 font-mono text-xs text-muted-foreground">
+                {example.kind}
+              </p>
+              <p className="font-body mt-3 text-sm leading-relaxed text-muted-foreground text-pretty">
+                {example.description}
+              </p>
+              <a
+                href={example.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`${d.openExample}: ${example.name}`}
+                className="focus-ring mt-4 inline-flex items-center gap-2 text-sm transition-opacity hover:opacity-70"
+              >
+                {d.openExample}
+                <ArrowUpRight className="size-4" aria-hidden />
+              </a>
+            </li>
+          ))}
+        </ul>
+      </Section>
+
+      <Section id="como-funciona" variant="blend" className="pt-0 sm:pt-0">
+        <div>
           <SectionIntro title={d.stepsTitle} />
           <ol className="mt-8 border-t border-current/15">
             {d.steps.map((step, index) => (
@@ -130,7 +166,7 @@ export function WebsitesPage({ lang }: { lang: Locale }) {
           </ol>
         </div>
 
-        <SectionIntro className="mt-20" title={d.areaTitle} description={d.area} />
+        <SectionIntro className="mt-20" title={d.areaTitle} description={d.area.join(" ")} />
 
         {/*
           Conteúdo para quem lê, sem marcação `FAQPage`: o Google restringiu esse
@@ -148,7 +184,7 @@ export function WebsitesPage({ lang }: { lang: Locale }) {
                   {item.question}
                 </h3>
                 <p className="font-body text-sm leading-relaxed opacity-70 text-pretty">
-                  {item.answer}
+                  {item.answer.join(" ")}
                 </p>
               </li>
             ))}

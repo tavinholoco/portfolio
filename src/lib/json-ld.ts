@@ -76,7 +76,7 @@ export function serviceJsonLd(lang: Locale) {
   const d = dictionaries[lang];
   return {
     "@type": "Service",
-    name: d.routes.websites.title,
+    name: d.websites.heading,
     serviceType: d.websites.serviceType,
     description: d.routes.websites.description,
     url: `${siteUrl}${pathFor("websites", lang)}`,
@@ -132,7 +132,7 @@ export function projectListJsonLd(lang: Locale) {
   return itemListJsonLd(
     d.projects.featured.map((project) => ({
       name: project.title,
-      description: project.tagline,
+      description: project.description,
       url: `${siteUrl}${pathFor("projects", lang)}${project.slug}/`,
     }))
   );
@@ -158,7 +158,7 @@ export function projectJsonLd(slug: string, lang: Locale) {
   return {
     "@type": "SoftwareApplication",
     name: project.title,
-    description: project.tagline,
+    description: project.description,
     url: `${siteUrl}${pathFor("projects", lang)}${slug}/`,
     applicationCategory: "WebApplication",
     keywords: project.stack.join(", "),

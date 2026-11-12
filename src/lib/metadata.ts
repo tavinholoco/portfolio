@@ -167,7 +167,7 @@ export function buildProjectMetadata(slug: string, lang: Locale): Metadata {
   return {
     metadataBase: new URL(siteUrl),
     title: `${project.title} | ${d.meta.name}`,
-    description: project.tagline,
+    description: project.description,
     alternates: {
       canonical: path,
       languages: languageUrlsFor(slug),
@@ -178,13 +178,13 @@ export function buildProjectMetadata(slug: string, lang: Locale): Metadata {
       url: `${siteUrl}${path}`,
       siteName: d.meta.ogSiteName,
       title: project.title,
-      description: project.tagline,
+      description: project.description,
       images: [ogImageMeta(lang)],
     },
     twitter: {
       card: "summary_large_image",
       title: project.title,
-      description: project.tagline,
+      description: project.description,
       images: [ogImageMeta(lang)],
     },
     robots: {
