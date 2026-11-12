@@ -150,7 +150,7 @@ test.describe("a página de serviço (no navegador)", () => {
   test("o WhatsApp abre em aba nova, nos dois botões", async ({ page }) => {
     await page.goto("/criacao-de-sites/");
 
-    const botoes = page.locator('main a[href="https://wa.me/5518996260781"]');
+    const botoes = page.locator('main a[href^="https://wa.me/5518996260781?text="]');
     await expect(botoes).toHaveCount(2);
     await expect(botoes.first()).toHaveAttribute("target", "_blank");
   });
@@ -275,6 +275,90 @@ test.describe("a home e os cases (fase 2 do plano V4)", () => {
       "<title>About | Pedro Levi</title>",
     );
   });
+});
+
+test.describe("confiança e medição (fase 4 do plano V4)", () => {
+  /** A mensagem pronta de cada link de WhatsApp do conteúdo, já decodificada. */
+  async function mensagens(
+    request: { get: (rota: string) => Promise<{ text: () => Promise<string> }> },
+    rota: string,
+  ): Promise<string[]> {
+    const html = await (await request.get(rota)).text();
+    const principal = html.slice(html.indexOf("<main"), html.indexOf("</main>"));
+    return [...principal.matchAll(/href="https:\/\/wa\.me\/5518996260781\?text=([^"]*)"/g)].map(
+      (m) => decodeURIComponent(m[1]),
+    );
+  }
+
+  test("todo link de WhatsApp leva mensagem, diferente por página e por idioma", async ({
+    request,
+  }) => {
+    const servico = await mensagens(request, "/criacao-de-sites/");
+    const contato = await mensagens(request, "/contato/");
+    const servicoEn = await mensagens(request, "/en/websites/");
+
+    expect(servico).toHaveLength(2);
+    expect(contato).toHaveLength(2);
+    expect(new Set(servico).size).toBe(1);
+    expect(new Set(contato).size).toBe(1);
+
+    /* É a única medição de contato: a origem tem de dar para distinguir. */
+    expect(servico[0]).not.toBe(contato[0]);
+    expect(servico[0]).not.toBe(servicoEn[0]);
+    expect(servico[0]).toContain("criação de sites");
+    expect(contato[0]).toContain("contato");
+
+    /* Nenhum link de WhatsApp sem mensagem sobrou no conteúdo. */
+    for (const rota of ["/criacao-de-sites/", "/contato/", "/en/contact/"]) {
+      const html = await (await request.get(rota)).text();
+      expect(html).not.toMatch(/href="https:\/\/wa\.me\/\d+"/);
+    }
+  });
+
+  test("o LinkedIn escrito é o mesmo do link, e o email é o do domínio", async ({
+    page,
+    request,
+  }) => {
+    await page.goto("/contato/");
+
+    const linkedin = page.locator('main a[href="https://www.linkedin.com/in/pedrolevidias/"]');
+    await expect(linkedin).toContainText("in/pedrolevidias");
+
+    const email = page.locator('main a[href="mailto:contato@pedrolevi.com.br"]');
+    await expect(email).toContainText("contato@pedrolevi.com.br");
+
+    for (const rota of ["/contato/", "/en/contact/", "/info/", "/en/info/"]) {
+      const html = await (await request.get(rota)).text();
+      expect(html, rota).not.toContain("pedro-levi-dias");
+      expect(html, rota).not.toContain("@gmail.com");
+    }
+    expect(await (await request.get("/info/")).text()).toContain(
+      "contato@pedrolevi.com.br",
+    );
+  });
+
+  for (const rota of ["/", "/criacao-de-sites/", "/en/projects/newra-news/"]) {
+    test(`${rota}: o primeiro Tab cai no link de pular para o conteúdo`, async ({
+      page,
+    }) => {
+      await page.goto(rota);
+      await page.keyboard.press("Tab");
+
+      const foco = page.locator(":focus");
+      await expect(foco).toHaveAttribute("href", "#conteudo");
+      await expect(foco).toHaveText(
+        rota.startsWith("/en/") ? "Skip to content" : "Pular para o conteúdo",
+      );
+      /* Invisível até o foco, visível com ele. */
+      const caixa = await foco.boundingBox();
+      expect(caixa!.width).toBeGreaterThan(40);
+      expect(caixa!.y).toBeGreaterThanOrEqual(0);
+
+      await page.keyboard.press("Enter");
+      await expect(page).toHaveURL(/#conteudo$/);
+      await expect(page.locator("main#conteudo")).toHaveCount(1);
+    });
+  }
 });
 
 test.describe("SEO técnico (fase 3 do plano V4)", () => {

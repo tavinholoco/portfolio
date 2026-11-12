@@ -283,8 +283,8 @@ Novos, desta análise:
 | 0 | fechada | 12/11/2026 | D1 a D10 respondidas (§2) |
 | 1 | feita, com F1.6 do Pedro | 12/11/2026 | #37 e #38 mesclados pelo Pedro; produção medida (§6.1); falta a régua do Search Console |
 | 2 | feita e no ar | 12/11/2026 | PR #40 mesclado pelo Pedro; F2.1 a F2.8 menos F2.5 (sem depoimento, D9); conferida em produção, com o Lighthouse inconclusivo (§6.2) |
-| 3 | no PR, aguardando merge | 12/11/2026 | F3.1 a F3.10; 220 unitários e 260 E2E; a imagem de link do serviço e a 404 mostradas ao Pedro (§6.3) |
-| 4 | não iniciada | | |
+| 3 | feita e no ar | 12/11/2026 | PR #41 mesclado pelo Pedro; conferida e medida em produção (§6.4): 98 a 99 no mobile, 97 a 98 no desktop |
+| 4 | no PR, aguardando merge | 12/11/2026 | F4.1 a F4.5; 225 unitários e 269 E2E (§6.5) |
 | 5 | não iniciada | | do Pedro |
 | 6 | não iniciada | | |
 | 7 | não iniciada | | régua: §18.1 |
@@ -358,6 +358,42 @@ O PR #40 entrou em 12/11/2026 (15:43 UTC). Em `https://pedrolevi.com.br`: as 20 
 - **F3.10** `FAQPage` na página de serviço, do mesmo texto da tela.
 
 Guardas: `e2e/json-ld.spec.ts` cobra os tipos de cada rota e que toda referência por `@id` aponte para um nó da mesma página; `e2e/nao-encontrada.spec.ts` é novo; `e2e/marca.spec.ts` e `src/lib/cloudflare-assets.test.ts` passaram a cobrir as quatro imagens de link. **Depois do merge:** validador de schema nas rotas tocadas e as duas URLs de imagem novas com 200 sem salto, em produção.
+
+### 6.4 Fase 3: a medição de produção, e a régua (12/11/2026)
+
+O PR #41 entrou em 12/11/2026. Em `https://pedrolevi.com.br`:
+
+- As quatro imagens de link com **200, `image/png` e sem salto**, as duas novas inclusive (`/criacao-de-sites/opengraph-image-1gx3em/` e `/en/websites/opengraph-image/`).
+- Uma URL que não existe responde **404 com a página do site**, em `pt-BR`.
+- Sitemap com 20 páginas e sem `lastmod` nem `priority`; `og:site_name` "Pedro Levi"; `og:locale:alternate` presente; sem `meta keywords`.
+- **Validador de schema: 0 erros e 0 avisos** em `/`, `/criacao-de-sites/`, `/info/` e `/projetos/newra-news/`, com os tipos novos (`ProfilePage`, `FAQPage`, `SoftwareSourceCode`, `BreadcrumbList`).
+
+**Lighthouse, desta vez com a máquina parada** (nada rodando além dele; mesmo método da §6.1, Lighthouse 13.6.0, `h2`, o domínio como único host):
+
+| Rota | Mobile | Desktop | TBT mobile |
+|---|---|---|---|
+| `/` | 99 | 97 | 70 ms |
+| `/criacao-de-sites/` | 99 | 98 | 78 ms |
+| `/clientes/` | 99 | 97 | 49 ms |
+| `/projetos/` | 98 | 97 | 44 ms |
+| `/info/` | 99 | 98 | 71 ms |
+| `/contato/` | 99 | 98 | 65 ms |
+
+CLS zero no mobile. **É a mesma faixa da §6.1** (98 a 99 e 97 a 98), então as fases 2 e 3 não custaram nota, e o ruído da §6.2 era mesmo da máquina. As rodadas foram estáveis: a maior diferença entre três rodadas de uma rota foi de um ponto, fora uma rodada solta de 93 em `/projetos/`.
+
+**Esta passa a ser a régua do plano V4.** Ela não é comparável com o 100 da §17.15: o Speed Index segue em 3.1 a 3.5 s no mobile contra ~1.85 s de lá, com o `benchmarkIndex` desta máquina mais baixo hoje, e essa diferença já existia antes de qualquer código deste plano (§6.1). Quem for comparar, compare com esta tabela e meça com a máquina parada.
+
+**O elemento de LCP varia por rota e por rodada**, e isso não é defeito: na home é a frase nova (LCP igual ao FCP), em `/projetos/` a primeira prévia, e nas outras alterna entre o link do header, o `h1` e o parágrafo de abertura, todos pintados no mesmo quadro ou quase. A frase do `CLAUDE.md` que dizia "o mesmo elemento nas cinco rotas" foi corrigida.
+
+### 6.5 Fase 4: o que entrou (12/11/2026)
+
+- **F4.1** Todo link de WhatsApp do conteúdo leva mensagem pronta (`?text=`), diferente por página (serviço e contato) e por idioma. É a única medição de contato, sem script. `whatsappLink` em `src/lib/contact.ts`.
+- **F4.2** O texto do LinkedIn deixou de ser digitado: sai de `profile.linkedin` (`in/pedrolevidias`, D6). O mesmo para o GitHub, o telefone e o email, por `contactDisplay`. Os dicionários não digitam mais contato nenhum, e um teste cobra isso.
+- **F4.3** O email é `contato@pedrolevi.com.br` (D5), em `profile.email`: cartão de contato, fatos de `/info/` e `Person` do JSON-LD. O PDF do currículo é arquivo do Pedro e não foi tocado.
+- **F4.4** `X-Content-Type-Options`, `Referrer-Policy`, `X-Frame-Options` e `Permissions-Policy` na regra `/*` do `public/_headers`. Sem CSP, de propósito (§5).
+- **F4.5** Link de pular para o conteúdo, o primeiro foco de toda página, dentro do header (leis 1, 3 e 7), apontando para `main#conteudo`.
+
+Guardas: `src/lib/contact.test.ts` (novo), `e2e/cabecalhos.spec.ts` (os quatro cabeçalhos, com valor exato, também na 404 e na imagem de link) e `e2e/servico.spec.ts` (mensagens, contatos e o primeiro Tab). **Depois do merge:** os quatro cabeçalhos em produção, e um teste de mão no WhatsApp, que é do Pedro: abrir um botão de cada página e ver a mensagem certa.
 
 ## 7. Fontes da pesquisa
 

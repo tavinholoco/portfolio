@@ -46,7 +46,9 @@ export function Identity({ lang }: { lang: Locale }) {
               <dt className="font-mono text-xs text-muted-foreground">
                 {fact.label}
               </dt>
-              <dd className="text-sm break-words">{fact.value}</dd>
+              <dd className="text-sm break-words">
+                {fact.id === "email" ? profile.email : fact.value}
+              </dd>
             </div>
           ))}
         </dl>

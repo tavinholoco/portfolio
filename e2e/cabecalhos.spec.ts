@@ -15,6 +15,41 @@ import { expect, test } from "./fixtures";
 
 const HSTS = /max-age=\d+; includeSubDomains/;
 
+/* F4.4 do plano V4. O valor exato importa: um Referrer-Policy mais solto ou
+   um X-Frame-Options trocado continuam "presentes" e deixam de proteger. */
+const SEGURANCA = {
+  "x-content-type-options": "nosniff",
+  "referrer-policy": "strict-origin-when-cross-origin",
+  "x-frame-options": "DENY",
+} as const;
+
+test.describe("cabeçalhos de segurança", () => {
+  for (const rota of ["/", "/en/websites/", "/nao-existe/"] as const) {
+    test(`${rota} manda os quatro cabeçalhos`, async ({ request }) => {
+      const cabecalhos = (await request.get(rota, { maxRedirects: 0 })).headers();
+      for (const [nome, valor] of Object.entries(SEGURANCA)) {
+        expect(cabecalhos[nome], `${rota}: ${nome}`).toBe(valor);
+      }
+      expect(cabecalhos["permissions-policy"]).toContain("camera=()");
+      /* CSP fica de fora de propósito, até ter hash para os scripts inline. */
+      expect(cabecalhos["content-security-policy"]).toBeUndefined();
+    });
+  }
+
+  test("valem também para asset e para a imagem de link, que segue com tipo", async ({
+    request,
+  }) => {
+    const html = await (await request.get("/criacao-de-sites/")).text();
+    const og = /<meta property="og:image" content="([^"]+)"/.exec(html)?.[1];
+    const img = await request.get(new URL(og!).pathname, { maxRedirects: 0 });
+
+    /* Com nosniff, imagem sem Content-Type deixaria de ser imagem. */
+    expect(img.status()).toBe(200);
+    expect(img.headers()["x-content-type-options"]).toBe("nosniff");
+    expect(img.headers()["content-type"]).toContain("image/png");
+  });
+});
+
 test.describe("cabeçalhos do servidor de assets", () => {
   test("HSTS nas páginas dos dois idiomas", async ({ request }) => {
     for (const rota of ["/", "/en/", "/projetos/newra-news/"] as const) {

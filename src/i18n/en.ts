@@ -64,6 +64,7 @@ export const en: Dict = {
     sheetDescription: "Portfolio navigation",
     mainAria: "Main navigation",
     mobileAria: "Mobile navigation",
+    skipToContent: "Skip to content",
   },
   hero: {
     role: "Full Stack Developer",
@@ -203,7 +204,7 @@ export const en: Dict = {
     facts: [
       { id: "formation", label: "Education", value: "Systems Analysis · UNOESTE" },
       { id: "location", label: "Location", value: "Rancharia, SP, Brazil" },
-      { id: "email", label: "Email", value: "pedrolevidiass@gmail.com" },
+      { id: "email", label: "Email" },
       { id: "languages", label: "Languages", value: "Advanced English (CCAA)" },
     ],
     summary: [
@@ -504,11 +505,16 @@ export const en: Dict = {
     websitesCta: "See how it works",
     goToSection: "Go to contact",
     cards: [
-      { id: "email", label: "Email", value: "pedrolevidiass@gmail.com" },
-      { id: "whatsapp", label: "WhatsApp", value: "(18) 99626-0781" },
-      { id: "linkedin", label: "LinkedIn", value: "in/pedro-levi-dias" },
-      { id: "github", label: "GitHub", value: "@tavinholoco" },
+      { id: "email", label: "Email" },
+      { id: "whatsapp", label: "WhatsApp" },
+      { id: "linkedin", label: "LinkedIn" },
+      { id: "github", label: "GitHub" },
     ],
+  },
+  whatsapp: {
+    service:
+      "Hi, Pedro! I saw your websites page and would like to talk about a site.",
+    contact: "Hi, Pedro! I'm coming from the contact page on your site.",
   },
   controls: {
     theme: "Toggle theme",

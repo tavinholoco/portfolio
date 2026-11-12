@@ -12,11 +12,13 @@ export function resolveLocale(value: string | null | undefined): Locale {
   return value === "en" ? "en" : "pt";
 }
 
-export type Fact = {
-  id: "formation" | "location" | "email" | "languages";
-  label: string;
-  value: string;
-};
+/**
+ * Um fato de `/info/`. O do email não tem `value`: o endereço sai de
+ * `profile.email`, para não existir um segundo lugar onde ele é digitado.
+ */
+export type Fact =
+  | { id: "formation" | "location" | "languages"; label: string; value: string }
+  | { id: "email"; label: string };
 
 export type Interest = {
   id: "analysis" | "data" | "ai";
@@ -75,10 +77,13 @@ export type SkillBlock = {
   skills: string[];
 };
 
+/**
+ * Um cartão de contato. Só o rótulo: o valor escrito sai de `profile`, por
+ * `contactDisplay` em `src/lib/contact.ts`, o mesmo lugar de onde sai o link.
+ */
 export type ContactCard = {
   id: "email" | "whatsapp" | "linkedin" | "github";
   label: string;
-  value: string;
 };
 
 /**
@@ -128,6 +133,8 @@ export type Dict = {
     sheetDescription: string;
     mainAria: string;
     mobileAria: string;
+    /** O link de pular para o conteúdo, o primeiro foco de toda página. */
+    skipToContent: string;
   };
   hero: {
     role: string;
@@ -230,6 +237,8 @@ export type Dict = {
     goToSection: string;
     cards: ContactCard[];
   };
+  /** A mensagem pronta do WhatsApp, uma por página de origem (F4.1). */
+  whatsapp: { service: string; contact: string };
   controls: {
     theme: string;
     toEnglish: string;

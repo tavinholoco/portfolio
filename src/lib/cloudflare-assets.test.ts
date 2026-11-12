@@ -105,6 +105,16 @@ describe("public/_redirects e public/_headers da Cloudflare", () => {
     expect(hsts).not.toMatch(/preload/i);
   });
 
+  it("o _headers manda os cabeçalhos de segurança em todo caminho, sem CSP", () => {
+    const regra = regrasDeCabecalho().get("/*") ?? [];
+    expect(regra).toContain("X-Content-Type-Options: nosniff");
+    expect(regra).toContain("Referrer-Policy: strict-origin-when-cross-origin");
+    expect(regra).toContain("X-Frame-Options: DENY");
+    expect(regra.some((c) => c.startsWith("Permissions-Policy:"))).toBe(true);
+    /* CSP é trabalho próprio: os scripts inline pedem hash (plano V4, §5). */
+    expect(regra.some((c) => /^Content-Security-Policy/i.test(c))).toBe(false);
+  });
+
   it("o _headers tira do índice o workers.dev e as prévias", () => {
     const workersDev = [...regrasDeCabecalho()].find(([padrao]) =>
       /^https:\/\/:\w+\.:\w+\.workers\.dev\/\*$/.test(padrao)

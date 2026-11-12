@@ -64,6 +64,7 @@ export const pt: Dict = {
     sheetDescription: "Navegação do portfólio",
     mainAria: "Navegação principal",
     mobileAria: "Navegação mobile",
+    skipToContent: "Pular para o conteúdo",
   },
   hero: {
     role: "Desenvolvedor Full Stack",
@@ -205,7 +206,7 @@ export const pt: Dict = {
     facts: [
       { id: "formation", label: "Formação", value: "ADS · UNOESTE" },
       { id: "location", label: "Localização", value: "Rancharia, SP" },
-      { id: "email", label: "Email", value: "pedrolevidiass@gmail.com" },
+      { id: "email", label: "Email" },
       { id: "languages", label: "Idiomas", value: "Inglês avançado (CCAA)" },
     ],
     summary: [
@@ -508,11 +509,16 @@ export const pt: Dict = {
     websitesCta: "Ver como funciona",
     goToSection: "Ir para o contato",
     cards: [
-      { id: "email", label: "Email", value: "pedrolevidiass@gmail.com" },
-      { id: "whatsapp", label: "WhatsApp", value: "(18) 99626-0781" },
-      { id: "linkedin", label: "LinkedIn", value: "in/pedro-levi-dias" },
-      { id: "github", label: "GitHub", value: "@tavinholoco" },
+      { id: "email", label: "Email" },
+      { id: "whatsapp", label: "WhatsApp" },
+      { id: "linkedin", label: "LinkedIn" },
+      { id: "github", label: "GitHub" },
     ],
+  },
+  whatsapp: {
+    service:
+      "Olá, Pedro! Vi a sua página de criação de sites e quero conversar sobre um site.",
+    contact: "Olá, Pedro! Vim pela página de contato do seu site.",
   },
   controls: {
     theme: "Alternar tema",

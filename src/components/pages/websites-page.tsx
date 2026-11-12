@@ -6,8 +6,8 @@ import trakAssessoria from "@/assets/projects/trak-assessoria.webp";
 import { JsonLd } from "@/components/json-ld";
 import { Section } from "@/components/section";
 import { SectionIntro } from "@/components/section-intro";
-import { profile } from "@/data/profile";
 import { dictionaries, type Locale, type WebsiteExample } from "@/i18n";
+import { whatsappLink } from "@/lib/contact";
 import { faqJsonLd, personJsonLd, serviceJsonLd } from "@/lib/json-ld";
 
 /** Mesmo botão do contato: borda em `currentColor`, para inverter no blend. */
@@ -23,10 +23,18 @@ const examplePreview: Record<WebsiteExample["id"], StaticImageData> = {
   dandarkness,
 };
 
-function WhatsAppLink({ label, className }: { label: string; className?: string }) {
+function WhatsAppLink({
+  lang,
+  label,
+  className,
+}: {
+  lang: Locale;
+  label: string;
+  className?: string;
+}) {
   return (
     <a
-      href={profile.whatsapp}
+      href={whatsappLink(lang, "service")}
       target="_blank"
       rel="noopener noreferrer"
       className={`${ctaClass} ${className ?? ""}`}
@@ -74,7 +82,7 @@ export function WebsitesPage({ lang }: { lang: Locale }) {
         <p className="font-body mt-8 max-w-2xl text-lede opacity-80 text-pretty">
           {d.intro.join(" ")}
         </p>
-        <WhatsAppLink label={d.cta} className="mt-10" />
+        <WhatsAppLink lang={lang} label={d.cta} className="mt-10" />
 
         <div className="mt-20">
           <SectionIntro title={d.servicesTitle} />
@@ -193,7 +201,7 @@ export function WebsitesPage({ lang }: { lang: Locale }) {
           </ul>
         </div>
 
-        <WhatsAppLink label={d.cta} className="mt-16" />
+        <WhatsAppLink lang={lang} label={d.cta} className="mt-16" />
       </Section>
     </>
   );
