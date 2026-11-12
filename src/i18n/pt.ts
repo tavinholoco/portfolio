@@ -32,14 +32,19 @@ export const pt: Dict = {
   },
   routes: {
     home: {
-      title: "Pedro Levi | Desenvolvedor Full Stack",
+      title: "Pedro Levi | Criador de sites para todo o Brasil",
       description:
-        "Entendo o problema antes de escolher a tecnologia. Veja como eu trabalho, do primeiro contato ao deploy.",
+        "Desenvolvedor full stack em Rancharia, SP. Crio landing pages e portfólios para clientes de todo o Brasil.",
+    },
+    websites: {
+      title: "Criação de sites em todo o Brasil",
+      description:
+        "Landing pages e portfólios feitos à mão, rápidos e prontos para o celular, para todo o Brasil. Fale comigo pelo WhatsApp.",
     },
     clients: {
       title: "Clientes | Pedro Levi",
       description:
-        "Sites e sistemas entregues para clientes reais, com o problema de cada um e o que foi construído.",
+        "Trabalhos feitos para clientes, com o objetivo de cada um e o que foi construído.",
     },
     projects: {
       title: "Projetos | Pedro Levi",
@@ -54,7 +59,7 @@ export const pt: Dict = {
     contact: {
       title: "Contato | Pedro Levi",
       description:
-        "Dois caminhos diretos: contratar um desenvolvedor ou tirar um projeto do papel.",
+        "Quer um site ou está contratando? Fale comigo pelo WhatsApp, em Rancharia, SP, ou por email.",
     },
   },
   nav: {
@@ -67,13 +72,100 @@ export const pt: Dict = {
   hero: {
     role: "Desenvolvedor Full Stack",
     name: "Pedro Levi",
-    thesis: "Entendo o problema antes de escolher a tecnologia.",
+    heading: "Pedro Levi, criador de sites para todo o Brasil",
     downloadCv: "Baixar CV",
+  },
+  websites: {
+    intro: [
+      "Sou o Pedro Levi, desenvolvedor de Rancharia, SP.",
+      "Crio landing pages e portfólios para quem precisa ser encontrado na internet e receber contato direto dos clientes.",
+    ],
+    cta: "Falar no WhatsApp",
+    servicesTitle: "O que eu faço",
+    services: [
+      {
+        id: "landing",
+        title: "Landing pages",
+        description:
+          "Uma página focada em apresentar o seu negócio e levar o visitante até o contato.",
+      },
+      {
+        id: "portfolio",
+        title: "Portfólios",
+        description:
+          "Um site para mostrar o seu trabalho com a sua identidade visual.",
+      },
+    ],
+    examplesTitle: "Exemplos do meu trabalho",
+    openExample: "Abrir",
+    examples: [
+      {
+        id: "trak",
+        name: "Trak Assessoria",
+        kind: "Projeto próprio",
+        description:
+          "Exemplo de landing page institucional para uma assessoria contábil.",
+        url: "https://trak-acessoria.vercel.app",
+      },
+      {
+        id: "dandarkness",
+        name: "Dandarkness",
+        kind: "Cliente",
+        description:
+          "Portfólio artístico alinhado à identidade visual do cliente.",
+        url: "https://dandarkness.vercel.app/",
+      },
+    ],
+    stepsTitle: "Como funciona",
+    steps: [
+      {
+        title: "Entendo",
+        description:
+          "Você me conta pelo WhatsApp o que precisa e quem quer alcançar.",
+      },
+      {
+        title: "Planejo",
+        description: "Organizo o conteúdo e o caminho até o contato.",
+      },
+      {
+        title: "Desenvolvo",
+        description:
+          "Construo o site à mão, pronto para o celular e para o computador.",
+      },
+      {
+        title: "Testo",
+        description: "Confiro o site no celular e no computador antes de publicar.",
+      },
+      {
+        title: "Publico",
+        description: "Coloco o site no ar e mando o link para você.",
+      },
+    ],
+    areaTitle: "Onde atendo",
+    area: "Atendo clientes de todo o Brasil. Tudo é feito pelo WhatsApp, sem você precisar sair de onde está.",
+    faqTitle: "Perguntas frequentes",
+    faq: [
+      {
+        question: "Como eu começo?",
+        answer: "Me chame no WhatsApp e conte o que você precisa.",
+      },
+      {
+        question: "O site funciona no celular?",
+        answer:
+          "Sim, todo site é feito para funcionar bem no celular e no computador.",
+      },
+      {
+        question: "Preciso encontrar você pessoalmente?",
+        answer: "Não, resolvemos tudo pelo WhatsApp.",
+      },
+    ],
+    serviceType: "Criação de sites",
   },
   about: {
     title: "Sobre mim",
     facts: [
       { id: "formation", label: "Formação", value: "ADS · UNOESTE" },
+      { id: "location", label: "Localização", value: "Rancharia, SP" },
       { id: "email", label: "Email", value: "pedrolevidiass@gmail.com" },
       { id: "languages", label: "Idiomas", value: "Inglês avançado (CCAA)" },
     ],
@@ -121,6 +213,7 @@ export const pt: Dict = {
     previous: "Anterior",
     next: "Próximo",
     demoLabel: "Demo",
+    websitesCta: "Quer um site assim? Veja como funciona",
     categories: {
       fullstack: "Full Stack",
       mobile: "Mobile",
@@ -182,15 +275,16 @@ export const pt: Dict = {
         slug: "trak-assessoria",
         title: "Trak Assessoria",
         tagline:
-          "Landing institucional para assessoria contábil, com testes E2E.",
-        problem: "Assessoria contábil sem presença digital profissional.",
+          "Exemplo de landing institucional para assessoria contábil, com testes E2E.",
+        problem:
+          "Como apresentar uma assessoria contábil na internet com clareza.",
         solution: "Landing institucional com Next.js 16 e Tailwind v4.",
         highlight: "Testes E2E com Vitest e Playwright.",
         stack: ["Next.js 16", "Tailwind v4", "Vitest", "Playwright"],
         category: "landing",
         learnings: [
-          "Entregar uma landing institucional com testes E2E (Vitest + Playwright).",
-          "Traduzir os requisitos de um cliente real em design, conteúdo e código.",
+          "Construir uma landing institucional com testes E2E (Vitest + Playwright).",
+          "Traduzir o que uma assessoria contábil precisa mostrar em design, conteúdo e código.",
           "Publicar com Next.js 16 e Tailwind v4 mantendo performance e acessibilidade.",
         ],
       },
@@ -201,6 +295,7 @@ export const pt: Dict = {
     projectKind: "Projeto profissional",
     responsibilitiesLabel: "Responsabilidades",
     previewAlt: "Prévia do site",
+    websitesCta: "Quer um site também? Veja como funciona",
     projects: [
       {
         name: "Dandarkness",
@@ -346,6 +441,7 @@ export const pt: Dict = {
     projectDescription:
       "Vamos conversar sobre a sua ideia e o caminho até o deploy.",
     projectCta: "Falar comigo",
+    websitesCta: "Ver como funciona",
     goToSection: "Ir para o contato",
     cards: [
       { id: "email", label: "Email", value: "pedrolevidiass@gmail.com" },

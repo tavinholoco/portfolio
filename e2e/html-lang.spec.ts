@@ -8,11 +8,13 @@ import { expect, test } from "./fixtures";
  */
 const routes = [
   { path: "/", lang: "pt" },
+  { path: "/criacao-de-sites/", lang: "pt" },
   { path: "/clientes/", lang: "pt" },
   { path: "/projetos/", lang: "pt" },
   { path: "/info/", lang: "pt" },
   { path: "/contato/", lang: "pt" },
   { path: "/en/", lang: "en" },
+  { path: "/en/websites/", lang: "en" },
   { path: "/en/clients/", lang: "en" },
   { path: "/en/projects/", lang: "en" },
   { path: "/en/info/", lang: "en" },

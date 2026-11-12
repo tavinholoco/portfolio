@@ -12,6 +12,19 @@ export const profile = {
   linkedin: "https://www.linkedin.com/in/pedrolevidias/",
   whatsapp: "https://wa.me/5518996260781",
   /**
+   * Cidade e estado, e nunca a rua: o atendimento é só pelo WhatsApp, e o
+   * endereço dele não é público. Voltou para o site por causa da busca local,
+   * revogando a §12.4 do plano.
+   */
+  location: { city: "Rancharia", region: "SP", country: "BR" },
+  /**
+   * Onde ele atende: o Brasil todo, decidido pelo Pedro em 11/11/2026 (antes
+   * eram Rancharia e Presidente Prudente). O atendimento é só pelo WhatsApp, e
+   * por isso a área não depende da cidade dele. Vale para o `areaServed` do
+   * JSON-LD.
+   */
+  serviceArea: { name: "Brasil", code: "BR" },
+  /**
    * Foto do perfil, o avatar do GitHub salvo no repositório.
    *
    * Import, e não caminho em string: é a lei 19. Em `public/` o arquivo era

@@ -1,7 +1,7 @@
 import { expect, test } from "./fixtures";
 
 /**
- * Navegação pelas 5 rotas, nos dois idiomas.
+ * Navegação pelas 6 rotas, nos dois idiomas.
  *
  * O que importa aqui não é "a página abre", e sim as duas coisas que a divisão
  * em cinco rotas tornou possíveis de quebrar em silêncio: o item ativo da nav
@@ -11,13 +11,14 @@ import { expect, test } from "./fixtures";
 
 const rotas = [
   { pt: "/", en: "/en/", nav: "Home" },
+  { pt: "/criacao-de-sites/", en: "/en/websites/", nav: "Criação de sites" },
   { pt: "/clientes/", en: "/en/clients/", nav: "Clientes" },
   { pt: "/projetos/", en: "/en/projects/", nav: "Projetos" },
   { pt: "/info/", en: "/en/info/", nav: "Info" },
   { pt: "/contato/", en: "/en/contact/", nav: "Contato" },
 ] as const;
 
-test.describe("as 5 rotas", () => {
+test.describe("as 6 rotas", () => {
   for (const rota of rotas) {
     test(`${rota.pt} abre e marca "${rota.nav}" como ativo`, async ({
       page,

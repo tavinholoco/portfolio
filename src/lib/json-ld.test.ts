@@ -120,6 +120,63 @@ describe("knowsAbout", () => {
   });
 });
 
+describe("o endereço da Person", () => {
+  it("diz cidade, estado e país, com o telefone público", async () => {
+    const { personJsonLd } = await import("./json-ld");
+    const person = personJsonLd("pt");
+
+    expect(person.address).toEqual({
+      "@type": "PostalAddress",
+      addressLocality: "Rancharia",
+      addressRegion: "SP",
+      addressCountry: "BR",
+    });
+    expect(person.telephone).toBe("+5518996260781");
+  });
+
+  it("nunca publica a rua, nem vira LocalBusiness", async () => {
+    const { personJsonLd, serviceJsonLd } = await import("./json-ld");
+
+    for (const lang of ["pt", "en"] as const) {
+      const texto = JSON.stringify([personJsonLd(lang), serviceJsonLd(lang)]);
+      expect(texto).not.toContain("streetAddress");
+      expect(texto).not.toContain("postalCode");
+      expect(texto).not.toContain("LocalBusiness");
+    }
+  });
+});
+
+describe("serviceJsonLd", () => {
+  it("aponta o provider para a Person pelo @id", async () => {
+    setEnv({ NEXT_PUBLIC_SITE_URL: "https://pedrolevi.com.br" });
+    vi.resetModules();
+    const { personJsonLd, serviceJsonLd } = await import("./json-ld");
+
+    expect(serviceJsonLd("pt").provider).toEqual({
+      "@id": personJsonLd("pt")["@id"],
+    });
+    expect(personJsonLd("en")["@id"]).toBe(personJsonLd("pt")["@id"]);
+  });
+
+  it("atende o Brasil todo, e a URL é a do idioma", async () => {
+    setEnv({ NEXT_PUBLIC_SITE_URL: "https://pedrolevi.com.br" });
+    vi.resetModules();
+    const { serviceJsonLd } = await import("./json-ld");
+
+    expect(serviceJsonLd("pt").areaServed).toEqual({
+      "@type": "Country",
+      name: "Brasil",
+      identifier: "BR",
+    });
+    expect(serviceJsonLd("pt").url).toBe(
+      "https://pedrolevi.com.br/criacao-de-sites/"
+    );
+    expect(serviceJsonLd("en").url).toBe(
+      "https://pedrolevi.com.br/en/websites/"
+    );
+  });
+});
+
 describe("itemListJsonLd", () => {
   /* Mesmo motivo do bloco acima: siteUrl é calculada na carga do módulo. */
   async function freshJsonLd() {

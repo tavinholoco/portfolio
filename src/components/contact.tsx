@@ -1,8 +1,10 @@
-import { ArrowUpRight, Download } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight, ArrowUpRight, Download } from "lucide-react";
 
 import { Section } from "@/components/section";
 import { profile } from "@/data/profile";
 import { dictionaries, type Locale } from "@/i18n";
+import { pathFor } from "@/lib/routes";
 
 /** Destino de cada cartão de contato. O id vem do dicionário. */
 const cardHrefs: Record<string, { href: string; external: boolean }> = {
@@ -77,15 +79,24 @@ export function Contact({ lang }: { lang: Locale }) {
           <p className="font-body mt-4 max-w-sm text-sm leading-relaxed opacity-70 text-pretty">
             {d.projectDescription}
           </p>
-          <a
-            href={profile.whatsapp}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="focus-ring mt-8 inline-flex items-center gap-2 rounded-sm border border-current/40 px-5 py-2.5 text-sm transition-opacity hover:opacity-70"
-          >
-            {d.projectCta}
-            <ArrowUpRight className="size-4" aria-hidden />
-          </a>
+          <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-4">
+            <a
+              href={profile.whatsapp}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="focus-ring inline-flex items-center gap-2 rounded-sm border border-current/40 px-5 py-2.5 text-sm transition-opacity hover:opacity-70"
+            >
+              {d.projectCta}
+              <ArrowUpRight className="size-4" aria-hidden />
+            </a>
+            <Link
+              href={pathFor("websites", lang)}
+              className="focus-ring inline-flex items-center gap-2 text-sm transition-opacity hover:opacity-70"
+            >
+              {d.websitesCta}
+              <ArrowRight className="size-4" aria-hidden />
+            </Link>
+          </div>
         </div>
       </div>
 

@@ -12,9 +12,10 @@ import {
 } from "./routes";
 
 describe("manifesto de rotas: invariantes", () => {
-  it("tem as 5 rotas da v3, na ordem da navegação", () => {
+  it("tem as 6 rotas, na ordem da navegação", () => {
     expect(routeIds).toEqual([
       "home",
+      "websites",
       "clients",
       "projects",
       "info",
@@ -73,6 +74,7 @@ describe("navRoutes", () => {
   it("monta a nav do idioma na ordem do manifesto", () => {
     expect(navRoutes("pt")).toEqual([
       { id: "home", href: "/", label: "Home" },
+      { id: "websites", href: "/criacao-de-sites/", label: "Criação de sites" },
       { id: "clients", href: "/clientes/", label: "Clientes" },
       { id: "projects", href: "/projetos/", label: "Projetos" },
       { id: "info", href: "/info/", label: "Info" },
@@ -83,6 +85,7 @@ describe("navRoutes", () => {
   it("monta a nav do inglês com os paths prefixados", () => {
     expect(navRoutes("en").map((item) => item.href)).toEqual([
       "/en/",
+      "/en/websites/",
       "/en/clients/",
       "/en/projects/",
       "/en/info/",

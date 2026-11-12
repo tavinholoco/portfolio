@@ -1,9 +1,9 @@
 import { expect, test } from "./fixtures";
 
 /**
- * Auditoria de responsividade: 6 rotas em 7 larguras.
+ * Auditoria de responsividade: 7 rotas em 7 larguras.
  *
- * Cinco classes de defeito, todas encontradas na prática e nenhuma delas
+ * Seis classes de defeito, todas encontradas na prática e nenhuma delas
  * visível num teste de conteúdo:
  *
  * 1. **Rolagem horizontal.** Um elemento largo demais empurra a página e o site
@@ -23,8 +23,11 @@ import { expect, test } from "./fixtures";
  *    "Baixar CV" no header, os controles saíam 88px da tela em 320px e o botão
  *    do menu ficava inalcançável em 320, 360 e 390px, que é a maioria dos
  *    celulares. Precisa de medição própria.
+ * 6. **Rodapé sem caber na faixa.** Também é `fixed`, e a faixa tem só `--pad` de
+ *    altura. Com a cidade de volta, ele ficou com 49 caracteres numa tela de
+ *    320px: quebrar de linha o jogaria por cima da moldura, sem rolagem nenhuma.
  *
- * **As cinco rodam num carregamento só.** Antes eram quatro testes com quatro
+ * **As seis rodam num carregamento só.** Antes eram quatro testes com quatro
  * `goto` por combinação, o que fazia cada largura nova custar 4x mais tempo e
  * desestimulava justamente o que faltava: cobrir mais larguras.
  *
@@ -37,6 +40,7 @@ import { expect, test } from "./fixtures";
 
 const rotas = [
   "/",
+  "/criacao-de-sites/",
   "/clientes/",
   "/projetos/",
   "/info/",
@@ -110,6 +114,18 @@ for (const largura of larguras) {
                     `termina em ${Math.round(r.right)}px de ${doc.clientWidth}px`
                 );
               }
+            }
+          }
+
+          /* 6. O rodapé cabe na faixa dele: uma linha só, dentro da moldura. */
+          const rodape = document.querySelector("footer span");
+          if (rodape) {
+            const r = rodape.getBoundingClientRect();
+            if (r.height > pad + 1 || r.right > doc.clientWidth - pad + 1) {
+              achados.push(
+                `rodapé não cabe: ${Math.round(r.width)}x${Math.round(r.height)}px, ` +
+                  `termina em ${Math.round(r.right)}px de ${doc.clientWidth}px`
+              );
             }
           }
 
