@@ -5,6 +5,7 @@ import {
   themeScript,
   viewport as rootViewport,
 } from "@/components/shell/root-document";
+import { actionLinkClass } from "@/components/estilos";
 import { dictionaries, type Locale } from "@/i18n";
 import { getSiteUrl } from "@/lib/metadata";
 import { pathFor } from "@/lib/routes";
@@ -55,7 +56,7 @@ function Bloco({ lang }: { lang: Locale }) {
           layouts, e a navegação daqui é sempre um carregamento inteiro. */}
       <a
         href={pathFor("home", lang)}
-        className="focus-ring mt-6 inline-flex items-center gap-2 rounded-sm border border-current/40 px-5 py-2.5 text-sm transition-opacity hover:opacity-70"
+        className={`${actionLinkClass} mt-6`}
       >
         {d.back}
       </a>

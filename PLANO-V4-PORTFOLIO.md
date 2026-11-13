@@ -284,10 +284,10 @@ Novos, desta análise:
 | 1 | feita, com F1.6 do Pedro | 12/11/2026 | #37 e #38 mesclados pelo Pedro; produção medida (§6.1); falta a régua do Search Console |
 | 2 | feita e no ar | 12/11/2026 | PR #40 mesclado pelo Pedro; F2.1 a F2.8 menos F2.5 (sem depoimento, D9); conferida em produção, com o Lighthouse inconclusivo (§6.2) |
 | 3 | feita e no ar | 12/11/2026 | PR #41 mesclado pelo Pedro; conferida e medida em produção (§6.4): 98 a 99 no mobile, 97 a 98 no desktop |
-| 4 | no PR, aguardando merge | 12/11/2026 | F4.1 a F4.5; 225 unitários e 269 E2E (§6.5) |
-| 5 | não iniciada | | do Pedro |
-| 6 | não iniciada | | |
-| 7 | não iniciada | | régua: §18.1 |
+| 4 | feita e no ar | 13/11/2026 | PR #42 mesclado pelo Pedro; cabeçalhos, contatos e WhatsApp conferidos em produção (§6.5) |
+| 5 | em andamento | 13/11/2026 | do Pedro; o currículo em PDF fica com o gmail, por decisão dele |
+| 6 | código em PR | 13/11/2026 | F6.1 a F6.4 (§6.6); a infraestrutura (F6.5 a F6.8) vem em PR próprio |
+| 7 | régua anotada | 13/11/2026 | Search Console em 08/11/2026: 19 indexadas e 6 não indexadas (§6.6) |
 
 ### 6.1 Fase 1: a medição de produção (12/11/2026)
 
@@ -396,6 +396,21 @@ CLS zero no mobile. **É a mesma faixa da §6.1** (98 a 99 e 97 a 98), então as
 - **Correção de texto, fora do roteiro:** a Trak era descrita como "assessoria contábil", e ela é uma **assessoria de artistas** (o lema do site dela é "Arte é negócio"). Corrigido nos dois idiomas, no exemplo da página de serviço e no case, por resposta do Pedro em 12/11/2026. Ele também confirmou "Universidade do Oeste Paulista" no `alumniOf`.
 
 Guardas: `src/lib/contact.test.ts` (novo), `e2e/cabecalhos.spec.ts` (os quatro cabeçalhos, com valor exato, também na 404 e na imagem de link) e `e2e/servico.spec.ts` (mensagens, contatos e o primeiro Tab). **Depois do merge:** os quatro cabeçalhos em produção, e um teste de mão no WhatsApp, que é do Pedro: abrir um botão de cada página e ver a mensagem certa.
+
+### 6.6 Fase 4 no ar, a régua da fase 7 e o código da fase 6 (13/11/2026)
+
+**Fase 4 em produção:** os quatro cabeçalhos de segurança em `/`, os links de WhatsApp de `/contato/` com a mensagem pronta, `contato@pedrolevi.com.br` e `in/pedrolevidias` no contato, nenhum `pedro-levi-dias` nem gmail servido, e a Trak descrita como assessoria de artistas. O teste de mão do WhatsApp, no celular, é do Pedro.
+
+**A régua da fase 7 (F1.6):** o relatório de Indexação do Search Console mostrava **19 páginas indexadas e 6 não indexadas, por 2 motivos**, com a última atualização em **08/11/2026**. É anterior às páginas novas, que entraram em 12/11: a página de serviço nos dois idiomas ainda não está nessa conta. Os 2 motivos ainda não foram lidos; o mais provável é que sejam endereços que redirecionam de propósito (`www`, `vercel.app`, URL sem barra). Se aparecer "Rastreada, mas não indexada" ou "Descoberta, mas não indexada", vale olhar.
+
+**Fase 6, PR de código:**
+
+- **F6.1** Comentários que ainda citavam a variante `solid` (seis lugares), o ISR e a Vercel como hospedagem atual.
+- **F6.2** Saiu o `data-lenis-prevent` e os campos sem uso do `GitHubRepo`. **O `REVALIDATE_SECONDS` e o `next: { revalidate }` ficaram, ao contrário do que o plano pedia:** o comentário de `src/lib/github.ts` explica que com o cache de build ligado no Workers Builds eles fazem cada rebuild semanal buscar de novo, e que tirá-los congelaria o dado do primeiro build ou tiraria a rota do estático.
+- **F6.3** `src/components/estilos.ts`, com `actionLinkClass` (sete cópias) e `listRowClass` (cinco). Ficaram como classes, e não componentes, porque cada consumidor é um elemento diferente (`<a>`, `<Link>`, `<a download>`, `<li>`).
+- **F6.4** O `ContactPage` saiu: as duas rotas de contato usam o `<Contact>` direto.
+
+Nada muda para o visitante: 225 unitários e 269 E2E iguais aos da fase 4.
 
 ## 7. Fontes da pesquisa
 

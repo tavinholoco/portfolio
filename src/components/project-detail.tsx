@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowRight, ArrowUpRight } from "lucide-react";
 
+import { actionLinkClass } from "@/components/estilos";
 import { JsonLd } from "@/components/json-ld";
 import { Section } from "@/components/section";
 import { projectMetas } from "@/data/projects";
@@ -20,10 +21,6 @@ function projectRoute(slug: string, lang: Locale): string {
   return `${pathFor("projects", lang)}${slug}/`;
 }
 
-/** Link de ação, em borda de `currentColor`. Funciona nas duas variantes. */
-const actionClass =
-  "focus-ring inline-flex items-center gap-2 rounded-sm border border-current/40 px-5 py-2.5 text-sm transition-opacity hover:opacity-70";
-
 /**
  * Página individual de projeto.
  *
@@ -31,9 +28,9 @@ const actionClass =
  * `problema → solução → destaque → aprendizados`. O que mudou foi a
  * apresentação.
  *
- * O hero vai em `blend` e o corpo em `solid`. A divisão dá ritmo e resolve um
- * problema concreto: o corpo tem blocos densos que ficam mais legíveis sobre
- * fundo opaco, e o hero ganha o canvas atrás do título.
+ * O hero vai em `blend` e o corpo em `plain`. A divisão dá ritmo e resolve um
+ * problema concreto: o corpo tem a prévia do projeto, que em `difference`
+ * sairia em negativo, e blocos densos que leem melhor sem inverter.
  *
  * A paleta do fundo é a mesma que a linha deste projeto tem na lista, então
  * sair do showcase e entrar no case não muda o humor do site.
@@ -96,9 +93,9 @@ export async function ProjectDetailPage({
         </p>
 
         {/*
-          Dado vivo do repositório, e a única coisa nesta página que não é
-          estática: é ele que dá sentido ao ISR de 1h de lib/github.ts. Some
-          quando a API falha, porque o merge cai no fallback curado.
+          Dado do repositório, buscado no build: com o export estático não há
+          ISR, e o rebuild semanal é o que o mantém em dia (ver lib/github.ts).
+          Some quando a API falha, porque o merge cai no fallback curado.
         */}
         {(project.updatedAt || project.language) && (
           <p className="mt-3 font-mono text-xs opacity-70">
@@ -117,7 +114,7 @@ export async function ProjectDetailPage({
               href={project.demoUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className={actionClass}
+              className={actionLinkClass}
             >
               {d.projects.demoLabel}
               <ArrowUpRight className="size-4" aria-hidden />
@@ -127,7 +124,7 @@ export async function ProjectDetailPage({
             href={project.repoUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className={actionClass}
+            className={actionLinkClass}
           >
             {d.projects.github}
             <ArrowUpRight className="size-4" aria-hidden />
@@ -248,7 +245,7 @@ export async function ProjectDetailPage({
           <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-4">
             <Link
               href={pathFor("contact", lang)}
-              className="focus-ring inline-flex items-center gap-2 rounded-sm border border-current/40 px-5 py-2.5 text-sm transition-opacity hover:opacity-70"
+              className={actionLinkClass}
             >
               {d.contact.goToSection}
               <ArrowRight className="size-4" aria-hidden />

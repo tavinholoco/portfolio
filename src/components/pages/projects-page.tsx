@@ -7,7 +7,7 @@ import { projectListJsonLd } from "@/lib/json-ld";
 /**
  * A rota de projetos próprios.
  *
- * A lista vai em `solid` porque tem screenshots, que em `difference` apareceriam
+ * A lista vai em `plain` porque tem screenshots, que em `difference` apareceriam
  * em negativo. O cabeçalho em `blend` que existia aqui saiu na v3.5: a rota
  * abre direto no showcase, como a referência faz, e sobrou só um h1 invisível.
  */

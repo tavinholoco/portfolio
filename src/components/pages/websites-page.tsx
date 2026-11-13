@@ -1,6 +1,7 @@
 import Image, { type StaticImageData } from "next/image";
 import { ArrowUpRight } from "lucide-react";
 
+import { actionLinkClass, listRowClass } from "@/components/estilos";
 import dandarkness from "@/assets/projects/dandarkness.webp";
 import trakAssessoria from "@/assets/projects/trak-assessoria.webp";
 import { JsonLd } from "@/components/json-ld";
@@ -9,10 +10,6 @@ import { SectionIntro } from "@/components/section-intro";
 import { dictionaries, type Locale, type WebsiteExample } from "@/i18n";
 import { whatsappLink } from "@/lib/contact";
 import { faqJsonLd, personJsonLd, serviceJsonLd } from "@/lib/json-ld";
-
-/** Mesmo botão do contato: borda em `currentColor`, para inverter no blend. */
-const ctaClass =
-  "focus-ring inline-flex items-center gap-2 rounded-sm border border-current/40 px-5 py-2.5 text-sm transition-opacity hover:opacity-70";
 
 /**
  * A prévia de cada exemplo. Mesmos arquivos do showcase, importados de
@@ -37,7 +34,7 @@ function WhatsAppLink({
       href={whatsappLink(lang, "service")}
       target="_blank"
       rel="noopener noreferrer"
-      className={`${ctaClass} ${className ?? ""}`}
+      className={`${actionLinkClass} ${className ?? ""}`}
     >
       {label}
       <ArrowUpRight className="size-4" aria-hidden />
@@ -90,7 +87,7 @@ export function WebsitesPage({ lang }: { lang: Locale }) {
             {d.services.map((service) => (
               <li
                 key={service.id}
-                className="grid gap-2 border-b border-current/15 py-7 sm:grid-cols-[minmax(0,14rem)_minmax(0,1fr)] sm:items-baseline sm:gap-8"
+                className={listRowClass.simples}
               >
                 <h3 className="text-xl font-medium tracking-tight sm:text-2xl">
                   {service.title}
@@ -160,7 +157,7 @@ export function WebsitesPage({ lang }: { lang: Locale }) {
             {d.steps.map((step, index) => (
               <li
                 key={step.title}
-                className="grid gap-2 border-b border-current/15 py-7 sm:grid-cols-[auto_minmax(0,14rem)_minmax(0,1fr)] sm:items-baseline sm:gap-8"
+                className={listRowClass.numerada}
               >
                 <span className="font-mono text-xs opacity-70 tabular-nums">
                   {String(index + 1).padStart(2, "0")}
@@ -188,7 +185,7 @@ export function WebsitesPage({ lang }: { lang: Locale }) {
             {d.faq.map((item) => (
               <li
                 key={item.question}
-                className="grid gap-2 border-b border-current/15 py-7 sm:grid-cols-[minmax(0,14rem)_minmax(0,1fr)] sm:items-baseline sm:gap-8"
+                className={listRowClass.simples}
               >
                 <h3 className="text-lg font-medium tracking-tight">
                   {item.question}

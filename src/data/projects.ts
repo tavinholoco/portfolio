@@ -40,8 +40,8 @@ export type ProjectMeta = {
    *
    * É import, e não caminho em string, de propósito. Arquivo em `public/` é
    * servido pela URL literal e não tem como ser versionado por conteúdo, então
-   * a Vercel o entrega com `max-age=0, must-revalidate` e o navegador
-   * revalida na rede a cada visita. Importado, ele vira
+   * o servidor o entrega com `max-age=0, must-revalidate` (a Cloudflare hoje,
+   * a Vercel antes) e o navegador revalida na rede a cada visita. Importado, ele vira
    * `/_next/static/media/<hash>.webp` e ganha `immutable`.
    */
   image?: StaticImageData;

@@ -175,9 +175,7 @@ export function SiteHeader({
               <Menu className="size-5" aria-hidden />
             </SheetTrigger>
 
-            {/* data-lenis-prevent: sem isso a rolagem dentro do painel seria
-                capturada pelo Lenis e moveria a página atrás dele. */}
-            <SheetContent side="right" className="w-72" data-lenis-prevent>
+            <SheetContent side="right" className="w-72">
               <SheetHeader>
                 <SheetTitle>{labels.nav.sheetTitle}</SheetTitle>
                 <SheetDescription className="sr-only">
