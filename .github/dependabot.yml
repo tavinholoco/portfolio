@@ -1,0 +1,57 @@
+# Atualizações de dependência (F6.6 do plano V4).
+#
+# Semanal e agrupado, para virar um PR por semana no máximo, e não um por
+# pacote: cada push em PR aberto dispara build de prévia na Cloudflare.
+#
+# Três coisas ficam de fora dos grupos, de propósito:
+# - Next e React vêm sozinhos. O caminho da imagem de link depende do hash
+#   interno do Next (lei 17 do CLAUDE.md), e a atualização deles pede a suíte
+#   inteira e uma medição de produção depois do merge.
+# - O Playwright também. Versão nova traz outro Chromium, e o caminho dele
+#   está escrito no CLAUDE.md e nos scripts de Lighthouse do laboratório.
+# - Versão maior não entra em grupo nenhum: abre PR própria, para ser lida.
+#
+# O merge continua sendo do Pedro.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "10:00"
+      timezone: America/Sao_Paulo
+    open-pull-requests-limit: 3
+    groups:
+      next-e-react:
+        patterns:
+          - next
+          - eslint-config-next
+          - react
+          - react-dom
+          - "@types/react"
+          - "@types/react-dom"
+        update-types: [minor, patch]
+      demais:
+        patterns: ["*"]
+        exclude-patterns:
+          - next
+          - eslint-config-next
+          - react
+          - react-dom
+          - "@types/react"
+          - "@types/react-dom"
+          - "@playwright/test"
+        update-types: [minor, patch]
+    ignore:
+      # Os tipos do Node acompanham o .node-version, e não a última versão.
+      - dependency-name: "@types/node"
+        update-types: [version-update:semver-major]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      actions:
+        patterns: ["*"]
