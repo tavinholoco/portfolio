@@ -6,8 +6,11 @@ import avatar from "@/assets/avatar.webp";
  */
 export const profile = {
   name: "Pedro Levi Dias Rosa Paula",
-  email: "pedrolevidiass@gmail.com",
+  /* O endereço do domínio (D5 do plano V4), que o Email Routing repassa. */
+  email: "contato@pedrolevi.com.br",
   phoneRaw: "+5518996260781",
+  /* O mesmo número, como aparece escrito no contato. */
+  phoneDisplay: "(18) 99626-0781",
   github: "https://github.com/tavinholoco",
   linkedin: "https://www.linkedin.com/in/pedrolevidias/",
   whatsapp: "https://wa.me/5518996260781",

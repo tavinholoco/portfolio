@@ -64,6 +64,7 @@ export const en: Dict = {
     sheetDescription: "Portfolio navigation",
     mainAria: "Main navigation",
     mobileAria: "Mobile navigation",
+    skipToContent: "Skip to content",
   },
   hero: {
     role: "Full Stack Developer",
@@ -104,7 +105,7 @@ export const en: Dict = {
         name: "Trak Assessoria",
         kind: "Personal project",
         description:
-          "Example of an institutional landing page for an accounting firm.",
+          "Example of an institutional landing page for an artist management agency.",
         url: "https://trak-acessoria.vercel.app",
       },
       {
@@ -203,7 +204,7 @@ export const en: Dict = {
     facts: [
       { id: "formation", label: "Education", value: "Systems Analysis · UNOESTE" },
       { id: "location", label: "Location", value: "Rancharia, SP, Brazil" },
-      { id: "email", label: "Email", value: "pedrolevidiass@gmail.com" },
+      { id: "email", label: "Email" },
       { id: "languages", label: "Languages", value: "Advanced English (CCAA)" },
     ],
     summary: [
@@ -331,21 +332,21 @@ export const en: Dict = {
         slug: "trak-assessoria",
         title: "Trak Assessoria",
         tagline:
-          "Example institutional landing page for an accounting firm, with E2E tests.",
+          "Example institutional landing page for an artist management agency, with E2E tests.",
         description:
-          "Trak Assessoria case study: an example institutional landing page for an accounting firm, with Next.js 16 and E2E tests.",
+          "Trak Assessoria case study: an example institutional landing page for an artist management agency, with Next.js 16 and E2E tests.",
         context: [
-          "Trak Assessoria is a personal project: an example of an institutional landing page for an accounting firm.",
+          "Trak Assessoria is a personal project: an example of an institutional landing page for an artist management agency.",
           "I built it to show how to present a service clearly and take the visitor to the contact step, with E2E tests covering the page.",
         ],
-        problem: "How to present an accounting firm online with clarity.",
+        problem: "How to present an artist management agency online with clarity.",
         solution: "Institutional landing page with Next.js 16 and Tailwind v4.",
         highlight: "E2E tests with Vitest and Playwright.",
         stack: ["Next.js 16", "Tailwind v4", "Vitest", "Playwright"],
         category: "landing",
         learnings: [
           "Building an institutional landing page with E2E tests (Vitest + Playwright).",
-          "Translating what an accounting firm needs to show into design, content and code.",
+          "Translating what an artist management agency needs to show into design, content and code.",
           "Shipping with Next.js 16 and Tailwind v4 while keeping performance and accessibility.",
         ],
       },
@@ -504,11 +505,16 @@ export const en: Dict = {
     websitesCta: "See how it works",
     goToSection: "Go to contact",
     cards: [
-      { id: "email", label: "Email", value: "pedrolevidiass@gmail.com" },
-      { id: "whatsapp", label: "WhatsApp", value: "(18) 99626-0781" },
-      { id: "linkedin", label: "LinkedIn", value: "in/pedro-levi-dias" },
-      { id: "github", label: "GitHub", value: "@tavinholoco" },
+      { id: "email", label: "Email" },
+      { id: "whatsapp", label: "WhatsApp" },
+      { id: "linkedin", label: "LinkedIn" },
+      { id: "github", label: "GitHub" },
     ],
+  },
+  whatsapp: {
+    service:
+      "Hi, Pedro! I saw your websites page and would like to talk about a site.",
+    contact: "Hi, Pedro! I'm coming from the contact page on your site.",
   },
   controls: {
     theme: "Toggle theme",

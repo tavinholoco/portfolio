@@ -64,6 +64,7 @@ export const pt: Dict = {
     sheetDescription: "Navegação do portfólio",
     mainAria: "Navegação principal",
     mobileAria: "Navegação mobile",
+    skipToContent: "Pular para o conteúdo",
   },
   hero: {
     role: "Desenvolvedor Full Stack",
@@ -105,7 +106,7 @@ export const pt: Dict = {
         name: "Trak Assessoria",
         kind: "Projeto próprio",
         description:
-          "Exemplo de landing page institucional para uma assessoria contábil.",
+          "Exemplo de landing page institucional para uma assessoria de artistas.",
         url: "https://trak-acessoria.vercel.app",
       },
       {
@@ -205,7 +206,7 @@ export const pt: Dict = {
     facts: [
       { id: "formation", label: "Formação", value: "ADS · UNOESTE" },
       { id: "location", label: "Localização", value: "Rancharia, SP" },
-      { id: "email", label: "Email", value: "pedrolevidiass@gmail.com" },
+      { id: "email", label: "Email" },
       { id: "languages", label: "Idiomas", value: "Inglês avançado (CCAA)" },
     ],
     summary: [
@@ -333,22 +334,22 @@ export const pt: Dict = {
         slug: "trak-assessoria",
         title: "Trak Assessoria",
         tagline:
-          "Exemplo de landing institucional para assessoria contábil, com testes E2E.",
+          "Exemplo de landing institucional para assessoria de artistas, com testes E2E.",
         description:
-          "Case da Trak Assessoria: exemplo de landing page institucional para assessoria contábil, com Next.js 16 e testes E2E.",
+          "Case da Trak Assessoria: exemplo de landing page institucional para assessoria de artistas, com Next.js 16 e testes E2E.",
         context: [
-          "A Trak Assessoria é um projeto próprio: um exemplo de landing page institucional para uma assessoria contábil.",
+          "A Trak Assessoria é um projeto próprio: um exemplo de landing page institucional para uma assessoria de artistas.",
           "Fiz para mostrar como apresentar um serviço com clareza e levar o visitante até o contato, com testes E2E cobrindo a página.",
         ],
         problem:
-          "Como apresentar uma assessoria contábil na internet com clareza.",
+          "Como apresentar uma assessoria de artistas na internet com clareza.",
         solution: "Landing institucional com Next.js 16 e Tailwind v4.",
         highlight: "Testes E2E com Vitest e Playwright.",
         stack: ["Next.js 16", "Tailwind v4", "Vitest", "Playwright"],
         category: "landing",
         learnings: [
           "Construir uma landing institucional com testes E2E (Vitest + Playwright).",
-          "Traduzir o que uma assessoria contábil precisa mostrar em design, conteúdo e código.",
+          "Traduzir o que uma assessoria de artistas precisa mostrar em design, conteúdo e código.",
           "Publicar com Next.js 16 e Tailwind v4 mantendo performance e acessibilidade.",
         ],
       },
@@ -508,11 +509,16 @@ export const pt: Dict = {
     websitesCta: "Ver como funciona",
     goToSection: "Ir para o contato",
     cards: [
-      { id: "email", label: "Email", value: "pedrolevidiass@gmail.com" },
-      { id: "whatsapp", label: "WhatsApp", value: "(18) 99626-0781" },
-      { id: "linkedin", label: "LinkedIn", value: "in/pedro-levi-dias" },
-      { id: "github", label: "GitHub", value: "@tavinholoco" },
+      { id: "email", label: "Email" },
+      { id: "whatsapp", label: "WhatsApp" },
+      { id: "linkedin", label: "LinkedIn" },
+      { id: "github", label: "GitHub" },
     ],
+  },
+  whatsapp: {
+    service:
+      "Olá, Pedro! Vi a sua página de criação de sites e quero conversar sobre um site.",
+    contact: "Olá, Pedro! Vim pela página de contato do seu site.",
   },
   controls: {
     theme: "Alternar tema",

@@ -88,7 +88,9 @@ export function SiteShell({
         pararia antes da faixa. Padding não cria contexto de empilhamento,
         então a F1 continua de pé.
       */}
-      <main className="[&>section:first-of-type]:pt-[calc(var(--pad)*1.5+6rem)] lg:[&>section:first-of-type]:pt-28">
+      <main
+        id="conteudo"
+        className="[&>section:first-of-type]:pt-[calc(var(--pad)*1.5+6rem)] lg:[&>section:first-of-type]:pt-28">
         {children}
       </main>
       <SiteFooter />

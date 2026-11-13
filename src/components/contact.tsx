@@ -4,15 +4,18 @@ import { ArrowRight, ArrowUpRight, Download } from "lucide-react";
 import { Section } from "@/components/section";
 import { profile } from "@/data/profile";
 import { dictionaries, type Locale } from "@/i18n";
+import { contactDisplay, whatsappLink } from "@/lib/contact";
 import { pathFor } from "@/lib/routes";
 
 /** Destino de cada cartão de contato. O id vem do dicionário. */
-const cardHrefs: Record<string, { href: string; external: boolean }> = {
+const cardHrefs = (
+  lang: Locale
+): Record<string, { href: string; external: boolean }> => ({
   email: { href: `mailto:${profile.email}`, external: false },
-  whatsapp: { href: profile.whatsapp, external: true },
+  whatsapp: { href: whatsappLink(lang, "contact"), external: true },
   linkedin: { href: profile.linkedin, external: true },
   github: { href: profile.github, external: true },
-};
+});
 
 /**
  * Contato: dois caminhos diretos, um para cada público.
@@ -32,6 +35,7 @@ const cardHrefs: Record<string, { href: string; external: boolean }> = {
  */
 export function Contact({ lang }: { lang: Locale }) {
   const d = dictionaries[lang].contact;
+  const hrefs = cardHrefs(lang);
 
   return (
     <Section id="contato" variant="blend">
@@ -81,7 +85,7 @@ export function Contact({ lang }: { lang: Locale }) {
           </p>
           <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-4">
             <a
-              href={profile.whatsapp}
+              href={whatsappLink(lang, "contact")}
               target="_blank"
               rel="noopener noreferrer"
               className="focus-ring inline-flex items-center gap-2 rounded-sm border border-current/40 px-5 py-2.5 text-sm transition-opacity hover:opacity-70"
@@ -103,7 +107,7 @@ export function Contact({ lang }: { lang: Locale }) {
       {/* Contato direto, em lista. Sem cartão e sem ícone ilustrativo. */}
       <ul className="mt-20 border-t border-current/15">
         {d.cards.map((card) => {
-          const target = cardHrefs[card.id];
+          const target = hrefs[card.id];
           return (
             <li key={card.id}>
               <a
@@ -122,7 +126,9 @@ export function Contact({ lang }: { lang: Locale }) {
                 <span className="font-mono text-xs">
                   {card.label}
                 </span>
-                <span className="text-sm break-words">{card.value}</span>
+                <span className="text-sm break-words">
+                  {contactDisplay[card.id]}
+                </span>
                 {target.external ? (
                   <ArrowUpRight
                     className="hidden size-4 opacity-50 sm:block"

@@ -87,6 +87,21 @@ export function SiteHeader({
   return (
     <header className="pointer-events-none fixed inset-x-0 top-0 z-50 mix-blend-difference text-white">
       {/*
+        Pular para o conteúdo (F4.5 do plano V4): o primeiro foco de toda
+        página. Sem ele, quem navega por teclado passa pelo nome, pelos seis
+        itens do menu e pelos três controles antes de chegar ao texto, em toda
+        rota. Mora dentro do header, e não como irmão ou wrapper do `<main>`
+        (leis 1 e 3), herda a cor para inverter no blend, e leva
+        `pointer-events-auto` como todo interativo daqui (lei 7). Invisível
+        até receber foco.
+      */}
+      <a
+        href="#conteudo"
+        className="focus-ring pointer-events-auto sr-only rounded-sm border border-current/40 px-3 py-1.5 text-sm focus:not-sr-only focus:absolute focus:top-2 focus:left-[calc(var(--pad)*2)]"
+      >
+        {labels.nav.skipToContent}
+      </a>
+      {/*
         `flex-wrap` e `ms-auto` nos controles, e isso conserta um defeito que
         estava no ar: com o "Baixar CV" no header, identidade mais controles
         pedem 368px, e sobram 310 num celular de 390px. Os controles saíam da

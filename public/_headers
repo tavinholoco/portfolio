@@ -8,8 +8,20 @@
 # acesso por http; com ele o navegador passa a ir direto para https. Vale para
 # todo caminho e se soma às regras abaixo. Sem preload de propósito: entrar na
 # lista dos navegadores é difícil de desfazer, e é decisão do Pedro.
+#
+# Os outros quatro são a F4.4 do plano V4, e também valem para todo caminho:
+# nosniff impede o navegador de adivinhar tipo (as imagens de link, sem
+# extensão, já saem com Content-Type nas regras abaixo); o Referrer-Policy
+# manda só a origem para outros sites; X-Frame-Options impede o site de ser
+# embutido em iframe; e o Permissions-Policy desliga o que o site não usa.
+# CSP fica de fora de propósito: os scripts inline de tema e de abertura
+# pedem hash, e isso é um trabalho próprio.
 /*
   Strict-Transport-Security: max-age=63072000; includeSubDomains
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Frame-Options: DENY
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), browsing-topics=()
 
 # Lei 19: asset com hash no nome nunca muda. Sem esta regra a Cloudflare
 # entrega max-age=0, must-revalidate, e o navegador revalida a cada visita.
