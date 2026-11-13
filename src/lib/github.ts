@@ -55,13 +55,12 @@ async function buscarRepos(): Promise<Response> {
   });
 }
 
+/* Só os campos que o merge lê: a API devolve dezenas, e o resto não é usado. */
 type GitHubRepo = {
   name: string;
-  description: string | null;
   html_url: string;
   homepage: string | null;
   language: string | null;
-  stargazers_count: number;
   pushed_at: string;
 };
 

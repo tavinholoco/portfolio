@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, ArrowUpRight, Download } from "lucide-react";
 
+import { actionLinkClass } from "@/components/estilos";
 import { Section } from "@/components/section";
 import { profile } from "@/data/profile";
 import { dictionaries, type Locale } from "@/i18n";
@@ -69,7 +70,7 @@ export function Contact({ lang }: { lang: Locale }) {
           <a
             href={profile.cvUrl}
             download
-            className="focus-ring mt-8 inline-flex items-center gap-2 rounded-sm border border-current/40 px-5 py-2.5 text-sm transition-opacity hover:opacity-70"
+            className={`${actionLinkClass} mt-8`}
           >
             <Download className="size-4" aria-hidden />
             {d.hiringCta}
@@ -88,7 +89,7 @@ export function Contact({ lang }: { lang: Locale }) {
               href={whatsappLink(lang, "contact")}
               target="_blank"
               rel="noopener noreferrer"
-              className="focus-ring inline-flex items-center gap-2 rounded-sm border border-current/40 px-5 py-2.5 text-sm transition-opacity hover:opacity-70"
+              className={actionLinkClass}
             >
               {d.projectCta}
               <ArrowUpRight className="size-4" aria-hidden />

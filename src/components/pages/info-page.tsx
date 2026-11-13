@@ -11,10 +11,10 @@ import { personJsonLd, profilePageJsonLd } from "@/lib/json-ld";
  * A rota Info funde quatro seções: sobre, processo, trajetória e habilidades.
  *
  * As variantes alternam de propósito. Sobre e Habilidades vão em `blend` e
- * misturam contra o canvas; Identidade e Trajetória vão em `solid` e o cobrem.
- * Não é só estética: Identidade tem foto, que em `difference` apareceria em
- * negativo (E12). O resultado colateral é ritmo, porque uma página inteira
- * misturada cansa.
+ * misturam contra o canvas; Identidade e Trajetória vão em `plain`, que não
+ * mistura e deixa o canvas à vista. Não é só estética: Identidade tem foto, que
+ * em `difference` apareceria em negativo (E12). O resultado colateral é ritmo,
+ * porque uma página inteira misturada cansa.
  *
  * Os 5 passos do processo chegaram na v3.5, vindos da home. Ver <Process>.
  *

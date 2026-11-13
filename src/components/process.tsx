@@ -1,3 +1,4 @@
+import { listRowClass } from "@/components/estilos";
 import { Section } from "@/components/section";
 import { SectionIntro } from "@/components/section-intro";
 import { dictionaries, type Locale } from "@/i18n";
@@ -30,7 +31,7 @@ export function Process({ lang }: { lang: Locale }) {
         {d.steps.map((step, index) => (
           <li
             key={step.title}
-            className="grid gap-2 border-b border-current/15 py-7 sm:grid-cols-[auto_minmax(0,14rem)_minmax(0,1fr)] sm:items-baseline sm:gap-8"
+            className={listRowClass.numerada}
           >
             <span className="font-mono text-xs opacity-70 tabular-nums">
               {String(index + 1).padStart(2, "0")}

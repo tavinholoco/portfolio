@@ -19,9 +19,9 @@
  * A máscara continua não escondendo o header, que fica acima dela na tabela
  * de camadas, em z-50 contra os 30 daqui (E15).
  *
- * A transição própria existe pelo mesmo motivo de F5 nas seções `solid`: a
- * transição declarada no `:root` anima só o fundo do root, então quem tem cor
- * própria precisa da sua, senão salta durante o crossfade de tema.
+ * A transição própria existe pelo motivo da F5: a transição declarada no
+ * `:root` anima só o fundo do root, então quem tem cor de fundo própria
+ * precisa da sua, senão salta durante o crossfade de tema.
  */
 export function ViewportMask() {
   return (

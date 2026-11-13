@@ -33,9 +33,9 @@ export const profile = {
    * Foto do perfil, o avatar do GitHub salvo no repositório.
    *
    * Import, e não caminho em string: é a lei 19. Em `public/` o arquivo era
-   * servido pela URL literal, sem como versionar por conteúdo, e a Vercel o
-   * entregava com `max-age=0, must-revalidate`, revalidando na rede a cada
-   * visita a `/info/`. Importado, vira `/_next/static/media/<hash>.webp` e
+   * servido pela URL literal, sem como versionar por conteúdo, e o servidor
+   * o entrega com `max-age=0, must-revalidate` (a Vercel antes, a Cloudflare
+   * hoje), revalidando na rede a cada visita a `/info/`. Importado, vira `/_next/static/media/<hash>.webp` e
    * ganha `immutable`.
    *
    * Guardado em 320x320, que é o dobro dos 160px em que ele aparece, para

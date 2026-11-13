@@ -1,3 +1,4 @@
+import { listRowClass } from "@/components/estilos";
 import { Section } from "@/components/section";
 import { dictionaries, type Locale } from "@/i18n";
 
@@ -10,7 +11,7 @@ import { dictionaries, type Locale } from "@/i18n";
  * seção 8 do plano, hierarquia por tamanho e opacidade.
  *
  * O avatar e os fatos rápidos não estão aqui: foram para `identity.tsx`, num
- * bloco `solid`, porque foto em `mix-blend-difference` apareceria em negativo
+ * bloco `plain`, porque foto em `mix-blend-difference` apareceria em negativo
  * (E12).
  */
 export function About({ lang }: { lang: Locale }) {
@@ -81,7 +82,7 @@ export function About({ lang }: { lang: Locale }) {
           {d.interests.map((interest) => (
             <li
               key={interest.id}
-              className="grid gap-2 border-b border-current/15 py-7 sm:grid-cols-[minmax(0,14rem)_minmax(0,1fr)] sm:items-baseline sm:gap-8"
+              className={listRowClass.simples}
             >
               <h3 className="text-lg font-medium tracking-tight">
                 {interest.title}
