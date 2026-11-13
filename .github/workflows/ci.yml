@@ -12,6 +12,14 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+# Um build só, compartilhado (F6.7 do plano V4). O job `ci` builda depois dos
+# testes e entrega o resultado ao E2E por artefato, em vez de o E2E buildar de
+# novo: são o mesmo `pnpm build`, e um deles era tempo jogado fora.
+#
+# O artefato leva `out/`, que é o que o `wrangler dev` serve, e
+# `.next/static/chunks`, que o `e2e/bundle.spec.ts` lê para provar que os
+# dicionários não foram para o cliente.
+
 jobs:
   ci:
     name: Lint, typecheck, testes e build
@@ -46,8 +54,20 @@ jobs:
       - name: Build
         run: pnpm build
 
+      - name: Guardar o build para o E2E
+        uses: actions/upload-artifact@v4
+        with:
+          name: build
+          path: |
+            out/
+            .next/static/chunks/
+          include-hidden-files: true
+          retention-days: 1
+          if-no-files-found: error
+
   e2e:
     name: "E2E (Playwright): shell, showcase, navegação e html lang"
+    needs: ci
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -67,11 +87,34 @@ jobs:
       - name: Instalar dependências
         run: pnpm install --frozen-lockfile
 
-      - name: Instalar navegador do Playwright (Chromium)
+      # O navegador fica em cache, com a versão do Playwright na chave. Foi a
+      # instalação dele que reprovou o #38 duas vezes, por DNS do runner, antes
+      # de rodar qualquer teste (§18.6 do PLANO-V3). Com o cache, o download
+      # só acontece quando o Playwright muda de versão.
+      - name: Versão do Playwright
+        id: playwright
+        run: echo "versao=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Cache do navegador do Playwright
+        id: cache-navegador
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.versao }}
+
+      - name: Instalar o Chromium (sem cache)
+        if: steps.cache-navegador.outputs.cache-hit != 'true'
         run: pnpm exec playwright install --with-deps chromium
 
-      - name: Build
-        run: pnpm build
+      # Com o navegador em cache, falta só a parte do sistema, que vem do apt.
+      - name: Instalar as dependências de sistema do Chromium (com cache)
+        if: steps.cache-navegador.outputs.cache-hit == 'true'
+        run: pnpm exec playwright install-deps chromium
+
+      - name: Baixar o build
+        uses: actions/download-artifact@v4
+        with:
+          name: build
 
       - name: Testes E2E
         run: pnpm test:e2e
